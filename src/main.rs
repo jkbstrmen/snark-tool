@@ -1,5 +1,8 @@
 use structopt::StructOpt;
 use yaml_rust::{YamlLoader, Yaml};
+use crate::procedure::configuration::Configuration;
+use serde_yaml::Error;
+
 
 mod procedure;
 
@@ -25,7 +28,13 @@ fn read_args() {
     parse_yaml_config(&content);
 }
 
-fn parse_yaml_config(source: &String) {
+fn parse_yaml_config(source: &String) -> Result<(), serde_yaml::Error> {
+
+    // TODO - handle error somehow else
+    let config: Configuration = serde_yaml::from_str(&source)?;
+
+
+
     let docs = YamlLoader::load_from_str(source).unwrap();
     let doc = &docs[0];
 
@@ -43,6 +52,8 @@ fn parse_yaml_config(source: &String) {
     // println!("procedures: {:?}", procedures);
 
     procedure::create_procedure_chain(procedures);
+
+    Ok(())
 }
 
 fn get_version(doc: &Yaml){

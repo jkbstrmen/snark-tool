@@ -17,12 +17,13 @@ impl<P> ProcedureChain<P> where P: Procedure {
     }
 
     // run
-    pub fn run<G>(&self, graph: &mut G) where G: Debug + Graph {
+    // TODO - run on vector of graphs
+    pub fn run<G>(&self, /*graph: &mut G, */ graphs: &mut Vec<G>) where G: Debug + Graph {
         // println!("graph: {:?}", graph);
         println!("Run chain");
 
         for procedure in self.procedures.iter(){
-            procedure.run(graph);
+            procedure.run(graphs);
         }
 
     }

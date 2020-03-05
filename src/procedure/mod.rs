@@ -1,6 +1,7 @@
 mod procedure;
 mod procedure_chain;
 mod graph;
+pub mod configuration;
 
 use crate::procedure::procedure_chain::ProcedureChain;
 use crate::procedure::procedure::BasicProcedure;
@@ -27,7 +28,9 @@ pub fn create_procedure_chain(yaml_procedures: &Hash){
 
 
     let mut graph = SimpleGraph{ graph: "Hello".to_string() };
-    chain.run(&mut graph);
+    // let mut graphs: Vec<SimpleGraph> = Vec::new();
+    let mut graphs: Vec<SimpleGraph> = vec![graph];
+    chain.run(&mut graphs);
 
 }
 
@@ -42,6 +45,6 @@ pub fn procedures_playground() {
 
     // let graph = String::from("Hello");
     let mut graph = SimpleGraph{ graph: "Hello".to_string() };
-    chain.run(&mut graph);
+    // chain.run(&mut graph);
 
 }

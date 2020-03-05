@@ -6,7 +6,8 @@ use std::collections::HashMap;
 type Config = HashMap<String, String>;
 
 pub trait Procedure{
-    fn run<G>(&self, graph: &mut G) where G: Debug + Graph;
+    // fn run<G>(&self, graph: &mut G) where G: Debug + Graph;
+    fn run<G>(&self, graphs: &mut Vec<G>) where G: Debug + Graph;
 }
 
 // struct Procedure {
@@ -29,16 +30,16 @@ impl BasicProcedure{
 }
 
 impl Procedure for BasicProcedure {
-    fn run<G>(&self, graph: &mut G) where G: Debug + Graph {
+    fn run<G>(&self, graphs: &mut Vec<G>) where G: Debug + Graph {
 
         match self.proc_type.as_str() {
             "read" => {
                 // println!("Reading");
-                self.read_graph(graph);
+                self.read_graph(graphs);
             }
             "write" => {
                 // println!("Writing");
-                self.write_graph(graph);
+                self.write_graph(graphs);
             }
             _ => {
                 self.handle_unknown_type();
@@ -50,19 +51,22 @@ impl Procedure for BasicProcedure {
 }
 
 impl BasicProcedure{
-    fn read_graph<G>(&self, graph: &mut G) where G: Debug + Graph {
+    fn read_graph<G>(&self, graphs: &mut Vec<G>) where G: Debug + Graph {
 
         let s = String::from("ola");
         // s.push_str("read");
 
-        println!("Running procedure: {} on graph: {:?}", self.proc_type, graph);
-        graph.add_edge(" read");
+        println!("Running procedure: {} on graph: {:?}", self.proc_type, graphs);
+        // graph.add_edge(" read");
+
+        // read graphs from file or string from config and add to vector of graphs (specified number)
+
 
     }
 
-    fn write_graph<Graph>(&self, graph: &Graph) where Graph: Debug {
+    fn write_graph<Graph>(&self, graphs: &mut Vec<Graph>) where Graph: Debug {
 
-        println!("Running procedure: {} on graph: {:?}", self.proc_type, graph);
+        println!("Running procedure: {} on graph: {:?}", self.proc_type, graphs);
 
     }
 

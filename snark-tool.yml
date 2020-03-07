@@ -1,29 +1,22 @@
 version: 0.1
 
-#input:
-#  file: /home/jakub/development/rigo/git/snark-tool/TEST/graphs/graphG6.g6
-#  graphFormat: g6
-#  number-of-graphs: 5
-
-#  - file
-#  - input.txt
-
-#output:
-#  - file
-#  - output.txt
-
 options:
   - first-option
 
 procedures:
-  read:
-    file: /home/jakub/development/rigo/git/snark-tool/TEST/graphs/graphG6.g6
-    graph-format: g6
-    number-of-graphs: 5
+  - proc-type: read
+    config:
+      file: resources/graphs/graphG6.g6
+      graph-format: g6
+      number-of-graphs: 5
 
-  colour:
-    colouriser-type: sat
+  - proc-type: colour
+    config:
+      colouriser-type: sat
 
-  write:
-    file: hello
-    graph-format: hello
+  - proc-type: write
+    config:
+      file: hello
+      graph-format: hello
+
+  - proc-type: last-procedure

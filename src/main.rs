@@ -1,10 +1,12 @@
-use structopt::StructOpt;
-use yaml_rust::{YamlLoader, Yaml};
 use crate::procedure::configuration::Configuration;
 use serde_yaml::Error;
+use structopt::StructOpt;
+use yaml_rust::{Yaml, YamlLoader};
 
-
+mod graph;
 mod procedure;
+mod service;
+mod test;
 
 /// Search for a pattern in a file and display the lines that contain it.
 #[derive(StructOpt)]
@@ -16,64 +18,28 @@ struct Cli {
     path: std::path::PathBuf,
 }
 
-fn read_args() {
+fn read_config() -> String {
     let args = Cli::from_args();
     println!("command: {}", args.command);
     println!("path to file: {:?}", args.path);
 
     let content = std::fs::read_to_string(&args.path).expect("could not read file");
 
-    // println!("File content: {}", content);
-
-    parse_yaml_config(&content);
+    content
 }
 
-fn parse_yaml_config(source: &String) -> Result<(), serde_yaml::Error> {
-
-    // TODO - handle error somehow else
-    let config: Configuration = serde_yaml::from_str(&source)?;
-
-
-
-    let docs = YamlLoader::load_from_str(source).unwrap();
-    let doc = &docs[0];
-
-    // let is_null = doc["version"].is_null();
-    // println!("doc is null: {}", is_null);
-
-    let is_null = doc["procedures"].is_null();
-    println!("procedures is null: {}", is_null);
-    let procedures = match doc["procedures"].as_hash() {
-        Some(hash) => hash,
-        None => {
-            panic!("crash and burn");
-        }
+fn parse_yaml_config(source: &String) -> Configuration {
+    let config = match Configuration::from_yaml_string(source) {
+        Ok(configuration) => configuration,
+        Err(error) => panic!("Configuration parse error: {}", error),
     };
-    // println!("procedures: {:?}", procedures);
-
-    procedure::create_procedure_chain(procedures);
-
-    Ok(())
-}
-
-fn get_version(doc: &Yaml){
-    let version = match doc["version"].as_f64() {
-        Some(num) => {
-            println!("Someeeee: {}", num);
-            num
-        }
-        None => {
-            println!("Noneeeee");
-            panic!("crash and burn");
-            //String::from("None")
-        }
-    };
-    println!("version is: {}", version);
+    config
 }
 
 fn main() {
-    read_args();
-    // procedure::procedures_playground();
+    let config_str = read_config();
+    let config = parse_yaml_config(&config_str);
+    procedure::procedures_playground(config.procedures);
 
     println!("Hello, world!");
 }

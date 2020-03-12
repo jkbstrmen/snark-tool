@@ -16,7 +16,7 @@ use std::str::Chars;
 
 // 460175067
 // 126 126 63 90 90 90 90 90
-//~~B?x]C??@Q??GCCA@??Bo??C@O?C?G_E????\?O?A??H_??@C?@??_?C???g????G??B@??C????Ag
+// ~~?ZZZZZC??@Q??GCCA@??Bo??C@O?C?G_E????\?O?A??H_??@C?@??_?C???g????G??B@??C????Ag
 
 
 pub fn read_graph(source: &str){
@@ -29,17 +29,20 @@ pub fn read_graph(source: &str){
     // as_num('C');
     //
     // as_char(126);
-    // as_char(66);
     // as_char(63);
+    // as_char(90);
     // as_char(120);
     //
     // as_binary(67-63);
     // as_binary(120);
 
-    let size = get_graph_size(source);
+    let mut iterator = source.chars();
+    let size = get_graph_size(&mut iterator);
     println!("Graph size: {}", size);
 
+    continue_reading(&mut iterator, size);
 
+    // continue reading graph with iterator ...
 
 
     // let mut n = format!("{:b}", 66-63);
@@ -51,6 +54,74 @@ pub fn read_graph(source: &str){
     // println!("Binary size: {}", n);
 
 }
+
+fn continue_reading(iterator: &mut Chars, size: u32){
+
+    // println!("Iterator left: {:?}", iterator.next());
+
+    let nodes = size as usize;
+    let edges = (size * 3 / 2) as usize;
+    println!("Nodes: {}, edges: {}", nodes, edges);
+
+    // println!("usize min: {}, usize max: {}", usize::min_value(), usize::max_value());
+    // println!("u64 min: {}, u64 max: {}", u64::min_value(), u64::max_value());
+
+    let mut undirected = StableGraph::<u8, u16, Undirected, u8>::with_capacity(nodes, edges);
+    // let mut undirected = StableGraph::<u8, u16, Undirected, u8>::from(10, 20);
+
+    for node in 0..size {
+        undirected.add_node(0);
+    }
+
+    println!("Graph: {:?}", undirected);
+
+    // TODO - format chars in iterator to binary form
+
+    let error = "error";
+
+    let mut char = iterator.next();
+    let mut binary =  (char.expect(error) as u128) - BIAS as u128;
+    println!("{:b}", binary);
+    while char != None {
+
+        let bits = format!("{:b}", (char.expect(error) as u8) - BIAS as u8);
+
+        // add position specifier
+        add_edges(&bits, &mut undirected);
+
+        char = iterator.next();
+    }
+
+    // TODO - complete graph with missing zeroes?? - or not needed
+}
+
+struct Position{
+    row: u32,
+    column: u32
+}
+
+fn add_edges(bits: &String, graph: &mut StableGraph<u8, u16, Undirected, u8>){
+
+    for i in 0..(6 - bits.len()) {
+        print!("0 ");
+
+        // increment rows and columns (edge position)
+
+    }
+
+    for char in bits.chars() {
+        print!("{} ", char);
+    }
+    println!("bits: {}, size: {}", bits, bits.len());
+
+}
+
+fn add_batch(){
+
+    // add at most 21 chars
+
+}
+
 
 fn as_char(num: u8){
     let num_c = num as char;
@@ -70,16 +141,16 @@ fn as_binary(num: u8){
 const BIAS: u32 = 63;
 const SMALLN: u32 = 62;
 
-fn get_graph_size(source: &str) -> u32 {
+// TODO - return result instead of u32 - error when wrong g6 format
+
+fn get_graph_size(iterator: &mut Chars) -> u32 {
 
     // BitSet::from_bit_vec();
     // BitVe
-
-
     // sizeTemp(source);
 
     // source.char_indices()
-    let mut iterator = source.chars();
+    let error = "Wrong g6 format";
 
     let mut char = iterator.next();
 
@@ -87,24 +158,45 @@ fn get_graph_size(source: &str) -> u32 {
         char = iterator.next();
     }
 
-    if char == Some('~') {
+    let sizeChar = char.expect(error);
+    let mut size = (sizeChar as u32) - BIAS;
+    if  size > SMALLN {
         char = iterator.next();
-        if char == Some('~') {
+        size =  (char.expect(error) as u32) - BIAS;
 
-            println!("Biggest");
-            return 0;
+        if size > SMALLN {
+            size =  (iterator.next().expect(error) as u32) - BIAS;
+            size = (size << 6) | ((iterator.next().expect(error) as u32) - BIAS);
+            size = (size << 6) | ((iterator.next().expect(error) as u32) - BIAS);
+            size = (size << 6) | ((iterator.next().expect(error) as u32) - BIAS);
+            size = (size << 6) | ((iterator.next().expect(error) as u32) - BIAS);
+            size = (size << 6) | ((iterator.next().expect(error) as u32) - BIAS);
+        } else {
+            size = (size << 6) | ((iterator.next().expect(error) as u32) - BIAS);
+            size = (size << 6) | ((iterator.next().expect(error) as u32) - BIAS);
         }
 
-        handle_medium_size(char, iterator);
-
-
-        println!("Medium");
-        return 0;
     }
-
-    println!("Small");
-    let size = ((char.expect("Wrong G6 format") as u32) - BIAS);
     size
+
+    // if char == Some('~') {
+    //     char = iterator.next();
+    //     if char == Some('~') {
+    //
+    //         println!("Biggest");
+    //         return 0;
+    //     }
+    //
+    //     handle_medium_size(char, iterator);
+    //
+    //
+    //     println!("Medium");
+    //     return 0;
+    // }
+    //
+    // println!("Small");
+    // let size = ((char.expect("Wrong G6 format") as u32) - BIAS);
+    // size
 
 
 

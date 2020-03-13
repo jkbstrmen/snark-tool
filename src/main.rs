@@ -1,7 +1,5 @@
 use crate::procedure::configuration::Configuration;
-use serde_yaml::Error;
 use structopt::StructOpt;
-use yaml_rust::{Yaml, YamlLoader};
 
 mod graph;
 mod procedure;

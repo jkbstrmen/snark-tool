@@ -1,75 +1,81 @@
-use crate::service::io::reader;
-use crate::service::io::reader::read_graph;
+use crate::service::io::reader_g6::read_graph_g6;
 
-use std::fs::File;
-use std::io::{self, BufRead};
+use std::fs::{File, OpenOptions};
+use std::io::{self, BufRead, Write};
 use std::path::Path;
+use crate::service::io::reader_ba::read_graph_ba;
+use crate::service::io::writer_ba::append_graph_ba_to_file;
 
 const BIAS: u32 = 63;
 
+// TODO - handle ownership of File ... to be able ..
+
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
-    where P: AsRef<Path>, {
+where
+    P: AsRef<Path>,
+{
     let file = File::open(filename)?;
-    Ok(io::BufReader::new(file).lines())
+    Ok(io::BufReader::new( file).lines())
 }
 
 #[test]
-fn it_works() {
-
-    // rea
-
+fn should_read_g6() {
     let graph_path = "resources/graphs/graphG6.g6";
-    let content = std::fs::read_to_string(graph_path).expect("could not read file");
-    // println!("Graph file content: {}", content);
-
-    // TODO - get line of file content
+    // let content = std::fs::read_to_string(graph_path).expect("could not read file");
 
     if let Ok(lines) = read_lines(graph_path) {
         // Consumes the iterator, returns an (Optional) String
         for line in lines {
-            if let Ok(ip) = line {
-                println!("{}", ip);
+            if let Ok(line_str) = line {
+                println!("{}", line_str);
 
-                read_graph(content.as_str().trim());
+                let error = "Wrong g6 format";
+
+                // let graph = read_graph_g6(content.as_str());
+                let graph = read_graph_g6(line_str.as_str());
+                // println!("{:?}", graph);
+
+
             }
         }
     }
+}
+
+#[test]
+fn should_read_ba(){
+    // let graph_path = "resources/graphs/5flow28.28";
+    let graph_path = "resources/graphs/DSXDS.ALL";
+
+    if let Ok(lines) = read_lines(graph_path) {
+        // Consumes the iterator, returns an (Optional) String
+
+        let graph = read_graph_ba(lines);
+
+    }
+}
+
+#[test]
+fn should_write_ba(){
+
+    let graph_string = "]C??@Q??GCCA@??Bo??C@O?C?G_E????\\?O?A??H_??@C?@??_?C???g????G??B@??C????Ag";
+    let graph_path = "resources/graphs/new_file.ALL";
+
+    // let fileResult = File::create(graph_path);
+
+    let fileResult = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open(graph_path);
+
+    match fileResult {
+        Ok(mut file) => {
+
+            let graph = read_graph_g6(graph_string);
+            append_graph_ba_to_file(graph.unwrap(), &mut file);
 
 
-    // read_graph(content.as_str());
+        }
+        _ => {}
+    }
 
-    // 3 0 57
-
-    // let num = 3;
-    // let nn = (num << 6) | 0;
-    // let nnn = (nn << 6) | 57;
-    //
-    //
-    // println!("{}", nnn);
-    //
-    // let mut n = 63 - BIAS;
-    // println!("{:b}", n);
-    // n = (n << 6) | (90 - BIAS);
-    // println!("{:b}", n);
-    // n = (n << 6) | (90 - BIAS);
-    // println!("{:b}", n);
-    // n = (n << 6) | (90 - BIAS);
-    // println!("{:b}", n);
-    // n = (n << 6) | (90 - BIAS);
-    // println!("{:b}", n);
-    // n = (n << 6) | (90 - BIAS);
-    // println!("{:b}", n);
-    // println!("{}", n);
-    //
-    //
-    //
-    // let mut n = (90 - BIAS);
-    // println!("{:b}", n);
-    // n = n << 6;
-    // println!("{:b}", n);
-    // n = n | (90 - BIAS);
-    // println!("{:b}", n);
-
-    // println!("Testing");
-    // assert_eq!(2 + 2, 4);
 }

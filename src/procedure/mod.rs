@@ -1,8 +1,5 @@
 use std::collections::HashMap;
 
-use yaml_rust::yaml::Hash;
-use yaml_rust::Yaml;
-
 use crate::graph::graph::SimpleGraph;
 use crate::procedure::configuration::ProcedureConfig;
 use crate::procedure::procedure::BasicProcedure;
@@ -34,10 +31,10 @@ pub fn create_procedure_chain(
     chain
 }
 
-pub fn procedures_playground(mut proc_configs: Vec<ProcedureConfig>) {
+pub fn procedures_playground(proc_configs: Vec<ProcedureConfig>) {
     let chain = create_procedure_chain(proc_configs);
 
-    let mut graph = SimpleGraph {
+    let graph = SimpleGraph {
         graph: "Hello".to_string(),
     };
     // let mut graphs: Vec<SimpleGraph> = Vec::new();

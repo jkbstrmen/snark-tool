@@ -14,6 +14,8 @@ impl Graph for SimpleGraph {
     }
 
     fn from_str(source: &str) -> Self {
-        SimpleGraph{graph: String::from(source)}
+        SimpleGraph {
+            graph: String::from(source),
+        }
     }
 }

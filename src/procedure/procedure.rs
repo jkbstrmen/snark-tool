@@ -1,4 +1,4 @@
-use crate::graph::graph::{Graph, SimpleGraph};
+use crate::graph::graph::Graph;
 use std::collections::HashMap;
 use std::fmt::Debug;
 
@@ -58,9 +58,6 @@ impl BasicProcedure {
     where
         G: Debug + Graph,
     {
-        let s = String::from("ola");
-        // s.push_str("read");
-
         println!(
             "Running procedure: {} on graph: {:?}",
             self.proc_type, graphs

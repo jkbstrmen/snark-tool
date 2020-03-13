@@ -10,17 +10,17 @@ impl<P> ProcedureChain<P>
 where
     P: Procedure,
 {
-    pub fn new() -> Self {
-        ProcedureChain { procedures: vec![] }
-    }
+    // pub fn new() -> Self {
+    //     ProcedureChain { procedures: vec![] }
+    // }
 
     pub fn from_procedures_vector(procedures: Vec<P>) -> Self {
         ProcedureChain { procedures }
     }
 
-    pub fn add_procedure(&mut self, procedure: P) {
-        self.procedures.push(procedure);
-    }
+    // pub fn add_procedure(&mut self, procedure: P) {
+    //     self.procedures.push(procedure);
+    // }
 
     pub fn run<G>(&self, graphs: &mut Vec<G>)
     where

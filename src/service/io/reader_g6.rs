@@ -5,17 +5,16 @@ use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableGraph;
 use petgraph::{Graph, Undirected};
 
-// temp
-use petgraph::visit::EdgeRef;
 
-const BIAS: u64 = 63;
-const SMALLN: u64 = 62;
+
+
+pub const BIAS: u8 = 63;
+pub const SMALLN: u64 = 62;
 
 // TODO - create graph reader struct
 // implement function - next_graph
 
-
-pub fn read_graph_g6(source: &str) -> Result<StableGraph<u8, u16, Undirected, u8>, IoError> {
+pub fn read_graph(source: &str) -> Result<StableGraph<u8, u16, Undirected, u8>, IoError> {
     let mut iterator = source.chars();
     let size = get_graph_size(&mut iterator);
     let graph = create_graph(&mut iterator, size? as u32);
@@ -46,7 +45,7 @@ fn create_graph(iterator: &mut Chars, size: u32) -> StableGraph<u8, u16, Undirec
     let mut char = iterator.next();
     let mut position = Position { row: 0, column: 1 };
     while char != None {
-        let bits = format!("{:b}", (char.expect(error) as u8) - BIAS as u8);
+        let bits = format!("{:b}", (char.expect(error) as u8) - BIAS);
         for _i in 0..(6 - bits.len()) {
             position.increment();
         }
@@ -66,9 +65,9 @@ fn create_graph(iterator: &mut Chars, size: u32) -> StableGraph<u8, u16, Undirec
 }
 
 #[derive(Debug)]
-struct Position {
-    row: usize,
-    column: usize,
+pub struct Position {
+    pub row: usize,
+    pub column: usize,
 }
 
 impl Position {
@@ -88,18 +87,24 @@ fn get_graph_size(iterator: &mut Chars) -> Result<u64, IoError> {
         char = iterator.next();
     }
 
-    if char.is_none() { return Err(IoError {}); }
+    if char.is_none() {
+        return Err(IoError {});
+    }
 
-    let mut size = (char.unwrap() as u64) - BIAS;
+    let mut size = (char.unwrap() as u64) - BIAS as u64;
     if size > SMALLN {
         char = iterator.next();
-        if char.is_none() { return Err(IoError {}); }
-        size = (char.unwrap() as u64) - BIAS;
+        if char.is_none() {
+            return Err(IoError {});
+        }
+        size = (char.unwrap() as u64) - BIAS as u64;
 
         if size > SMALLN {
             char = iterator.next();
-            if char.is_none() { return Err(IoError {}); }
-            size = (char.unwrap() as u64) - BIAS;
+            if char.is_none() {
+                return Err(IoError {});
+            }
+            size = (char.unwrap() as u64) - BIAS as u64;
             size = append_char_binary_to_size(size, iterator)?;
             size = append_char_binary_to_size(size, iterator)?;
             size = append_char_binary_to_size(size, iterator)?;
@@ -118,7 +123,7 @@ fn append_char_binary_to_size(mut size: u64, iterator: &mut Chars) -> Result<u64
     if char.is_none() {
         return Err(IoError {});
     }
-    size = (size << 6) | ((char.unwrap() as u64) - BIAS);
+    size = (size << 6) | ((char.unwrap() as u64) - BIAS as u64);
     Ok(size)
 }
 

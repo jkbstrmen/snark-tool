@@ -1,31 +1,42 @@
-use std::fs::File;
-use std::io::{self, BufRead};
 use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableGraph;
-use petgraph::{Graph, Undirected};
+use petgraph::Undirected;
+use std::fs::File;
+use std::io::{self, BufRead};
 
 // temp
-use petgraph::visit::EdgeRef;
 use crate::service::io::error::IoError;
+use petgraph::visit::EdgeRef;
 
-// TODO - create graph reader struct
 // implement function - next_graph
 
-// TODO - try with &File ...
+pub fn get_graphs_count(mut buffer: io::Lines<io::BufReader<&File>>) -> Result<usize, IoError> {
+    let mut graphs_count = next_numbers_vector_2(&mut buffer);
 
-pub fn get_graphs_count(mut buffer: io::Lines<io::BufReader<File>>) -> Result<usize, IoError> {
-    let mut graphs_count = next_numbers_vector(&mut buffer);
-    // let ola = graphs_count.remove(0);
     let count = graphs_count.get(0);
     if count.is_some() {
         return Ok(count.unwrap().clone());
     }
-    Err(IoError{})
+    Err(IoError {})
 }
 
-// read one graph from file where is just one graph
-pub fn read_graph_ba(mut buffer: io::Lines<io::BufReader<File>>){
+pub fn get_graphs_count_with_preface(file: &File) -> Result<(usize, String), IoError> {
+    let mut lines = io::BufReader::new(file).lines();
+    let count_preface_result = read_until_next_vector(&mut lines);
 
+    if count_preface_result.is_ok() {
+        let count_preface = count_preface_result.unwrap();
+        let count_opt = count_preface.0.get(0);
+        if count_opt.is_some() {
+            // count = vector.get(0).unwrap().clone();
+            let tuple = (count_opt.unwrap().clone(), String::from(count_preface.1));
+            return Ok(tuple);
+        }
+    }
+    Err(IoError {})
+}
+
+pub fn read_graph_ba(mut buffer: io::Lines<io::BufReader<File>>) {
     // number of graphs in file
     let graphs_count = next_numbers_vector(&mut buffer);
 
@@ -49,11 +60,7 @@ pub fn read_graph_ba(mut buffer: io::Lines<io::BufReader<File>>){
 
         for target in vec.iter() {
             println!("Adding edge: ({}, {})", source, target);
-            graph.update_edge(
-                NodeIndex::new(source),
-                NodeIndex::new(target.clone()),
-                0,
-            );
+            graph.update_edge(NodeIndex::new(source), NodeIndex::new(target.clone()), 0);
         }
     }
 
@@ -68,7 +75,6 @@ pub fn read_graph_ba(mut buffer: io::Lines<io::BufReader<File>>){
         }
         println!();
     }
-
 }
 
 fn get_serial_number(buffer: &mut io::Lines<io::BufReader<File>>) -> usize {
@@ -79,6 +85,7 @@ fn get_size(buffer: &mut io::Lines<io::BufReader<File>>) -> usize {
     next_numbers_vector(buffer).get(0).unwrap().clone()
 }
 
+// TODO - reimplement for BufReader of string?? ... next_numbers_vector_from_string
 // TODO - handle errors
 fn next_numbers_vector(buffer: &mut io::Lines<io::BufReader<File>>) -> Vec<usize> {
     let mut vector = Vec::<usize>::new();
@@ -102,10 +109,72 @@ fn next_numbers_vector(buffer: &mut io::Lines<io::BufReader<File>>) -> Vec<usize
                 vector.push(next.unwrap().parse().unwrap());
                 next = split.next();
             }
-            if !vector.is_empty() { return vector; }
+            if !vector.is_empty() {
+                return vector;
+            }
         }
         line = buffer.next();
     }
     vector
 }
 
+// ... next_numbers_vector_from_file
+fn next_numbers_vector_2(buffer: &mut io::Lines<io::BufReader<&File>>) -> Vec<usize> {
+    let mut vector = Vec::<usize>::new();
+    let mut par_level = 0;
+    let mut line = buffer.next();
+
+    while line.is_some() {
+        if let Ok(line_str) = line.unwrap() {
+            if line_str.trim().chars().next().unwrap() == '{' {
+                line = buffer.next();
+                continue;
+            }
+
+            // TODO handle errors
+
+            let mut split = line_str.split_whitespace();
+            let mut next = split.next();
+            while next.is_some() {
+                vector.push(next.unwrap().parse().unwrap());
+                next = split.next();
+            }
+            if !vector.is_empty() {
+                return vector;
+            }
+        }
+        line = buffer.next();
+    }
+    vector
+}
+
+fn read_until_next_vector(
+    buffer: &mut io::Lines<io::BufReader<&File>>,
+) -> Result<(Vec<usize>, String), IoError> {
+    let mut vector = Vec::<usize>::new();
+    let mut comments = String::new();
+    let mut line = buffer.next();
+    while line.is_some() {
+        if let Ok(line_str) = line.unwrap() {
+            let first_char = line_str.trim().chars().next();
+            if first_char.is_some() && first_char.unwrap() != '{' {
+                let mut split = line_str.split_whitespace();
+                let mut next = split.next();
+                while next.is_some() {
+                    vector.push(next.unwrap().parse().unwrap());
+                    next = split.next();
+                }
+                if !vector.is_empty() {
+                    return Ok((vector, comments));
+                }
+                break;
+            }
+            comments.push_str(line_str.as_ref());
+            comments.push_str("\n");
+            line = buffer.next();
+        } else {
+            return Err(IoError {});
+        }
+    }
+    Err(IoError {})
+}

@@ -1,6 +1,13 @@
 pub trait Graph {
     fn add_edge(&mut self, string: &str);
     fn from_str(source: &str) -> Self;
+
+    // has_edge
+    // edge iterator
+    // vertices iterator
+    // remove edge
+    // remove vertex
+    // ...
 }
 
 #[derive(Debug)]

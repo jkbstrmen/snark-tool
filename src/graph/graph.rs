@@ -4,10 +4,15 @@ pub trait Graph {
 
     // has_edge
     // edge iterator
-    // vertices iterator
+    // vertex iterator
     // remove edge
     // remove vertex
+    // edges_vec
+    // vertices_vec
     // ...
+
+    // update_edge
+    // update_vertex
 }
 
 #[derive(Debug)]

@@ -102,3 +102,54 @@ fn should_code_size() {
     let res = to_g6_size(460175067);
     assert_eq!(res, "~~?ZZZZZ");
 }
+
+use crate::service::io::{writer_s6, reader_s6};
+use crate::service::io::writer_s6::{bitvec_from_u64, encode_edges, to_s6_string};
+use bit_vec::BitVec;
+use petgraph::graph::NodeIndex;
+use petgraph::stable_graph::StableGraph;
+use petgraph::visit::EdgeRef;
+use petgraph::Undirected;
+
+type Graph = StableGraph<u8, u16, Undirected, u8>;
+
+fn print_graph(graph: Graph) {
+    for node_index in graph.node_indices() {
+        print!("{}: ", node_index.index());
+        for edge in graph.edges(node_index) {
+            print!("{} ", edge.target().index());
+        }
+        println!();
+    }
+}
+
+#[test]
+fn should_write_s6() {
+    let graph_path = "resources/graphs/petersen.g6";
+
+    if let Ok(lines) = read_lines(graph_path) {
+        // Consumes the iterator, returns an (Optional) String
+        for line in lines {
+            if let Ok(line_str) = line {
+                println!("{}", line_str);
+                // let error = "Wrong g6 format";
+                let graph = read_graph(line_str.as_str());
+                // print_graph(graph.unwrap());
+
+                let mut w = Vec::new();
+                writer_s6::write_graph(&graph.unwrap(), &mut w);
+
+                let string = String::from_utf8(w).unwrap();
+                println!("{:?}", string);
+                // assert
+            }
+        }
+    }
+}
+
+#[test]
+fn should_read_graph_s6(){
+    let petersen_s6 = ":IG?SPc_EOrOFCQN";
+
+    let graph_res = reader_s6::read_graph(petersen_s6);
+}

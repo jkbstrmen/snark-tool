@@ -1,7 +1,7 @@
 use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableGraph;
-use petgraph::Undirected;
 use petgraph::visit::EdgeRef;
+use petgraph::Undirected;
 
 use crate::service::io::reader_g6::{Position, BIAS};
 use std::io::Write;

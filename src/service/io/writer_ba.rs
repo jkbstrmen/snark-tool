@@ -10,12 +10,11 @@ use petgraph::visit::EdgeRef;
 
 use crate::service::io::reader_ba::get_graphs_count_with_preface;
 
-
 // TODO - handle errors
 pub fn write_graph_ba(
     graph: StableGraph<u8, u16, Undirected, u8>,
     index: u32,
-    mut buffer: impl Write
+    mut buffer: impl Write,
 ) {
     writeln!(buffer);
     writeln!(buffer, "{}", index);
@@ -39,13 +38,11 @@ fn update_graphs_count(path: impl AsRef<Path>, new_count: usize, preface: String
 // TODO - handle errors
 pub fn append_graph_ba_to_file(
     graph: StableGraph<u8, u16, Undirected, u8>,
-    path: impl AsRef<Path>
+    path: impl AsRef<Path>,
 )
 /*-> Result<>*/
 {
-    let file_result = OpenOptions::new()
-        .read(true)
-        .open(&path);
+    let file_result = OpenOptions::new().read(true).open(&path);
 
     let count_preface_result = get_graphs_count_with_preface(&file_result.unwrap());
     println!("{:?}", count_preface_result);

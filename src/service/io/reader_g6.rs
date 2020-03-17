@@ -5,9 +5,6 @@ use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableGraph;
 use petgraph::{Graph, Undirected};
 
-
-
-
 pub const BIAS: u8 = 63;
 pub const SMALLN: u64 = 62;
 
@@ -81,7 +78,7 @@ impl Position {
     }
 }
 
-fn get_graph_size(iterator: &mut Chars) -> Result<u64, IoError> {
+pub fn get_graph_size(iterator: &mut Chars) -> Result<u64, IoError> {
     let mut char = iterator.next();
     if char == Some(':') || char == Some('&') {
         char = iterator.next();

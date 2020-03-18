@@ -5,26 +5,26 @@ use std::fs::File;
 use std::io::{self, BufRead};
 
 // temp
-use crate::service::io::error::IoError;
+use crate::service::io::error::ReadError;
 use petgraph::visit::EdgeRef;
 
 // implement function - next_graph
 
-pub fn get_graphs_count(mut buffer: io::Lines<io::BufReader<&File>>) -> Result<usize, IoError> {
+pub fn get_graphs_count(mut buffer: io::Lines<io::BufReader<&File>>) -> Result<usize, ReadError> {
     let mut graphs_count = next_numbers_vector_2(&mut buffer);
 
     let count = graphs_count.get(0);
     if count.is_some() {
         return Ok(count.unwrap().clone());
     }
-    Err(IoError {
+    Err(ReadError {
         message: "Wrong ba format - graphs count missing".to_string(),
     })
 }
 
 const WRONG_FORMAT: &str = "Wrong ba format";
 
-pub fn get_graphs_count_with_preface(file: &File) -> Result<(usize, String), IoError> {
+pub fn get_graphs_count_with_preface(file: &File) -> Result<(usize, String), ReadError> {
     let mut lines = io::BufReader::new(file).lines();
     let count_preface_result = read_until_next_vector(&mut lines);
 
@@ -38,7 +38,7 @@ pub fn get_graphs_count_with_preface(file: &File) -> Result<(usize, String), IoE
         }
     }
     let message = WRONG_FORMAT.to_owned() + " - count of comments is wrong";
-    Err(IoError { message: message })
+    Err(ReadError { message: message })
 }
 
 pub fn read_graph_ba(mut buffer: io::Lines<io::BufReader<File>>) {
@@ -155,7 +155,7 @@ fn next_numbers_vector_2(buffer: &mut io::Lines<io::BufReader<&File>>) -> Vec<us
 
 fn read_until_next_vector(
     buffer: &mut io::Lines<io::BufReader<&File>>,
-) -> Result<(Vec<usize>, String), IoError> {
+) -> Result<(Vec<usize>, String), ReadError> {
     let mut vector = Vec::<usize>::new();
     let mut comments = String::new();
     let mut line = buffer.next();
@@ -179,10 +179,10 @@ fn read_until_next_vector(
             line = buffer.next();
         } else {
             let message = WRONG_FORMAT.to_owned() + " - count of comments is wrong";
-            return Err(IoError { message });
+            return Err(ReadError { message });
         }
     }
-    Err(IoError {
+    Err(ReadError {
         message: "".to_string(),
     })
 }

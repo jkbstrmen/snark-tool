@@ -10,15 +10,15 @@ pub struct SimplePetGraph {
     pub graph: StableGraph<u8, u16, Undirected, u8>,
 }
 
-impl Graph for SimplePetGraph {
-    fn add_edge(&mut self, string: &str) {
-        unimplemented!()
-    }
-
-    fn from_str(source: &str) -> Self {
-        unimplemented!()
-    }
-}
+// impl Graph for SimplePetGraph {
+//     fn add_edge(&mut self, string: &str) {
+//         unimplemented!()
+//     }
+//
+//     fn from_str(source: &str) -> Self {
+//         unimplemented!()
+//     }
+// }
 
 impl SimplePetGraph {
     fn edges_vec(&self) {}

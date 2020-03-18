@@ -1,4 +1,4 @@
-use crate::service::io::error::IoError;
+use crate::service::io::error::ReadError;
 use crate::service::io::reader_g6::{get_graph_size, BIAS};
 use crate::service::io::writer_s6::{bitvec_from_u64, edge_encoding_size};
 use petgraph::stable_graph::{NodeIndex, StableGraph};
@@ -14,13 +14,13 @@ struct S6Reader {
 
 impl S6Reader {}
 
-pub fn read_graph(source: impl AsRef<str>) -> Result<Graph, IoError> {
+pub fn read_graph(source: impl AsRef<str>) -> Result<Graph, ReadError> {
     let string = String::from(source.as_ref());
 
     let mut chars = string.chars();
     let char_opt = chars.next();
     if char_opt.is_none() || !':'.eq(&char_opt.unwrap()) {
-        return Err(IoError {
+        return Err(ReadError {
             message: "".to_string(),
         });
     }
@@ -29,7 +29,7 @@ pub fn read_graph(source: impl AsRef<str>) -> Result<Graph, IoError> {
     Ok(graph)
 }
 
-fn create_graph(iterator: &mut Chars, size: u64) -> Result<Graph, IoError> {
+fn create_graph(iterator: &mut Chars, size: u64) -> Result<Graph, ReadError> {
     let nodes = size as usize;
     // reserve edges - in default for cubic graph
     let edges = (size * 3 / 2) as usize;
@@ -53,7 +53,7 @@ fn discard_additional_bits(bits: &mut Vec<bool>, edge_encoding_size: u8) {
     }
 }
 
-fn chars_to_bit_vector(chars: &mut Chars) -> Result<Vec<bool>, IoError> {
+fn chars_to_bit_vector(chars: &mut Chars) -> Result<Vec<bool>, ReadError> {
     let mut char_opt = chars.next();
     let mut vec = vec![];
     while char_opt.is_some() {
@@ -65,7 +65,7 @@ fn chars_to_bit_vector(chars: &mut Chars) -> Result<Vec<bool>, IoError> {
     Ok(vec)
 }
 
-fn decode_edges(bits: &Vec<bool>, mut graph: Graph) -> Result<Graph, IoError> {
+fn decode_edges(bits: &Vec<bool>, mut graph: Graph) -> Result<Graph, ReadError> {
     let edge_encoding_size = edge_encoding_size(graph.node_count());
     let size = graph.node_count();
     let mut v: usize = 0;
@@ -92,7 +92,7 @@ fn decode_edges(bits: &Vec<bool>, mut graph: Graph) -> Result<Graph, IoError> {
     Ok(graph)
 }
 
-pub fn bitvec_to_u64(bit_iter: &mut Iter<bool>, encoding_size: u8) -> Result<usize, IoError> {
+pub fn bitvec_to_u64(bit_iter: &mut Iter<bool>, encoding_size: u8) -> Result<usize, ReadError> {
     let mut begin: u8 = 0;
     let mut x: usize = 0;
     loop {
@@ -102,7 +102,7 @@ pub fn bitvec_to_u64(bit_iter: &mut Iter<bool>, encoding_size: u8) -> Result<usi
         }
         let bit = bit_iter.next();
         if bit.is_none() {
-            return Err(IoError {
+            return Err(ReadError {
                 message: "wrong s6 format - missing bits".to_string(),
             });
         }

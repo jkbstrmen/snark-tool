@@ -6,9 +6,9 @@ options:
 procedures:
   - proc-type: read
     config:
-      file: resources/graphs/graphG6.g6
+      file: resources/graphs/12snarksForTest.g6
       graph-format: g6
-      number-of-graphs: 5
+      number-of-graphs: 2
 
   - proc-type: colour
     config:

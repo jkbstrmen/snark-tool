@@ -1,16 +1,20 @@
-trait Error {}
+// trait Error {}
 
 #[derive(Debug)]
-pub struct IoError {
+pub struct ReadError {
     pub message: String,
 }
 
-impl Error for IoError {}
+// impl Error for IoError {}
 
-impl IoError {
+impl ReadError {
     pub fn new(message: String) -> Self {
-        IoError { message }
+        ReadError { message }
     }
+}
+
+pub struct WriteError {
+
 }
 
 // impl From<None> for IoError {

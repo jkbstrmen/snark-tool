@@ -10,6 +10,7 @@ mod procedure;
 mod procedure_chain;
 
 // TODO - parametrize function with generic Procedure type
+// move to proc chain?
 
 pub fn create_procedure_chain(
     mut proc_configs: Vec<ProcedureConfig>,

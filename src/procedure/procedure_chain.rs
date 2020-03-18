@@ -1,6 +1,10 @@
 use crate::graph::graph::Graph;
 use crate::procedure::procedure::Procedure;
 use std::fmt::Debug;
+use std::result;
+use crate::error::Error;
+
+type Result<T> = result::Result<T, Error>;
 
 pub struct ProcedureChain<Procedure> {
     procedures: Vec<Procedure>,
@@ -22,12 +26,14 @@ where
     //     self.procedures.push(procedure);
     // }
 
-    pub fn run<G>(&self, graphs: &mut Vec<G>)
+    // return result? take graphs by move
+    pub fn run<G>(&self, graphs: &mut Vec<G>) -> Result<()>
     where
         G: Debug + Graph,
     {
         for procedure in self.procedures.iter() {
-            procedure.run(graphs);
+            procedure.run(graphs)?;
         }
+        Ok(())
     }
 }

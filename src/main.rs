@@ -1,10 +1,13 @@
 use crate::procedure::configuration::Configuration;
 use structopt::StructOpt;
+use crate::graph::graph::SimpleGraph;
+use crate::error::Error;
 
 mod graph;
 mod procedure;
 mod service;
 mod test;
+mod error;
 
 /// Search for a pattern in a file and display the lines that contain it.
 #[derive(StructOpt)]
@@ -37,7 +40,18 @@ fn parse_yaml_config(source: &String) -> Configuration {
 fn main() {
     let config_str = read_config();
     let config = parse_yaml_config(&config_str);
-    procedure::procedures_playground(config.procedures);
+
+    let chain = procedure::create_procedure_chain(config.procedures);
+    let mut graphs: Vec<SimpleGraph> = vec![];
+
+    match chain.run(&mut graphs) {
+        Err(error) => {
+            eprintln!("Error: {}", error);
+        }
+        Ok(()) => {}
+    }
+
+    // procedure::procedures_playground(config.procedures);
 
     println!("Hello, world!");
 }

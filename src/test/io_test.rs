@@ -54,9 +54,9 @@ fn should_write_ba() {
         "]C??@Q??GCCA@??Bo??C@O?C?G_E????\\?O?A??H_??@C?@??_?C???g????G??B@??C????Ag";
     let graph_path = "resources/graphs/write_ba.ALL";
 
-    let fileResult = OpenOptions::new().write(true).append(true).open(graph_path);
+    let file_result = OpenOptions::new().write(true).append(true).open(graph_path);
 
-    match fileResult {
+    match file_result {
         Ok(mut file) => {
             let graph = read_graph(graph_string);
             // write graphs count

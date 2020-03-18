@@ -6,9 +6,9 @@ use std::io::Write;
 
 use crate::service::io::reader_g6::BIAS;
 use crate::service::io::writer_g6::to_g6_size;
+use petgraph::graph::NodeIndex;
 use std::cmp;
 use std::cmp::Ordering;
-use petgraph::graph::NodeIndex;
 // use log::{info, trace, warn, debug};
 
 type Graph = StableGraph<u8, u16, Undirected, u8>;
@@ -65,25 +65,24 @@ fn complete_to_multiple_of_six(encoding: &mut Vec<bool>, graph: &Graph) {
     encoding.append(&mut completion);
 }
 
-fn check_completion_edge_case(encoding: &mut Vec<bool>, graph: &Graph){
+fn check_completion_edge_case(encoding: &mut Vec<bool>, graph: &Graph) {
     let n = graph.node_count();
     if n == 2 || n == 4 || n == 8 || n == 16 {
-        let mut n1_edges = graph.edges(NodeIndex::new(n-1));
-        let mut n2_edges = graph.edges(NodeIndex::new(n-2));
+        let mut n1_edges = graph.edges(NodeIndex::new(n - 1));
+        let mut n2_edges = graph.edges(NodeIndex::new(n - 2));
         if n2_edges.next().is_some() && n1_edges.next().is_none() {
-            let edge_encoding_size = (n as f64).log(2 as f64).ceil() as u8;
+            let edge_encoding_size = edge_encoding_size(n);
             let rem = encoding.len() % 6;
             let complement = 6 - rem;
             if complement > edge_encoding_size as usize {
                 encoding.push(false);
             }
-
         }
     }
 }
 
 pub fn encode_edges(size: usize, edges: &Vec<(usize, usize)>) -> Vec<bool> {
-    let edge_encoding_size = (size as f64).log(2 as f64).ceil() as u8;
+    let edge_encoding_size = edge_encoding_size(size);
     let mut v: usize = 0;
     let mut vec: Vec<bool> = Vec::new();
     for edge in edges {
@@ -133,7 +132,9 @@ pub fn bitvec_from_u64(mut num: u64, bits_count: u8) -> Vec<bool> {
     vec
 }
 
-fn encode_edge() {}
+pub fn edge_encoding_size(graph_size: usize) -> u8 {
+    (graph_size as f64).log(2 as f64).ceil() as u8
+}
 
 fn edge_max_min_compare(first: &(usize, usize), second: &(usize, usize)) -> Ordering {
     let max_first = cmp::max(first.0, first.1);

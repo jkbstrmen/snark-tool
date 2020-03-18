@@ -17,8 +17,12 @@ pub fn get_graphs_count(mut buffer: io::Lines<io::BufReader<&File>>) -> Result<u
     if count.is_some() {
         return Ok(count.unwrap().clone());
     }
-    Err(IoError {})
+    Err(IoError {
+        message: "Wrong ba format - graphs count missing".to_string(),
+    })
 }
+
+const WRONG_FORMAT: &str = "Wrong ba format";
 
 pub fn get_graphs_count_with_preface(file: &File) -> Result<(usize, String), IoError> {
     let mut lines = io::BufReader::new(file).lines();
@@ -33,7 +37,8 @@ pub fn get_graphs_count_with_preface(file: &File) -> Result<(usize, String), IoE
             return Ok(tuple);
         }
     }
-    Err(IoError {})
+    let message = WRONG_FORMAT.to_owned() + " - count of comments is wrong";
+    Err(IoError { message: message })
 }
 
 pub fn read_graph_ba(mut buffer: io::Lines<io::BufReader<File>>) {
@@ -173,8 +178,11 @@ fn read_until_next_vector(
             comments.push_str("\n");
             line = buffer.next();
         } else {
-            return Err(IoError {});
+            let message = WRONG_FORMAT.to_owned() + " - count of comments is wrong";
+            return Err(IoError { message });
         }
     }
-    Err(IoError {})
+    Err(IoError {
+        message: "".to_string(),
+    })
 }

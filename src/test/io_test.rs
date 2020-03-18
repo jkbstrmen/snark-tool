@@ -17,16 +17,18 @@ where
 
 #[test]
 fn should_read_g6() {
-    let graph_path = "resources/graphs/graphG6.g6";
+    // let graph_path = "resources/graphs/graphG6.g6";
+    let graph_path = "resources/graphs/petersen.g6";
 
     if let Ok(lines) = read_lines(graph_path) {
         // Consumes the iterator, returns an (Optional) String
         for line in lines {
             if let Ok(line_str) = line {
-                println!("{}", line_str);
+                // println!("{}", line_str);
                 // let error = "Wrong g6 format";
                 let graph = read_graph(line_str.as_str());
 
+                // print_graph(graph.unwrap());
                 // assert
             }
         }
@@ -103,8 +105,9 @@ fn should_code_size() {
     assert_eq!(res, "~~?ZZZZZ");
 }
 
-use crate::service::io::{writer_s6, reader_s6};
+use crate::service::io::reader_s6::bitvec_to_u64;
 use crate::service::io::writer_s6::{bitvec_from_u64, encode_edges, to_s6_string};
+use crate::service::io::{reader_s6, writer_s6};
 use bit_vec::BitVec;
 use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableGraph;
@@ -148,8 +151,27 @@ fn should_write_s6() {
 }
 
 #[test]
-fn should_read_graph_s6(){
+fn should_read_graph_s6() {
     let petersen_s6 = ":IG?SPc_EOrOFCQN";
-
     let graph_res = reader_s6::read_graph(petersen_s6);
+
+    // assert
+
+    // let test_graph = ":Fa@x^";
+    // let graph_res = reader_s6::read_graph(test_graph);
+
+    // assert
+
+    print_graph(graph_res.unwrap());
+
+    //println!("{:?}", graph_res);
+}
+
+#[test]
+fn test() {
+    let bit_vec = vec![false, true, true, false];
+
+    let num = bitvec_to_u64(&mut bit_vec.iter(), 4).unwrap();
+
+    println!("{}", num);
 }

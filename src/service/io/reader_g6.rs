@@ -85,21 +85,27 @@ pub fn get_graph_size(iterator: &mut Chars) -> Result<u64, IoError> {
     }
 
     if char.is_none() {
-        return Err(IoError {});
+        return Err(IoError {
+            message: "".to_string(),
+        });
     }
 
     let mut size = (char.unwrap() as u64) - BIAS as u64;
     if size > SMALLN {
         char = iterator.next();
         if char.is_none() {
-            return Err(IoError {});
+            return Err(IoError {
+                message: "".to_string(),
+            });
         }
         size = (char.unwrap() as u64) - BIAS as u64;
 
         if size > SMALLN {
             char = iterator.next();
             if char.is_none() {
-                return Err(IoError {});
+                return Err(IoError {
+                    message: "".to_string(),
+                });
             }
             size = (char.unwrap() as u64) - BIAS as u64;
             size = append_char_binary_to_size(size, iterator)?;
@@ -118,7 +124,9 @@ pub fn get_graph_size(iterator: &mut Chars) -> Result<u64, IoError> {
 fn append_char_binary_to_size(mut size: u64, iterator: &mut Chars) -> Result<u64, IoError> {
     let char = iterator.next();
     if char.is_none() {
-        return Err(IoError {});
+        return Err(IoError {
+            message: "".to_string(),
+        });
     }
     size = (size << 6) | ((char.unwrap() as u64) - BIAS as u64);
     Ok(size)

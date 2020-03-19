@@ -1,13 +1,13 @@
+use crate::error::Error;
+use crate::graph::graph::SimpleGraph;
 use crate::procedure::configuration::Configuration;
 use structopt::StructOpt;
-use crate::graph::graph::SimpleGraph;
-use crate::error::Error;
 
+mod error;
 mod graph;
 mod procedure;
 mod service;
 mod test;
-mod error;
 
 /// Search for a pattern in a file and display the lines that contain it.
 #[derive(StructOpt)]

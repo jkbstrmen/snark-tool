@@ -1,8 +1,8 @@
+use crate::error::Error;
 use crate::graph::graph::Graph;
 use crate::procedure::procedure::Procedure;
 use std::fmt::Debug;
 use std::result;
-use crate::error::Error;
 
 type Result<T> = result::Result<T, Error>;
 

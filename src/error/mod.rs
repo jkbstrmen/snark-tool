@@ -4,17 +4,17 @@ use std::{error, fmt};
 #[derive(Debug)]
 pub enum Error {
     IoError(ReadError),
-    ColourError
+    ColourError,
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Error::IoError(error)=> write!(f, "io error: {:?}", error),
+            Error::IoError(error) => write!(f, "io error: {:?}", error),
 
             // MyError::CannotOpenFile(e) => write!(f, "error while opening file: {}", e),
             // ....
-            Error::ColourError => write!(f, "Colour error")
+            Error::ColourError => write!(f, "Colour error"),
         };
         Ok(())
     }
@@ -29,4 +29,3 @@ impl From<ReadError> for Error {
         Error::IoError(err)
     }
 }
-

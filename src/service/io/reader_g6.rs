@@ -1,14 +1,14 @@
 use std::str::Chars;
 
+use crate::graph::graph;
 use crate::service::io::error::ReadError;
 use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableGraph;
 use petgraph::{Graph, Undirected};
-use std::{result, io};
 use std::fs::File;
 use std::io::{BufRead, Error};
-use crate::graph::graph;
 use std::marker::PhantomData;
+use std::{io, result};
 
 pub const BIAS: u8 = 63;
 pub const SMALLN: u64 = 62;
@@ -18,17 +18,22 @@ type Result<T> = result::Result<T, ReadError>;
 // TODO - create graph reader struct
 // implement function - next_graph - read_from_file - line by line or so
 
-pub struct G6Reader<G> where G: graph::Graph {
-    _ph: PhantomData<G>
+pub struct G6Reader<G>
+where
+    G: graph::Graph,
+{
+    _ph: PhantomData<G>,
 }
 
-impl <G> G6Reader<G> where G: graph::Graph {
+impl<G> G6Reader<G>
+where
+    G: graph::Graph,
+{
     pub fn new() -> Self {
         G6Reader { _ph: PhantomData }
     }
 
-    pub fn read_by_lines(file: &File, count: u64) -> Result<Vec<G>>
-    {
+    pub fn read_by_lines(file: &File, count: u64) -> Result<Vec<G>> {
         let mut lines = io::BufReader::new(file).lines();
 
         let mut graphs = vec![];
@@ -38,15 +43,14 @@ impl <G> G6Reader<G> where G: graph::Graph {
             match line {
                 None => {
                     // warn - file contains less graphs than specified to work with
-                },
+                }
                 Some(line) => {
                     println!("{:?}", line);
 
                     let graph = read_graph(line.unwrap());
 
-
                     // graphs.push(graph.unwrap());
-                },
+                }
             }
         }
 
@@ -95,7 +99,6 @@ impl <G> G6Reader<G> where G: graph::Graph {
     //     undirected
     // }
 }
-
 
 pub fn read_graph(source: impl AsRef<str>) -> Result<StableGraph<u8, u16, Undirected, u8>> {
     let mut iterator = source.as_ref().chars();

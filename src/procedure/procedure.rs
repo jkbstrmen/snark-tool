@@ -1,11 +1,11 @@
-use crate::graph::graph::{Graph, Edge, SimpleGraph};
+use crate::error::Error;
+use crate::graph::graph::{Edge, Graph, SimpleGraph};
+use crate::service::io::reader_g6::G6Reader;
 use std::collections::HashMap;
 use std::fmt::Debug;
-use crate::error::Error;
+use std::fs::OpenOptions;
 use std::result;
 use std::str::FromStr;
-use std::fs::OpenOptions;
-use crate::service::io::reader_g6::G6Reader;
 
 type Config = HashMap<String, String>;
 type Result<T> = result::Result<T, Error>;
@@ -65,7 +65,6 @@ impl BasicProcedure {
     where
         G: Debug + Graph,
     {
-
         // TODO - read graphs from file -> add to graphs
 
         println!(
@@ -91,8 +90,6 @@ impl BasicProcedure {
         let graphs = G6Reader::<SimpleGraph>::read_by_lines(&file_result.unwrap(), graphs_count)?;
 
         // mut buffer: io::Lines<io::BufReader<&File>>
-
-
 
         // number-of-graphs
 

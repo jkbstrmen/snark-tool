@@ -107,7 +107,7 @@ fn should_code_size() {
 
 use crate::service::io::reader_s6::bitvec_to_u64;
 use crate::service::io::writer_s6::{bitvec_from_u64, encode_edges, to_s6_string};
-use crate::service::io::{reader_s6, writer_s6};
+use crate::service::io::{reader_g6, reader_s6, writer_s6};
 use bit_vec::BitVec;
 use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableGraph;
@@ -168,10 +168,12 @@ fn should_read_graph_s6() {
 }
 
 #[test]
-fn test() {
-    let bit_vec = vec![false, true, true, false];
-
-    let num = bitvec_to_u64(&mut bit_vec.iter(), 4).unwrap();
-
-    println!("{}", num);
+fn should_read_graph_g6_from_string() {
+    // let graph_g6 = "]?@G@U?OK?GP?CD?o???@G???AX??__????G???g_????CG???C???B_??GO??@PAA???A_??G";
+    let graph_g6 = "]C@O?SAGC??P??O@o?Q?`????aGO????SK???O?O?OC???F??A??C??c???O@??@K???????@W";
+    let graph_res = reader_g6::read_graph(graph_g6);
+    print_graph(graph_res.unwrap());
 }
+
+#[test]
+fn should_read_g6_graph() {}

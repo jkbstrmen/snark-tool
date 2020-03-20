@@ -1,4 +1,7 @@
 pub mod error;
+pub mod reader;
+pub mod writer;
+
 pub mod reader_ba;
 pub mod reader_g6;
 pub mod reader_s6;

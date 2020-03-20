@@ -2,38 +2,96 @@ use std::str::Chars;
 
 use crate::graph::graph;
 use crate::service::io::error::ReadError;
+use crate::service::io::reader::Reader;
 use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableGraph;
 use petgraph::{Graph, Undirected};
-use std::fs::File;
-use std::io::{BufRead, Error};
+use std::io::{BufRead, BufReader, Error};
 use std::marker::PhantomData;
-use std::{io, result};
+use std::{fs, io, result};
 
 pub const BIAS: u8 = 63;
 pub const SMALLN: u64 = 62;
 
 type Result<T> = result::Result<T, ReadError>;
 
-// TODO - create graph reader struct
-// implement function - next_graph - read_from_file - line by line or so
-
-pub struct G6Reader<G>
+pub struct G6Reader<'a, G>
 where
     G: graph::Graph,
 {
+    file: &'a fs::File,
+    lines: io::Lines<BufReader<&'a fs::File>>,
     _ph: PhantomData<G>,
 }
 
-impl<G> G6Reader<G>
+impl<'a, G> Reader<'a, G> for G6Reader<'a, G>
 where
     G: graph::Graph,
 {
-    pub fn new() -> Self {
-        G6Reader { _ph: PhantomData }
+    fn new(file: &'a fs::File) -> Self {
+        G6Reader {
+            file,
+            lines: io::BufReader::new(file).lines(),
+            _ph: PhantomData,
+        }
     }
 
-    pub fn read_by_lines(file: &File, count: u64) -> Result<Vec<G>> {
+    fn next(&mut self) -> Option<Result<G>> {
+        let line = self.lines.next();
+        match line {
+            None => {
+                // warn - file contains less graphs than specified to work with
+                return None;
+            }
+            Some(line) => {
+                if line.is_ok() {
+                    let graph = G6Reader::read_graph(line.unwrap());
+                    // graphs.push(graph.unwrap());
+                    return Some(graph);
+                }
+            }
+        }
+        None
+        // Err(ReadError{ message: "".to_string() })
+    }
+}
+
+impl<'a, G> G6Reader<'a, G>
+where
+    G: graph::Graph,
+{
+    // pub fn new(file: &'a fs::File) -> Self {
+    //     G6Reader {
+    //         file,
+    //         lines: io::BufReader::new(file).lines(),
+    //         _ph: PhantomData,
+    //     }
+    // }
+    //
+    // pub fn next(&mut self) -> Option<Result<G>> {
+    //     let line = self.lines.next();
+    //     match line {
+    //         None => {
+    //             // warn - file contains less graphs than specified to work with
+    //             return None;
+    //         }
+    //         Some(line) => {
+    //             if line.is_ok() {
+    //                 let graph = G6Reader::read_graph(line.unwrap());
+    //                 // graphs.push(graph.unwrap());
+    //                 return Some(graph);
+    //             }
+    //         }
+    //     }
+    //     None
+    //     // Err(ReadError{ message: "".to_string() })
+    // }
+
+    // pub fn new() -> Self {
+    //     G6Reader { _ph: PhantomData }
+    // }
+
+    pub fn read_by_lines(/*&self,*/ file: &fs::File, count: u64) -> Result<Vec<G>> {
         let mut lines = io::BufReader::new(file).lines();
 
         let mut graphs = vec![];
@@ -45,11 +103,10 @@ where
                     // warn - file contains less graphs than specified to work with
                 }
                 Some(line) => {
-                    println!("{:?}", line);
-
-                    let graph = read_graph(line.unwrap());
-
-                    // graphs.push(graph.unwrap());
+                    if line.is_ok() {
+                        let graph = G6Reader::read_graph(line.unwrap());
+                        graphs.push(graph.unwrap());
+                    }
                 }
             }
         }
@@ -57,97 +114,36 @@ where
         Ok(graphs)
     }
 
-    // pub fn read_graph(source: impl AsRef<str>) -> Result<G> {
-    //     let mut iterator = source.as_ref().chars();
-    //     let size = get_graph_size(&mut iterator);
-    //     let graph = create_graph(&mut iterator, size? as u32);
-    //
-    //     // G::from_str();
-    //
-    //     Ok(graph)
-    // }
-
-    // fn create_graph(iterator: &mut Chars, size: u32) -> Result<G> {
-    //     let nodes = size as usize;
-    //     let edges = (size * 3 / 2) as usize;
-    //     let mut undirected = StableGraph::<u8, u16, Undirected, u8>::with_capacity(nodes, edges);
-    //
-    //     for _node in 0..size {
-    //         undirected.add_node(0);
-    //     }
-    //
-    //     let error = "error";
-    //     let mut char = iterator.next();
-    //     let mut position = Position { row: 0, column: 1 };
-    //     while char != None {
-    //         let bits = format!("{:b}", (char.expect(error) as u8) - BIAS);
-    //         for _i in 0..(6 - bits.len()) {
-    //             position.increment();
-    //         }
-    //         for char in bits.chars() {
-    //             if char == '1' {
-    //                 undirected.add_edge(
-    //                     NodeIndex::new(position.row),
-    //                     NodeIndex::new(position.column),
-    //                     0,
-    //                 );
-    //             }
-    //             position.increment();
-    //         }
-    //         char = iterator.next();
-    //     }
-    //     undirected
-    // }
-}
-
-pub fn read_graph(source: impl AsRef<str>) -> Result<StableGraph<u8, u16, Undirected, u8>> {
-    let mut iterator = source.as_ref().chars();
-    let size = get_graph_size(&mut iterator);
-    let graph = create_graph(&mut iterator, size? as u32);
-
-    // print graph
-    // for node_index in graph.node_indices() {
-    //     print!("{}: ", node_index.index());
-    //
-    //     for edge in graph.edges(node_index) {
-    //         print!("{:?}, ", edge.target().index());
-    //     }
-    //     println!();
-    // }
-
-    Ok(graph)
-}
-
-fn create_graph(iterator: &mut Chars, size: u32) -> StableGraph<u8, u16, Undirected, u8> {
-    let nodes = size as usize;
-    let edges = (size * 3 / 2) as usize;
-    let mut undirected = StableGraph::<u8, u16, Undirected, u8>::with_capacity(nodes, edges);
-
-    for _node in 0..size {
-        undirected.add_node(0);
+    fn read_graph(source: impl AsRef<str>) -> Result<G> {
+        let mut iterator = source.as_ref().chars();
+        let size = get_graph_size(&mut iterator);
+        let graph = G6Reader::create_graph(&mut iterator, size? as u32)?;
+        Ok(graph)
     }
 
-    let error = "error";
-    let mut char = iterator.next();
-    let mut position = Position { row: 0, column: 1 };
-    while char != None {
-        let bits = format!("{:b}", (char.expect(error) as u8) - BIAS);
-        for _i in 0..(6 - bits.len()) {
-            position.increment();
-        }
-        for char in bits.chars() {
-            if char == '1' {
-                undirected.add_edge(
-                    NodeIndex::new(position.row),
-                    NodeIndex::new(position.column),
-                    0,
-                );
+    fn create_graph(iterator: &mut Chars, size: u32) -> Result<G> {
+        let vertices = size as usize;
+        let edges = (size * 3 / 2) as usize;
+        let mut graph = G::with_capacity(vertices, edges);
+
+        let error = "error";
+        let mut char = iterator.next();
+        let mut position = Position { row: 0, column: 1 };
+        while char != None {
+            let bits = format!("{:b}", (char.expect(error) as u8) - BIAS);
+            for _i in 0..(6 - bits.len()) {
+                position.increment();
             }
-            position.increment();
+            for char in bits.chars() {
+                if char == '1' {
+                    graph.add_edge(position.row, position.column);
+                }
+                position.increment();
+            }
+            char = iterator.next();
         }
-        char = iterator.next();
+        Ok(graph)
     }
-    undirected
 }
 
 #[derive(Debug)]
@@ -221,39 +217,42 @@ fn append_char_binary_to_size(mut size: u64, iterator: &mut Chars) -> Result<u64
     Ok(size)
 }
 
-fn petgraph_playground() {
-    // let graph = Graph{
-    //     nodes: vec![],
-    //     edges: vec![],
-    //     ty: PhantomData
-    // };
+// TODO - to remove
+pub fn read_graph(source: impl AsRef<str>) -> Result<StableGraph<u8, u16, Undirected, u8>> {
+    let mut iterator = source.as_ref().chars();
+    let size = get_graph_size(&mut iterator);
+    let graph = create_graph(&mut iterator, size? as u32);
+    Ok(graph)
+}
 
-    let mut undirected = StableGraph::<u8, u16, Undirected, u8>::with_capacity(10, 20);
-    // let mut undirected = StableGraph::<u8, u16, Undirected, u8>::from(10, 20);
+fn create_graph(iterator: &mut Chars, size: u32) -> StableGraph<u8, u16, Undirected, u8> {
+    let nodes = size as usize;
+    let edges = (size * 3 / 2) as usize;
+    let mut undirected = StableGraph::<u8, u16, Undirected, u8>::with_capacity(nodes, edges);
 
-    undirected.add_node(0);
-    undirected.add_node(0);
-    undirected.add_node(0);
-    undirected.add_edge(NodeIndex::new(1), NodeIndex::new(2), 0);
-    println!("{:?}", undirected);
-
-    undirected.remove_node(NodeIndex::new(1));
-    println!("after removal: ");
-    println!("{:?}", undirected);
-
-    for node in undirected.node_indices() {
-        let weight = undirected.node_weight(node);
-        println!("{:?} -> weight: {:?}", node, weight);
+    for _node in 0..size {
+        undirected.add_node(0);
     }
 
-    // let mut undirected = UnGraph::with_capacity(10, 20);
-    // println!("Undirected graph: {:?}", undirected);
-
-    let mut graph = Graph::<u8, u8>::new();
-    // graph.add_edge(0, 1);
-    graph.add_node(1);
-
-    //graph.
-
-    // println!("Graph: {:?}", graph);
+    let error = "error";
+    let mut char = iterator.next();
+    let mut position = Position { row: 0, column: 1 };
+    while char != None {
+        let bits = format!("{:b}", (char.expect(error) as u8) - BIAS);
+        for _i in 0..(6 - bits.len()) {
+            position.increment();
+        }
+        for char in bits.chars() {
+            if char == '1' {
+                undirected.add_edge(
+                    NodeIndex::new(position.row),
+                    NodeIndex::new(position.column),
+                    0,
+                );
+            }
+            position.increment();
+        }
+        char = iterator.next();
+    }
+    undirected
 }

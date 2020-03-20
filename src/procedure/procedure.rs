@@ -1,11 +1,15 @@
 use crate::error::Error;
-use crate::graph::graph::{Edge, Graph, SimpleGraph};
+use crate::graph::graph::{Edge, Graph};
+use crate::graph::simple_graph::SimpleGraph;
+use crate::service::io::reader::Reader;
 use crate::service::io::reader_g6::G6Reader;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::fs::OpenOptions;
 use std::result;
 use std::str::FromStr;
+use crate::service::io::writer_ba::BaWriter;
+use std::path::Path;
 
 type Config = HashMap<String, String>;
 type Result<T> = result::Result<T, Error>;
@@ -65,49 +69,119 @@ impl BasicProcedure {
     where
         G: Debug + Graph,
     {
-        // TODO - read graphs from file -> add to graphs
-
         println!(
             "Running procedure: {} on graph: {:?}",
             self.proc_type, graphs
         );
 
-        // println!("Read graph config: {:?}", self.config);
-        let graph_path = self.config.get("file").expect("file path not specified");
-        // println!("graph file path: {}", graph_path);
-        // let content = std::fs::read_to_string(graph_path).expect("could not read file");
-        // println!("Graph file content: {}", content);
+        // handle Err
+        let file_path = self.config.get("file").expect("file path not specified");
 
         let graphs_count_opt = self.config.get("number-of-graphs");
+
         // if not specified - read all graphs from file
         // handle unwrap
         let graphs_count = u64::from_str(graphs_count_opt.unwrap().clone().as_str()).unwrap();
-        println!("Graphs count to read: {}", graphs_count);
 
-        let file_result = OpenOptions::new().read(true).open(graph_path);
+        let file_result = OpenOptions::new().read(true).open(file_path);
 
-        let reader = G6Reader::<SimpleGraph>::new();
-        let graphs = G6Reader::<SimpleGraph>::read_by_lines(&file_result.unwrap(), graphs_count)?;
+        // handle unwrap
+        let file = file_result.unwrap();
 
-        // mut buffer: io::Lines<io::BufReader<&File>>
+        let graph_format = self.config.get("graph-format");
+        if graph_format.is_none() {
+            return Err(Error::ConfigError(String::from(
+                "missing graph format for read procedure",
+            )));
+        }
+        let graph_format = graph_format.unwrap();
 
-        // number-of-graphs
-
-        // let graph = SimpleGraph{ graph: content };
-        // let graph = G::from_str(content.as_str());
-        // graphs.push(graph);
-
+        match graph_format.as_str() {
+            "g6" => {
+                let mut reader = G6Reader::<G>::new(&file);
+                BasicProcedure::read_by_format(reader, graphs, graphs_count as usize);
+            }
+            "ba" => {}
+            "s6" => {}
+            _ => {
+                return Err(Error::ConfigError(String::from(
+                    "unknown graph format for read procedure",
+                )))
+            }
+        }
         Ok(())
     }
 
-    fn write_graph<Graph>(&self, graphs: &mut Vec<Graph>) -> Result<()>
+    fn read_by_format<'a, G, R>(mut reader: R, graphs: &mut Vec<G>, graphs_count: usize)
     where
-        Graph: Debug,
+        R: Reader<'a, G>,
+        G: Graph,
+    {
+        for _i in 0..graphs_count {
+            let graph = reader.next();
+
+            if graph.is_some() {
+                let graph = graph.unwrap();
+                if graph.is_ok() {
+                    graphs.push(graph.unwrap());
+                }
+            } else {
+                println!(
+                    "You asked for: {} graphs but given file contains only {}",
+                    graphs_count, _i
+                );
+                break;
+            }
+        }
+    }
+
+    fn write_graph<G>(&self, graphs: &mut Vec<G>) -> Result<()>
+    where
+        G: Graph + Debug,
     {
         println!(
             "Running procedure: {} on graphs: {:?}",
             self.proc_type, graphs
         );
+
+        // handle Err
+        let file_path = self.config.get("file");
+        if file_path.is_none() {
+            return Err(Error::ConfigError(String::from(
+                "missing file path for write procedure",
+            )));
+        }
+
+        // let file_result = OpenOptions::new().read(true).open(file_path);
+        //
+        // // handle unwrap
+        // let file = file_result.unwrap();
+
+        // to fn - almost same for read proc
+        let graph_format = self.config.get("graph-format");
+        if graph_format.is_none() {
+            return Err(Error::ConfigError(String::from(
+                "missing graph format for read procedure",
+            )));
+        }
+        let graph_format = graph_format.unwrap();
+
+
+
+        // write
+        // let path = Path::(file_path.unwrap());
+        // let writer: BaWriter<G> = BaWriter::new(file_path.unwrap());
+
+        let file_result = OpenOptions::new().create(true).append(true).open(file_path.unwrap());
+        let file = file_result.unwrap();
+        for graph in graphs {
+            BaWriter::write_graph_ba(graph, 1, &file);
+        }
+
+        // println!("{:?}", graph);
+
+
+
         Ok(())
     }
 

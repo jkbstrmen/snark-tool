@@ -16,7 +16,7 @@ procedures:
 
   - proc-type: write
     config:
-      file: hello
-      graph-format: hello
+      file: output
+      graph-format: ba
 
   - proc-type: last-procedure

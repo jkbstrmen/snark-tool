@@ -9,6 +9,56 @@ use petgraph::stable_graph::StableGraph;
 use petgraph::visit::EdgeRef;
 
 use crate::service::io::reader_ba::get_graphs_count_with_preface;
+use crate::graph::graph::{Graph, Vertex, Edge};
+use std::marker;
+
+
+pub struct BaWriter<'a, G>
+where G: Graph
+{
+    // path: &'a Path,
+    path: &'a String,
+    _ph: marker::PhantomData<G>
+}
+
+impl<'a, G> BaWriter<'a, G>
+    where
+        G: Graph
+{
+    pub fn new(path: &'a String) -> Self {
+        BaWriter { path, _ph: marker::PhantomData }
+    }
+
+    pub fn write_graph_ba(
+        graph: &G,
+        index: u32,
+        mut buffer: impl Write,
+    ) {
+        writeln!(buffer);
+        writeln!(buffer, "{}", index);
+
+        for vertex in graph.vertices() {
+            for edges_of_vertex in graph.edges_of_vertex(vertex.index()) {
+                if edges_of_vertex.from() == vertex.index() {
+                    write!(buffer, "{} ", edges_of_vertex.to());
+                } else {
+                    write!(buffer, "{} ", edges_of_vertex.from());
+                }
+            }
+            writeln!(buffer);
+        }
+
+
+        // for node_index in graph.node_indices() {
+        //     for edge_ref in graph.edges(node_index) {
+        //         write!(buffer, "{} ", edge_ref.target().index());
+        //     }
+        //     writeln!(buffer);
+        // }
+    }
+
+}
+
 
 // TODO - handle errors
 pub fn write_graph_ba(

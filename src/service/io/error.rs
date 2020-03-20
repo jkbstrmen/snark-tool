@@ -13,7 +13,9 @@ impl ReadError {
     }
 }
 
-pub struct WriteError {}
+pub struct WriteError {
+    pub message: String,
+}
 
 // impl From<None> for IoError {
 //     fn from(_: None) -> Self {

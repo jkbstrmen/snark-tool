@@ -1,4 +1,5 @@
-use crate::graph::graph::{Edge, Graph, Vertex, Vertices};
+use crate::graph::graph;
+use crate::graph::graph::{Edge, Edges, Graph, Vertex, Vertices};
 use serde::export::fmt::Error;
 use serde::export::Formatter;
 use std::collections::HashMap;
@@ -89,6 +90,9 @@ pub struct SimpleGraph {
 impl Graph for SimpleGraph {
     fn add_edge(&mut self, from: usize, to: usize) {
         let edge = UndirectedEdge::new(from, to);
+        if self.has_edge(&edge) {
+            return;
+        }
         self.edges.push(edge.clone());
         self.edges.sort_by(|a, b| {
             if a.from == b.from {
@@ -101,6 +105,19 @@ impl Graph for SimpleGraph {
         }
     }
 
+    fn size(&self) -> usize {
+        self.vertices.len()
+    }
+
+    fn has_edge(&self, edge: &UndirectedEdge) -> bool {
+        for edge_ex in &self.edges {
+            if edge_ex.from == edge.from && edge_ex.to == edge.to {
+                return true;
+            }
+        }
+        false
+    }
+
     fn vertices(&self) -> Vertices<SimpleVertex> {
         Vertices::new(&self.vertices)
     }
@@ -108,6 +125,10 @@ impl Graph for SimpleGraph {
     fn add_vertex(&mut self) {
         self.vertices.push(SimpleVertex::new(self.vertices.len()));
     }
+
+    /*fn edges(&self, vertex: usize) -> graph::Edges<UndirectedEdge> {
+        unimplemented!()
+    }*/
 
     fn edges_of_vertex(&self, vertex: usize) -> EdgesOfVertex<UndirectedEdge> {
         EdgesOfVertex::new(vertex, &self.edges)

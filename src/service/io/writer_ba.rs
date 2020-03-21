@@ -1,4 +1,4 @@
-use std::fs::OpenOptions;
+use std::fs::{File, OpenOptions};
 use std::io::{LineWriter, Read, Write};
 
 use std::path::Path;
@@ -8,106 +8,99 @@ use petgraph::Undirected;
 use petgraph::stable_graph::StableGraph;
 use petgraph::visit::EdgeRef;
 
+use crate::graph::graph::{Edge, Graph, Vertex};
+use crate::service::io::error::WriteError;
 use crate::service::io::reader_ba::get_graphs_count_with_preface;
-use crate::graph::graph::{Graph, Vertex, Edge};
-use std::marker;
+use std::{io, marker, result};
 
+type Result<T> = result::Result<T, WriteError>;
 
 pub struct BaWriter<'a, G>
-where G: Graph
+where
+    G: Graph,
 {
     // path: &'a Path,
     path: &'a String,
-    _ph: marker::PhantomData<G>
+    _ph: marker::PhantomData<G>,
 }
 
 impl<'a, G> BaWriter<'a, G>
-    where
-        G: Graph
+where
+    G: Graph,
 {
     pub fn new(path: &'a String) -> Self {
-        BaWriter { path, _ph: marker::PhantomData }
+        BaWriter {
+            path,
+            _ph: marker::PhantomData,
+        }
     }
 
-    pub fn write_graph_ba(
-        graph: &G,
-        index: u32,
-        mut buffer: impl Write,
-    ) {
-        writeln!(buffer);
-        writeln!(buffer, "{}", index);
+    pub fn write_graph_ba(graph: &G, index: u32, mut buffer: impl Write) -> Result<()> {
+        writeln!(buffer)?;
+        writeln!(buffer, "{}", index)?;
+        writeln!(buffer, "{}", graph.size())?;
 
         for vertex in graph.vertices() {
             for edges_of_vertex in graph.edges_of_vertex(vertex.index()) {
                 if edges_of_vertex.from() == vertex.index() {
-                    write!(buffer, "{} ", edges_of_vertex.to());
+                    write!(buffer, "{} ", edges_of_vertex.to())?;
                 } else {
-                    write!(buffer, "{} ", edges_of_vertex.from());
+                    write!(buffer, "{} ", edges_of_vertex.from())?;
                 }
             }
-            writeln!(buffer);
+            writeln!(buffer)?;
         }
-
-
-        // for node_index in graph.node_indices() {
-        //     for edge_ref in graph.edges(node_index) {
-        //         write!(buffer, "{} ", edge_ref.target().index());
-        //     }
-        //     writeln!(buffer);
-        // }
+        Ok(())
     }
 
-}
-
-
-// TODO - handle errors
-pub fn write_graph_ba(
-    graph: StableGraph<u8, u16, Undirected, u8>,
-    index: u32,
-    mut buffer: impl Write,
-) {
-    writeln!(buffer);
-    writeln!(buffer, "{}", index);
-    for node_index in graph.node_indices() {
-        for edge_ref in graph.edges(node_index) {
-            write!(buffer, "{} ", edge_ref.target().index());
+    pub fn write_graphs_to_file(graphs: &Vec<G>, path: impl AsRef<Path>) -> Result<()> {
+        let file_result = OpenOptions::new().read(true).open(&path);
+        if let Err(err) = &file_result {
+            if err.kind() == io::ErrorKind::NotFound {
+                return BaWriter::write_graphs_to_new_file(graphs, path);
+            }
         }
-        writeln!(buffer);
+
+        let mut file = file_result?;
+        return BaWriter::append_graphs_to_file(graphs, path);
     }
-}
 
-// TODO - handle errors
-fn update_graphs_count(path: impl AsRef<Path>, new_count: usize, preface: String) {
-    let file_result = OpenOptions::new().write(true).open(path);
-    let mut writer = LineWriter::new(file_result.unwrap());
-    writer.write_all(preface.as_bytes());
-    let count_str = format!("{}", new_count);
-    writer.write_all(count_str.as_bytes());
-}
+    fn write_graphs_to_new_file(graphs: &Vec<G>, path: impl AsRef<Path>) -> Result<()> {
+        let mut file = OpenOptions::new().create(true).write(true).open(&path)?;
+        writeln!(file, "{}", graphs.len())?;
+        let mut index = 0;
+        for graph in graphs {
+            index += 1;
+            BaWriter::write_graph_ba(graph, (index) as u32, &mut file)?;
+        }
+        Ok(())
+    }
 
-// TODO - handle errors
-pub fn append_graph_ba_to_file(
-    graph: StableGraph<u8, u16, Undirected, u8>,
-    path: impl AsRef<Path>,
-)
-/*-> Result<>*/
-{
-    let file_result = OpenOptions::new().read(true).open(&path);
-
-    let count_preface_result = get_graphs_count_with_preface(&file_result.unwrap());
-    println!("{:?}", count_preface_result);
-    let mut count = 0;
-    let mut new_count = 0;
-    if count_preface_result.is_ok() {
-        let count_preface = count_preface_result.unwrap();
-        count = count_preface.0;
+    fn append_graphs_to_file(graphs: &Vec<G>, path: impl AsRef<Path>) -> Result<()> {
+        let file = OpenOptions::new().read(true).open(&path)?;
+        let count_preface = get_graphs_count_with_preface(&file)?;
+        let mut count = count_preface.0;
         let preface = count_preface.1;
-        new_count = count + 1;
-        update_graphs_count(&path, new_count, preface);
+        let new_count = count + graphs.len();
+        BaWriter::<G>::update_graphs_count(&path, new_count, preface)?;
+        let mut file = OpenOptions::new().append(true).open(&path)?;
+        for graph in graphs {
+            count += 1;
+            BaWriter::write_graph_ba(graph, (count) as u32, &mut file)?;
+        }
+        Ok(())
     }
 
-    let file_result = OpenOptions::new().append(true).open(&path);
-    let mut file = file_result.unwrap();
-
-    write_graph_ba(graph, (new_count) as u32, &mut file);
+    fn update_graphs_count(
+        path: impl AsRef<Path>,
+        new_count: usize,
+        preface: String,
+    ) -> Result<()> {
+        let file = OpenOptions::new().write(true).open(path)?;
+        let mut writer = LineWriter::new(file);
+        writer.write_all(preface.as_bytes())?;
+        let count_str = format!("{}", new_count);
+        writer.write_all(count_str.as_bytes())?;
+        Ok(())
+    }
 }

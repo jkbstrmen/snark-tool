@@ -2,10 +2,10 @@ use crate::graph::simple_graph::{EdgesOfVertex, SimpleVertex, UndirectedEdge};
 use serde::export::fmt::Error;
 use serde::export::{Formatter, PhantomData};
 use std::slice::Iter;
-use std::{fmt, slice};
+use std::{fmt, marker, slice};
 
 // make Eit and Vit - another generic params?
-pub trait Graph<V = SimpleVertex, E = UndirectedEdge>
+pub trait Graph<V = SimpleVertex, E = UndirectedEdge /*, Eit = Edges<'_, E>*/>
 where
     V: Vertex,
     E: Edge,
@@ -13,8 +13,11 @@ where
     // fn add_edge(&mut self, edge: E) ;
     fn add_edge(&mut self, from: usize, to: usize);
 
+    fn size(&self) -> usize;
     // size
     // has_edge
+    // fn has_edge(&self, from: usize, to: usize) -> bool;
+    fn has_edge(&self, edge: &E) -> bool;
     // edge_iter = edge_iterator
     // fn edges(&self);
     // fn edges_mut(&mut self);
@@ -26,6 +29,7 @@ where
     // remove_edge
     // remove_vertex
     // edges = edges of vertex - as iterator?
+    // fn edges(&self, vertex: usize) -> Eit;
     // fn edges(&self, vertex: usize) -> impl Iterator;
     // fn edges<'a, I>(&'a self, vertex: usize) -> I
     // where
@@ -45,6 +49,7 @@ where
 
     // CONSTRUCTORS
     fn with_capacity(vertices: usize, edges: usize) -> Self;
+    // new
     // with_vertices_capacity
     // with_edes_capacity
 
@@ -75,13 +80,22 @@ pub trait Vertex {
     // weight
 }
 
+pub struct Edges<'a, E> {
+    edge: E,
+    _ph: &'a usize, // _ph: marker::PhantomData<'a, E>
+}
+
+//
+
 pub struct Vertices<'a, V> {
-    next: Iter<'a, V>
+    next: Iter<'a, V>,
 }
 
 impl<'a> Vertices<'a, SimpleVertex> {
     pub fn new(vertices: &'a Vec<SimpleVertex>) -> Self {
-        Vertices{ next: vertices.iter() }
+        Vertices {
+            next: vertices.iter(),
+        }
     }
 }
 

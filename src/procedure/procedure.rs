@@ -3,13 +3,13 @@ use crate::graph::graph::{Edge, Graph};
 use crate::graph::simple_graph::SimpleGraph;
 use crate::service::io::reader::Reader;
 use crate::service::io::reader_g6::G6Reader;
+use crate::service::io::writer_ba::BaWriter;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::fs::OpenOptions;
+use std::path::Path;
 use std::result;
 use std::str::FromStr;
-use crate::service::io::writer_ba::BaWriter;
-use std::path::Path;
 
 type Config = HashMap<String, String>;
 type Result<T> = result::Result<T, Error>;
@@ -151,6 +151,7 @@ impl BasicProcedure {
                 "missing file path for write procedure",
             )));
         }
+        let file_path = file_path.unwrap();
 
         // let file_result = OpenOptions::new().read(true).open(file_path);
         //
@@ -166,21 +167,22 @@ impl BasicProcedure {
         }
         let graph_format = graph_format.unwrap();
 
-
-
         // write
         // let path = Path::(file_path.unwrap());
         // let writer: BaWriter<G> = BaWriter::new(file_path.unwrap());
 
-        let file_result = OpenOptions::new().create(true).append(true).open(file_path.unwrap());
-        let file = file_result.unwrap();
-        for graph in graphs {
-            BaWriter::write_graph_ba(graph, 1, &file);
-        }
+        BaWriter::write_graphs_to_file(graphs, file_path)?;
+
+        // let file_result = OpenOptions::new().create(true).append(true).open(file_path);
+        // let file = file_result.unwrap();
+        // for graph in graphs {
+        //     // append graph to file
+        //     // BaWriter::write_graph_ba(graph, 1, &file);
+        //
+        //     BaWriter::append_graph_ba_to_file(graph, file_path);
+        // }
 
         // println!("{:?}", graph);
-
-
 
         Ok(())
     }

@@ -12,6 +12,7 @@ use std::{fs, io, result};
 
 pub const BIAS: u8 = 63;
 pub const SMALLN: u64 = 62;
+const WRONG_FORMAT: &str = "Wrong g6 format";
 
 type Result<T> = result::Result<T, ReadError>;
 
@@ -60,43 +61,10 @@ impl<'a, G> G6Reader<'a, G>
 where
     G: graph::Graph,
 {
-    // pub fn new(file: &'a fs::File) -> Self {
-    //     G6Reader {
-    //         file,
-    //         lines: io::BufReader::new(file).lines(),
-    //         _ph: PhantomData,
-    //     }
-    // }
-    //
-    // pub fn next(&mut self) -> Option<Result<G>> {
-    //     let line = self.lines.next();
-    //     match line {
-    //         None => {
-    //             // warn - file contains less graphs than specified to work with
-    //             return None;
-    //         }
-    //         Some(line) => {
-    //             if line.is_ok() {
-    //                 let graph = G6Reader::read_graph(line.unwrap());
-    //                 // graphs.push(graph.unwrap());
-    //                 return Some(graph);
-    //             }
-    //         }
-    //     }
-    //     None
-    //     // Err(ReadError{ message: "".to_string() })
-    // }
-
-    // pub fn new() -> Self {
-    //     G6Reader { _ph: PhantomData }
-    // }
-
     pub fn read_by_lines(/*&self,*/ file: &fs::File, count: u64) -> Result<Vec<G>> {
         let mut lines = io::BufReader::new(file).lines();
-
         let mut graphs = vec![];
-
-        for i in 0..count {
+        for _i in 0..count {
             let line = lines.next();
             match line {
                 None => {
@@ -110,7 +78,6 @@ where
                 }
             }
         }
-
         Ok(graphs)
     }
 
@@ -125,12 +92,11 @@ where
         let vertices = size as usize;
         let edges = (size * 3 / 2) as usize;
         let mut graph = G::with_capacity(vertices, edges);
-
-        let error = "error";
         let mut char = iterator.next();
         let mut position = Position { row: 0, column: 1 };
         while char != None {
-            let bits = format!("{:b}", (char.expect(error) as u8) - BIAS);
+            let char_num = G6Reader::<G>::extract_char(char.unwrap())?;
+            let bits = format!("{:b}", char_num);
             for _i in 0..(6 - bits.len()) {
                 position.increment();
             }
@@ -143,6 +109,19 @@ where
             char = iterator.next();
         }
         Ok(graph)
+    }
+
+    fn extract_char(char: char) -> Result<u8> {
+        let char_num = char as u8;
+        if char_num < BIAS || char_num > BIAS * 2 {
+            return Err(ReadError {
+                message: format!(
+                    "{} `{}` is not allowed character",
+                    WRONG_FORMAT, char_num as char
+                ),
+            });
+        }
+        Ok(char_num - BIAS)
     }
 }
 

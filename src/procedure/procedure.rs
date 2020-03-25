@@ -2,6 +2,7 @@ use crate::error::Error;
 use crate::graph::graph::{Edge, Graph};
 use crate::graph::simple_graph::SimpleGraph;
 use crate::service::io::reader::Reader;
+use crate::service::io::reader_ba::BaReader;
 use crate::service::io::reader_g6::G6Reader;
 use crate::service::io::writer_ba::BaWriter;
 use std::collections::HashMap;
@@ -99,9 +100,12 @@ impl BasicProcedure {
         match graph_format.as_str() {
             "g6" => {
                 let mut reader = G6Reader::<G>::new(&file);
-                BasicProcedure::read_by_format(reader, graphs, graphs_count as usize);
+                BasicProcedure::read_by_format(reader, graphs, graphs_count as usize)?;
             }
-            "ba" => {}
+            "ba" => {
+                let mut reader = BaReader::<G>::new(&file);
+                BasicProcedure::read_by_format(reader, graphs, graphs_count as usize)?;
+            }
             "s6" => {}
             _ => {
                 return Err(Error::ConfigError(String::from(
@@ -112,7 +116,11 @@ impl BasicProcedure {
         Ok(())
     }
 
-    fn read_by_format<'a, G, R>(mut reader: R, graphs: &mut Vec<G>, graphs_count: usize)
+    fn read_by_format<'a, G, R>(
+        mut reader: R,
+        graphs: &mut Vec<G>,
+        graphs_count: usize,
+    ) -> Result<()>
     where
         R: Reader<'a, G>,
         G: Graph,
@@ -121,10 +129,8 @@ impl BasicProcedure {
             let graph = reader.next();
 
             if graph.is_some() {
-                let graph = graph.unwrap();
-                if graph.is_ok() {
-                    graphs.push(graph.unwrap());
-                }
+                let graph = graph.unwrap()?;
+                graphs.push(graph);
             } else {
                 println!(
                     "You asked for: {} graphs but given file contains only {}",
@@ -133,6 +139,7 @@ impl BasicProcedure {
                 break;
             }
         }
+        Ok(())
     }
 
     fn write_graph<G>(&self, graphs: &mut Vec<G>) -> Result<()>

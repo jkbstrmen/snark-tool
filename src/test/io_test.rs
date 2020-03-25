@@ -5,17 +5,17 @@ use std::path::Path;
 use bit_vec::BitVec;
 use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableGraph;
-use petgraph::Undirected;
 use petgraph::visit::EdgeRef;
+use petgraph::Undirected;
 
 use crate::graph::simple_graph::SimpleGraph;
-use crate::service::io::{reader_g6, reader_s6, writer_s6};
 use crate::service::io::reader::Reader;
 use crate::service::io::reader_ba::BaReader;
 use crate::service::io::reader_g6::read_graph;
 use crate::service::io::reader_s6::bitvec_to_u64;
 use crate::service::io::writer_g6::{to_g6_size, write_graph};
 use crate::service::io::writer_s6::{bitvec_from_u64, encode_edges, to_s6_string};
+use crate::service::io::{reader_g6, reader_s6, writer_s6};
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
 where

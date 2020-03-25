@@ -1,11 +1,21 @@
-use crate::service::io::reader_g6::read_graph;
-use crate::service::io::writer_g6::{to_g6_size, write_graph};
-
-use crate::service::io::reader_ba::read_graph_ba;
-// use crate::service::io::writer_ba::{append_graph_ba_to_file, write_graph_ba};
 use std::fs::{File, OpenOptions};
 use std::io::{self, BufRead, BufReader, Write};
 use std::path::Path;
+
+use bit_vec::BitVec;
+use petgraph::graph::NodeIndex;
+use petgraph::stable_graph::StableGraph;
+use petgraph::Undirected;
+use petgraph::visit::EdgeRef;
+
+use crate::graph::simple_graph::SimpleGraph;
+use crate::service::io::{reader_g6, reader_s6, writer_s6};
+use crate::service::io::reader::Reader;
+use crate::service::io::reader_ba::BaReader;
+use crate::service::io::reader_g6::read_graph;
+use crate::service::io::reader_s6::bitvec_to_u64;
+use crate::service::io::writer_g6::{to_g6_size, write_graph};
+use crate::service::io::writer_s6::{bitvec_from_u64, encode_edges, to_s6_string};
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
 where
@@ -43,7 +53,27 @@ fn should_read_ba() {
     if let Ok(lines) = read_lines(graph_path) {
         // Consumes the iterator, returns an (Optional) String
 
-        let graph = read_graph_ba(lines);
+        // let graph = read_graph_ba(lines);
+    }
+
+    let file = OpenOptions::new().read(true).open(graph_path).unwrap();
+
+    let mut reader = BaReader::<SimpleGraph>::new(&file);
+
+    let mut index = 0;
+    loop {
+        let graph = reader.next();
+        if graph.is_none() {
+            break;
+        }
+
+        if index == 100 {
+            println!();
+        }
+
+        index += 1;
+        println!("{}", index);
+        println!("{}", graph.unwrap().unwrap());
     }
 }
 
@@ -107,15 +137,6 @@ fn should_code_size() {
     let res = to_g6_size(460175067);
     assert_eq!(res, "~~?ZZZZZ");
 }
-
-use crate::service::io::reader_s6::bitvec_to_u64;
-use crate::service::io::writer_s6::{bitvec_from_u64, encode_edges, to_s6_string};
-use crate::service::io::{reader_g6, reader_s6, writer_s6};
-use bit_vec::BitVec;
-use petgraph::graph::NodeIndex;
-use petgraph::stable_graph::StableGraph;
-use petgraph::visit::EdgeRef;
-use petgraph::Undirected;
 
 type Graph = StableGraph<u8, u16, Undirected, u8>;
 

@@ -1,17 +1,15 @@
 use std::fs::{File, OpenOptions};
 use std::io::{LineWriter, Read, Write};
-
 use std::path::Path;
-
-use petgraph::Undirected;
+use std::{io, marker, result};
 
 use petgraph::stable_graph::StableGraph;
 use petgraph::visit::EdgeRef;
+use petgraph::Undirected;
 
 use crate::graph::graph::{Edge, Graph, Vertex};
 use crate::service::io::error::WriteError;
-use crate::service::io::reader_ba::get_graphs_count_with_preface;
-use std::{io, marker, result};
+use crate::service::io::reader_ba;
 
 type Result<T> = result::Result<T, WriteError>;
 
@@ -19,7 +17,6 @@ pub struct BaWriter<'a, G>
 where
     G: Graph,
 {
-    // path: &'a Path,
     path: &'a String,
     _ph: marker::PhantomData<G>,
 }
@@ -78,7 +75,8 @@ where
 
     fn append_graphs_to_file(graphs: &Vec<G>, path: impl AsRef<Path>) -> Result<()> {
         let file = OpenOptions::new().read(true).open(&path)?;
-        let count_preface = get_graphs_count_with_preface(&file)?;
+        // let count_preface = get_graphs_count_with_preface(&file)?;
+        let count_preface = reader_ba::read_preface_and_count(&file)?;
         let mut count = count_preface.0;
         let preface = count_preface.1;
         let new_count = count + graphs.len();

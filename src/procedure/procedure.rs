@@ -144,7 +144,6 @@ impl BasicProcedure {
             self.proc_type, graphs
         );
 
-        // handle Err
         let file_path = self.config.get("file");
         if file_path.is_none() {
             return Err(Error::ConfigError(String::from(
@@ -152,11 +151,6 @@ impl BasicProcedure {
             )));
         }
         let file_path = file_path.unwrap();
-
-        // let file_result = OpenOptions::new().read(true).open(file_path);
-        //
-        // // handle unwrap
-        // let file = file_result.unwrap();
 
         // to fn - almost same for read proc
         let graph_format = self.config.get("graph-format");
@@ -167,22 +161,22 @@ impl BasicProcedure {
         }
         let graph_format = graph_format.unwrap();
 
-        // write
-        // let path = Path::(file_path.unwrap());
-        // let writer: BaWriter<G> = BaWriter::new(file_path.unwrap());
-
-        BaWriter::write_graphs_to_file(graphs, file_path)?;
-
-        // let file_result = OpenOptions::new().create(true).append(true).open(file_path);
-        // let file = file_result.unwrap();
-        // for graph in graphs {
-        //     // append graph to file
-        //     // BaWriter::write_graph_ba(graph, 1, &file);
-        //
-        //     BaWriter::append_graph_ba_to_file(graph, file_path);
-        // }
-
-        // println!("{:?}", graph);
+        match graph_format.as_str() {
+            "g6" => {
+                // let mut reader = G6Reader::<G>::new(&file);
+                // BasicProcedure::read_by_format(reader, graphs, graphs_count as usize);
+                // G6Wri
+            }
+            "ba" => {
+                BaWriter::write_graphs_to_file(graphs, file_path)?;
+            }
+            "s6" => {}
+            _ => {
+                return Err(Error::ConfigError(String::from(
+                    "unknown graph format for read procedure",
+                )))
+            }
+        }
 
         Ok(())
     }

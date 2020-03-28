@@ -3,6 +3,8 @@ use crate::graph::simple_graph::{SimpleGraph, UndirectedEdge};
 use crate::service::colour::bfs::BFSColourGraph;
 use crate::service::io::reader::Reader;
 use crate::service::io::reader_g6::G6Reader;
+use std::fs::OpenOptions;
+use std::time::Instant;
 
 #[test]
 fn test() {
@@ -50,6 +52,53 @@ fn init_colouriser() {
 
     println!("graph is colorable: {}", colour);
 }
+
+fn is_colourable(graph: SimpleGraph) -> bool {
+    let mut matrix: Vec<u8> = vec![];
+    for row in 0..graph.size() {
+        for column in 0..graph.size() {
+            if graph.has_edge(&UndirectedEdge::new(row, column)) {
+                matrix.push(1);
+            } else {
+                matrix.push(0);
+            }
+        }
+    }
+    let colour = BFSColourGraph::is_colorable(matrix, graph.size() as u8);
+    colour
+}
+
+#[test]
+fn measure_time(){
+
+    let begin = Instant::now();
+
+    // let path = "resources/graphs/Generated_2100_36vert_snarks.g6";
+    let path = "resources/graphs/Generated_100_36vert_snarks.g6";
+    let file_result = OpenOptions::new().read(true).open(&path).unwrap();
+
+    let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
+
+    let mut all_false = true;
+    let mut graph = reader.next();
+    let mut index = 0;
+    while graph.is_some() {
+        println!("{}", index);
+        if let Ok(graph) = graph.unwrap() {
+            let result = is_colourable(graph);
+            if result { all_false = false; }
+        }
+
+        index += 1;
+        graph = reader.next();
+    }
+
+    println!("all false: {}", all_false);
+    println!("elapsed: {}[ms]", begin.elapsed().as_millis());
+
+
+}
+
 
 fn print(graph: &Vec<u8>, graph_size: u8) {
     for row in 0..graph_size {

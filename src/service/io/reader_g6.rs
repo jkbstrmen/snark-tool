@@ -81,7 +81,7 @@ where
         Ok(graphs)
     }
 
-    fn read_graph(source: impl AsRef<str>) -> Result<G> {
+    pub fn read_graph(source: impl AsRef<str>) -> Result<G> {
         let mut iterator = source.as_ref().chars();
         let size = get_graph_size(&mut iterator);
         let graph = G6Reader::create_graph(&mut iterator, size? as u32)?;

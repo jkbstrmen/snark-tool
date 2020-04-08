@@ -1,5 +1,3 @@
-use crate::graph::graph::{Edge, Graph, Vertex};
-
 // for graphs with at most 170 vertices and 255 edges
 
 pub struct BFSColourGraph
@@ -24,117 +22,111 @@ pub struct BFSColourGraph
     graph_size: u8,
 }
 
-// get edge / edge color
-// set edge color
-// edges of vertex / neighbors of vertex
+impl BFSColourGraph {
+    // assumes non colored graph
+    pub fn is_colorable(graph: Vec<u8>, graph_size: u8) -> bool {
+        //let neighbors = Vec::with_capacity(graph_size as usize);
+        let neighbors: Vec<[u8; 3]> = vec![[0; 3]; graph_size as usize];
 
-// vertex -> neighbors with colors
+        let non_colored_edges = vec![0; graph_size as usize];
 
-pub struct BFSColourGraphV2 {
-    vertices: Vec<[(usize, usize); 3]>,
-    one_edge_vert: Vec<usize>,
-    non_colored_edges: Vec<usize>,
-    non_colored_edges_of_graph: usize,
-    graph_size: usize,
-    // non_colored_edges: Vec<u8>,
-}
-
-impl BFSColourGraphV2 {
-    pub fn is_colorable<G>(graph: &G) -> bool
-    where
-        G: Graph,
-    {
-        let mut vertices = Vec::with_capacity(graph.size());
-        for vertex in graph.vertices() {
-            let mut neighbors = [(0, 1); 3];
-            let mut i = 0;
-            for edge in graph.edges_of_vertex(vertex.index()) {
-                if edge.from() == vertex.index() {
-                    neighbors[i].0 = edge.to();
-                } else {
-                    neighbors[i].0 = edge.from();
-                }
-                i += 1;
-            }
-            // if vertex has less than 3 edges - where is checked later?
-            if i < 3 {
-                neighbors[i].0 = vertex.index();
-            }
-            i += 1;
-            if i < 3 {
-                neighbors[i].0 = vertex.index();
-            }
-            vertices.push(neighbors);
-        }
-
-        let mut color_graph = BFSColourGraphV2 {
-            vertices,
-            one_edge_vert: vec![],
-            non_colored_edges: vec![],
+        let mut color_graph = BFSColourGraph {
+            graph,
+            neighbors,
+            one_edge_vert: Vec::with_capacity(graph_size as usize),
+            non_colored_edges,
             non_colored_edges_of_graph: 0,
-            graph_size: graph.size()
+            // one_edge_vertices: 0,
+            graph_size,
         };
 
-        // precolor
+        // pre-color first vertex ...
         let colors = [3, 4, 5];
-        let mut first_vertex = 0;
-        let mut index = 0;
-        for vertex in color_graph.vertices.clone() {
-            let mut i = 0;
-            for neighbor in vertex.iter() {
-                if neighbor.1 == 1 {
-                    color_graph.set_edge_color(index, neighbor.0, colors[i]);
-                    first_vertex = neighbor.0;
-                    i += 1;
+        let mut first_vertex: u8 = 0;
+        let mut from = 0;
+        // could be infinite loop if graph has no edges
+        loop {
+            let mut k = 0;
+            for to in 0..graph_size {
+                if color_graph.get_edge_color(from, to) == 1 {
+                    color_graph.set_edge_color(from, to, colors[k]);
+                    k += 1;
+                    first_vertex = to;
                 }
             }
-            index += 1;
-            if i != 0 {
+            from += 1;
+            if k != 0 {
                 break;
             }
         }
 
-        let mut non_colored_edges_of_graph = 0;
-        let mut non_colored_edges_of_vertex_count = vec![0; graph.size()];
-        let mut one_edge_vert = vec![];
-        let mut i = 0;
-        for vertex in &color_graph.vertices {
-            for neighbor in vertex.iter() {
-                if neighbor.1 == 1 {
-                    non_colored_edges_of_vertex_count[i] += 1;
-                    non_colored_edges_of_graph += 1;
+        // init color_graph
+        let mut non_colored_edges_count: usize = 0;
+        for row in 0..graph_size {
+            let mut neighbor = 0;
+
+            for column in 0..graph_size {
+                let edge_col = color_graph.get_edge_color(row, column);
+                if edge_col > 0 {
+                    color_graph.neighbors[row as usize][neighbor] = column;
+
+                    // let neighbors = color_graph.neighbors.get_mut(row as usize).unwrap();
+                    // neighbors[neighbor] = column;
+                    neighbor += 1;
+                    if edge_col == 1 {
+                        //color_graph.non_colored_edges_of_graph += 1;
+                        //*color_graph.non_colored_edges.get_mut(row as usize).unwrap() += 1;
+                        non_colored_edges_count += 1;
+                        color_graph.non_colored_edges[row as usize] += 1;
+                    }
                 }
             }
-            if non_colored_edges_of_vertex_count[i] == 1 {
-                one_edge_vert.push(i);
-            }
-            i += 1;
-        }
-        non_colored_edges_of_graph = non_colored_edges_of_graph / 2;
 
-        color_graph.one_edge_vert = one_edge_vert;
-        color_graph.non_colored_edges = non_colored_edges_of_vertex_count;
-        color_graph.non_colored_edges_of_graph = non_colored_edges_of_graph;
+            // why ??
+            if neighbor < 3 {
+                color_graph.neighbors[row as usize][neighbor] = row;
+            }
+            neighbor += 1;
+            if neighbor < 3 {
+                let neighbors = color_graph.neighbors.get_mut(row as usize).unwrap();
+                neighbors[neighbor] = row;
+            }
+        }
+
+        non_colored_edges_count = non_colored_edges_count / 2;
+        color_graph.non_colored_edges_of_graph = non_colored_edges_count as u8;
+        // count vertices with one uncolored edge
+        for vertex in 0..graph_size {
+            if (1 as u8).eq(color_graph.non_colored_edges.get(vertex as usize).unwrap()) {
+                color_graph.one_edge_vert.push(vertex);
+                // color_graph.one_edge_vertices += 1;
+            }
+        }
+
+        println!();
+        // color_graph.print();
+
         color_graph.color(first_vertex)
+        // false
     }
 
-    fn color(&mut self, vertex: usize) -> bool {
+    fn color(&mut self, vertex: u8) -> bool {
         let color_vars = [(4, 5), (3, 5), (3, 4)];
 
         let mut neighbor1 = 0;
         let mut neighbor2 = 0;
         let mut colored_sum: usize = 0;
-        for neighbor in self.vertices[vertex].iter() {
-            let color = neighbor.1;
+        for neighbor in &self.neighbors[vertex as usize] {
+            let color = self.get_edge_color(vertex, neighbor.clone());
             if color == 1 {
-                neighbor2 = neighbor1;
-                neighbor1 = neighbor.0;
+                neighbor2 = neighbor1.clone();
+                neighbor1 = neighbor.clone();
             } else {
-                colored_sum += color;
+                colored_sum += color as usize;
             }
         }
 
-        match self.non_colored_edges[vertex] {
+        match self.non_colored_edges[vertex as usize] {
             0 => {
                 // println!("zero uncolored edges of vertex {}", vertex);
 
@@ -144,9 +136,10 @@ impl BFSColourGraphV2 {
                     let mut vert = 0;
                     while (self.non_colored_edges[vert] != 1) && (self.non_colored_edges[vert] != 2)
                     {
+                        // why?
                         vert += 1;
                     }
-                    return self.color(vert);
+                    return self.color(vert as u8);
                 }
             }
             1 => {
@@ -159,11 +152,8 @@ impl BFSColourGraphV2 {
                 {
                     change = true;
                     next_vertex = self.one_edge_vert.pop().unwrap(); // preco sa ale sem potom do jenodhrannych neprida kde1, ked aj kde1 uz bude jednohran?
-
-                // experimental
-                // self.one_edge_vert.push(neighbor1);
                 } else {
-                    next_vertex = neighbor1;
+                    next_vertex = neighbor1 as u8;
                 }
 
                 match colored_sum {
@@ -207,7 +197,7 @@ impl BFSColourGraphV2 {
                         if self.set_edge_check_and_color_rest(
                             neighbor1,
                             vertex,
-                            12 - colored_sum,
+                            (12 - colored_sum) as u8,
                             next_vertex,
                         ) {
                             return true;
@@ -215,9 +205,6 @@ impl BFSColourGraphV2 {
                     }
                 }
                 if change {
-                    // experimental
-                    // self.one_edge_vert.pop();
-
                     self.one_edge_vert.push(next_vertex);
                 }
                 // revert changes
@@ -254,49 +241,36 @@ impl BFSColourGraphV2 {
                 }
 
                 match colored_sum {
-                    0 => {
-                        // possible if pre-colored first vertex?
+                    0 => { // possible if pre-colored first vertex?
                         for num in 3..6 {
-                            self.set_edge_color(vertex, neighbor1, color_vars[num - 3].0);
-                            self.set_edge_color(vertex, neighbor2, color_vars[num - 3].1);
+                            self.set_edge_color(vertex, neighbor1, color_vars[num-3].0);
+                            self.set_edge_color(vertex, neighbor2, color_vars[num-3].1);
                             if self.are_vertices_without_conflict(neighbor1, neighbor2)
-                                && self.color(next_vertex)
-                            {
-                                return true;
-                            }
+                                && self.color(next_vertex) { return true; }
 
-                            self.set_edge_color(vertex, neighbor1, color_vars[num - 3].1);
-                            self.set_edge_color(vertex, neighbor2, color_vars[num - 3].0);
+                            self.set_edge_color(vertex, neighbor1, color_vars[num-3].1);
+                            self.set_edge_color(vertex, neighbor2, color_vars[num-3].0);
                             if self.are_vertices_without_conflict(neighbor1, neighbor2)
-                                && self.color(next_vertex)
-                            {
-                                return true;
-                            }
+                                && self.color(next_vertex) { return true; }
                         }
                     }
                     _ => {
-                        self.set_edge_color(vertex, neighbor1, color_vars[colored_sum - 3].0);
-                        self.set_edge_color(vertex, neighbor2, color_vars[colored_sum - 3].1);
-                        if self.are_vertices_without_conflict(neighbor1, neighbor2)
-                            && self.color(next_vertex)
-                        {
-                            return true;
-                        }
 
-                        self.set_edge_color(vertex, neighbor1, color_vars[colored_sum - 3].1);
-                        self.set_edge_color(vertex, neighbor2, color_vars[colored_sum - 3].0);
+                        self.set_edge_color(vertex, neighbor1, color_vars[colored_sum-3].0);
+                        self.set_edge_color(vertex, neighbor2, color_vars[colored_sum-3].1);
                         if self.are_vertices_without_conflict(neighbor1, neighbor2)
-                            && self.color(next_vertex)
-                        {
-                            return true;
-                        }
+                            && self.color(next_vertex) { return true; }
+
+                        self.set_edge_color(vertex, neighbor1, color_vars[colored_sum-3].1);
+                        self.set_edge_color(vertex, neighbor2, color_vars[colored_sum-3].0);
+                        if self.are_vertices_without_conflict(neighbor1, neighbor2)
+                            && self.color(next_vertex) { return true; }
+
                     }
                 }
 
                 // revert changes
-                if one_edge_neighbors == 2 {
-                    self.one_edge_vert.pop();
-                }
+                if one_edge_neighbors == 2 { self.one_edge_vert.pop(); }
                 if next_from_queue && one_edge_neighbors == 0 {
                     self.one_edge_vert.push(next_vertex);
                 }
@@ -317,57 +291,62 @@ impl BFSColourGraphV2 {
         false
     }
 
-    fn get_edge_color(&self, from: usize, to: usize) -> usize {
-        for neighbor in self.vertices[from].iter() {
-            if neighbor.0 == to {
-                return neighbor.1;
-            }
-        }
-        panic!("there is no edge from {} to {}", from, to);
+    fn get_edge_color(&self, from: u8, to: u8) -> u8 {
+        let index = from as usize * self.graph_size as usize + to as usize;
+        self.graph.get(index as usize).unwrap().clone()
     }
 
-    fn set_edge_color(&mut self, from: usize, to: usize, color: usize) {
-        for neighbor in self.vertices[from].iter_mut() {
-            if neighbor.0 == to {
-                neighbor.1 = color;
-            }
-        }
-        for neighbor in self.vertices[to].iter_mut() {
-            if neighbor.0 == from {
-                neighbor.1 = color;
-            }
-        }
+    fn set_edge_color(&mut self, from: u8, to: u8, color: u8) {
+        // let index = from * self.graph_size + to;
+        // std::mem::replace(&mut self.graph[index as usize], color);
+        self.graph[from as usize * self.graph_size as usize + to as usize] = color;
+        self.graph[to as usize * self.graph_size as usize + from as usize] = color;
     }
 
     // ttt2
-    fn is_vertex_without_conflict(&self, vertex: usize, neighbors: &[(usize, usize); 3]) -> bool {
-        is_without_conflict(neighbors[0].1, neighbors[1].1, neighbors[2].1)
+    fn is_vertex_without_conflict(&self, vertex: u8, neighbors: &[u8; 3]) -> bool {
+        is_without_conflict(
+            self.get_edge_color(vertex, neighbors[0]),
+            self.get_edge_color(vertex, neighbors[1]),
+            self.get_edge_color(vertex, neighbors[2]),
+        )
     }
 
     // cond1
-    fn set_color_and_check_validity(&mut self, from: usize, to: usize, color: usize) -> bool {
+    fn set_color_and_check_validity(&mut self, from: u8, to: u8, color: u8) -> bool {
         self.set_edge_color(from, to, color);
-        self.is_vertex_without_conflict(from, &self.vertices[from])
+        self.is_vertex_without_conflict(from, &self.neighbors[from as usize])
     }
 
     // cond2
-    fn are_vertices_without_conflict(&self, first: usize, second: usize) -> bool {
-        self.is_vertex_without_conflict(first, &self.vertices[first])
-            && self.is_vertex_without_conflict(second, &self.vertices[second])
+    fn are_vertices_without_conflict(&self, first: u8, second: u8) -> bool {
+        self.is_vertex_without_conflict(first, &self.neighbors[first as usize])
+            && self.is_vertex_without_conflict(second, &self.neighbors[second as usize])
     }
 
     fn set_edge_check_and_color_rest(
         &mut self,
-        from: usize,
-        to: usize,
-        color: usize,
-        next_vertex: usize,
+        from: u8,
+        to: u8,
+        color: u8,
+        next_vertex: u8,
     ) -> bool {
         self.set_color_and_check_validity(from, to, color) && self.color(next_vertex)
     }
+
+    // temp
+    pub fn print(&self) {
+        for row in 0..self.graph_size {
+            for column in 0..self.graph_size {
+                let index = row * self.graph_size + column;
+                print!("{} ", self.graph.get(index as usize).unwrap());
+            }
+            println!();
+        }
+    }
 }
 
-fn is_without_conflict(color1: usize, color2: usize, color3: usize) -> bool {
+fn is_without_conflict(color1: u8, color2: u8, color3: u8) -> bool {
     // ttt
     if (color1 == color2) && (color1 > 1) {
         return false;

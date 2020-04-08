@@ -175,18 +175,14 @@ fn should_write_s6() {
 #[test]
 fn should_read_graph_s6() {
     let petersen_s6 = ":IG?SPc_EOrOFCQN";
-    let graph_res = reader_s6::read_graph(petersen_s6);
-
     // assert
 
     // let test_graph = ":Fa@x^";
     // let graph_res = reader_s6::read_graph(test_graph);
 
     // assert
-
-    print_graph(graph_res.unwrap());
-
-    //println!("{:?}", graph_res);
+    let graph_res = reader_s6::S6Reader::<SimpleGraph>::read_graph(petersen_s6);
+    println!("{}", graph_res.unwrap());
 }
 
 #[test]

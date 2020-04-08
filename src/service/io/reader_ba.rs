@@ -4,11 +4,9 @@ use petgraph::Undirected;
 use std::fs::File;
 use std::io::{self, BufRead};
 
-// temp
 use crate::graph::traits::graph;
 use crate::service::io::error::ReadError;
 use crate::service::io::reader::Reader;
-use petgraph::visit::EdgeRef;
 use std::{fs, marker, result};
 
 type Result<T> = result::Result<T, ReadError>;

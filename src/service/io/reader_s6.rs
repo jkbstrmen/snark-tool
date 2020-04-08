@@ -1,12 +1,13 @@
 use crate::graph::traits::graph::Graph;
 use crate::service::io::error::ReadError;
+use crate::service::io::reader::Reader;
 use crate::service::io::reader_g6::{get_graph_size, BIAS};
 use crate::service::io::writer_s6::{bitvec_from_u64, edge_encoding_size};
+use std::fs::File;
+use std::io::BufRead;
 use std::slice::Iter;
 use std::str::Chars;
-use std::{marker, result, fs, io};
-use crate::service::io::reader::Reader;
-use std::fs::File;
+use std::{fs, io, marker, result};
 
 type Result<T> = result::Result<T, ReadError>;
 
@@ -18,16 +19,19 @@ pub struct S6Reader<'a, G> {
     _ph: marker::PhantomData<G>,
 }
 
-impl<'a, G> Reader<'a, G> for S6Reader<'a, G> {
+impl<'a, G> Reader<'a, G> for S6Reader<'a, G>
+where
+    G: Graph,
+{
     fn new(file: &'a File) -> Self {
-        S6Reader{
+        S6Reader {
             edge_encoding_size: 0,
             file,
-            lines: lines: io::BufReader::new(file).lines(),
-            _ph: marker::PhantomData
+            lines: io::BufReader::new(file).lines(),
+            _ph: marker::PhantomData,
         }
     }
-    
+
     fn next(&mut self) -> Option<Result<G>> {
         let line = self.lines.next();
         match line {
@@ -47,8 +51,8 @@ impl<'a, G> Reader<'a, G> for S6Reader<'a, G> {
 }
 
 impl<'a, G> S6Reader<'_, G>
-    where
-        G: Graph,
+where
+    G: Graph,
 {
     pub fn read_graph(source: impl AsRef<str>) -> Result<G> {
         let string = String::from(source.as_ref());

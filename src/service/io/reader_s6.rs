@@ -36,7 +36,7 @@ impl<G> S6Reader<G>
         }
         let size = get_graph_size(&mut chars)?;
 
-        let edge_encoding_size = edge_encoding_size(graph.size());
+        let edge_encoding_size = edge_encoding_size(size as usize);
         let mut reader = S6Reader::new(edge_encoding_size);
 
         let graph = reader.create_graph(&mut chars, size)?;

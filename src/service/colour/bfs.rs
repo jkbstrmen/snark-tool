@@ -14,10 +14,10 @@ pub struct BFSColorGraph {
 
 impl BFSColorGraph {
     pub fn is_colorable<G, V, E>(graph: &G) -> bool
-        where
-            G: Graph<V, E>,
-            V: Vertex,
-            E: Edge,
+    where
+        G: Graph<V, E>,
+        V: Vertex,
+        E: Edge,
     {
         let mut vertices = Vec::with_capacity(graph.size());
         for vertex in graph.vertices() {

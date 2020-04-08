@@ -1,5 +1,6 @@
 use crate::error::Error;
-use crate::graph::simple_graph::SimpleGraph;
+
+use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::procedure::configuration::Configuration;
 use structopt::StructOpt;
 

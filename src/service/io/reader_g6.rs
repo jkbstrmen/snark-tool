@@ -1,11 +1,8 @@
 use std::str::Chars;
 
-use crate::graph::graph;
+use crate::graph::traits::graph;
 use crate::service::io::error::ReadError;
 use crate::service::io::reader::Reader;
-use petgraph::graph::NodeIndex;
-use petgraph::stable_graph::StableGraph;
-use petgraph::{Graph, Undirected};
 use std::io::{BufRead, BufReader, Error};
 use std::marker::PhantomData;
 use std::{fs, io, result};
@@ -197,41 +194,41 @@ fn append_char_binary_to_size(mut size: u64, iterator: &mut Chars) -> Result<u64
 }
 
 // TODO - to remove
-pub fn read_graph(source: impl AsRef<str>) -> Result<StableGraph<u8, u16, Undirected, u8>> {
-    let mut iterator = source.as_ref().chars();
-    let size = get_graph_size(&mut iterator);
-    let graph = create_graph(&mut iterator, size? as u32);
-    Ok(graph)
-}
-
-fn create_graph(iterator: &mut Chars, size: u32) -> StableGraph<u8, u16, Undirected, u8> {
-    let nodes = size as usize;
-    let edges = (size * 3 / 2) as usize;
-    let mut undirected = StableGraph::<u8, u16, Undirected, u8>::with_capacity(nodes, edges);
-
-    for _node in 0..size {
-        undirected.add_node(0);
-    }
-
-    let error = "error";
-    let mut char = iterator.next();
-    let mut position = Position { row: 0, column: 1 };
-    while char != None {
-        let bits = format!("{:b}", (char.expect(error) as u8) - BIAS);
-        for _i in 0..(6 - bits.len()) {
-            position.increment();
-        }
-        for char in bits.chars() {
-            if char == '1' {
-                undirected.add_edge(
-                    NodeIndex::new(position.row),
-                    NodeIndex::new(position.column),
-                    0,
-                );
-            }
-            position.increment();
-        }
-        char = iterator.next();
-    }
-    undirected
-}
+// pub fn read_graph(source: impl AsRef<str>) -> Result<StableGraph<u8, u16, Undirected, u8>> {
+//     let mut iterator = source.as_ref().chars();
+//     let size = get_graph_size(&mut iterator);
+//     let graph = create_graph(&mut iterator, size? as u32);
+//     Ok(graph)
+// }
+//
+// fn create_graph(iterator: &mut Chars, size: u32) -> StableGraph<u8, u16, Undirected, u8> {
+//     let nodes = size as usize;
+//     let edges = (size * 3 / 2) as usize;
+//     let mut undirected = StableGraph::<u8, u16, Undirected, u8>::with_capacity(nodes, edges);
+//
+//     for _node in 0..size {
+//         undirected.add_node(0);
+//     }
+//
+//     let error = "error";
+//     let mut char = iterator.next();
+//     let mut position = Position { row: 0, column: 1 };
+//     while char != None {
+//         let bits = format!("{:b}", (char.expect(error) as u8) - BIAS);
+//         for _i in 0..(6 - bits.len()) {
+//             position.increment();
+//         }
+//         for char in bits.chars() {
+//             if char == '1' {
+//                 undirected.add_edge(
+//                     NodeIndex::new(position.row),
+//                     NodeIndex::new(position.column),
+//                     0,
+//                 );
+//             }
+//             position.increment();
+//         }
+//         char = iterator.next();
+//     }
+//     undirected
+// }

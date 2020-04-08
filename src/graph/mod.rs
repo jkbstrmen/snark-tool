@@ -1,8 +1,6 @@
-pub mod graph;
-pub mod simple_graph;
-pub mod simple_pet_graph;
+pub mod traits;
+pub mod undirected;
 
-pub mod edge;
-pub mod vertex;
+// pub mod graph;
 
 pub mod pet_graph_utils;

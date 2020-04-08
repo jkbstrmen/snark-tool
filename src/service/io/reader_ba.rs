@@ -5,8 +5,7 @@ use std::fs::File;
 use std::io::{self, BufRead};
 
 // temp
-use crate::graph::graph;
-use crate::graph::graph::Graph;
+use crate::graph::traits::graph;
 use crate::service::io::error::ReadError;
 use crate::service::io::reader::Reader;
 use petgraph::visit::EdgeRef;
@@ -60,7 +59,7 @@ where
 
 impl<'a, G> BaReader<'a, G>
 where
-    G: Graph,
+    G: graph::Graph,
 {
     fn get_graphs_count(&mut self) -> Result<usize> {
         let mut graphs_count = self.next_numbers_vector()?;

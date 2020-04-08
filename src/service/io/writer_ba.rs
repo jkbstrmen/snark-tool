@@ -7,7 +7,9 @@ use petgraph::stable_graph::StableGraph;
 use petgraph::visit::EdgeRef;
 use petgraph::Undirected;
 
-use crate::graph::graph::{Edge, Graph, Vertex};
+use crate::graph::traits::edge::Edge;
+use crate::graph::traits::graph;
+use crate::graph::traits::vertex::Vertex;
 use crate::service::io::error::WriteError;
 use crate::service::io::reader_ba;
 
@@ -15,7 +17,7 @@ type Result<T> = result::Result<T, WriteError>;
 
 pub struct BaWriter<'a, G>
 where
-    G: Graph,
+    G: graph::Graph,
 {
     path: &'a String,
     _ph: marker::PhantomData<G>,
@@ -23,7 +25,7 @@ where
 
 impl<'a, G> BaWriter<'a, G>
 where
-    G: Graph,
+    G: graph::Graph,
 {
     pub fn new(path: &'a String) -> Self {
         BaWriter {

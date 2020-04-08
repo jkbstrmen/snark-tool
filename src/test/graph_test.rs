@@ -1,5 +1,5 @@
-use crate::graph::graph::{Edge, Graph, Vertex};
-use crate::graph::simple_graph::{SimpleGraph, SimpleVertex, UndirectedEdge};
+use crate::graph::traits::graph::Graph;
+use crate::graph::undirected::simple_graph::SimpleGraph;
 use std::collections::HashMap;
 use std::iter::FromIterator;
 

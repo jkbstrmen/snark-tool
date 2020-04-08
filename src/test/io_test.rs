@@ -8,10 +8,9 @@ use petgraph::stable_graph::StableGraph;
 use petgraph::visit::EdgeRef;
 use petgraph::Undirected;
 
-use crate::graph::simple_graph::SimpleGraph;
+use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::service::io::reader::Reader;
 use crate::service::io::reader_ba::BaReader;
-use crate::service::io::reader_g6::read_graph;
 use crate::service::io::reader_s6::bitvec_to_u64;
 use crate::service::io::writer_g6::{to_g6_size, write_graph};
 use crate::service::io::writer_s6::{bitvec_from_u64, encode_edges, to_s6_string};
@@ -36,7 +35,7 @@ fn should_read_g6() {
             if let Ok(line_str) = line {
                 // println!("{}", line_str);
                 // let error = "Wrong g6 format";
-                let graph = read_graph(line_str.as_str());
+                // let graph = read_graph(line_str.as_str());
 
                 // print_graph(graph.unwrap());
                 // assert
@@ -88,7 +87,7 @@ fn should_write_ba() {
 
     match file_result {
         Ok(mut file) => {
-            let graph = read_graph(graph_string);
+            // let graph = read_graph(graph_string);
             // write graphs count
             writeln!(file, "1");
 
@@ -106,7 +105,7 @@ fn should_append_ba() {
     let graph_path = "resources/graphs/append_ba.ALL";
     let graph_string =
         "]C??@Q??GCCA@??Bo??C@O?C?G_E????\\?O?A??H_??@C?@??_?C???g????G??B@??C????Ag";
-    let graph = read_graph(graph_string);
+    // let graph = read_graph(graph_string);
 
     // TODO
     // append_graph_ba_to_file(graph.unwrap(), graph_path);
@@ -119,11 +118,11 @@ fn should_write_g6() {
     // move to test_data
     let graph_string =
         "]C??@Q??GCCA@??Bo??C@O?C?G_E????\\?O?A??H_??@C?@??_?C???g????G??B@??C????Ag";
-    let graph = read_graph(graph_string);
+    // let graph = reader_g6::G6Reader::read_graph(graph_string);
 
-    let mut w = Vec::new();
-    write_graph(graph.unwrap(), &mut w);
-    assert_eq!((graph_string.to_owned() + "\n").as_bytes(), &w[..]);
+    // let mut w = Vec::new();
+    // write_graph(graph.unwrap(), &mut w);
+    // assert_eq!((graph_string.to_owned() + "\n").as_bytes(), &w[..]);
 }
 
 #[test]
@@ -159,16 +158,15 @@ fn should_write_s6() {
         for line in lines {
             if let Ok(line_str) = line {
                 println!("{}", line_str);
-                // let error = "Wrong g6 format";
-                let graph = read_graph(line_str.as_str());
-                // print_graph(graph.unwrap());
 
-                let mut w = Vec::new();
-                writer_s6::write_graph(&graph.unwrap(), &mut w);
-
-                let string = String::from_utf8(w).unwrap();
-                println!("{:?}", string);
-                // assert
+                // let graph = reader_g6::G6Reader::read_graph(line_str);
+                //
+                //
+                // let mut w = Vec::new();
+                // writer_s6::write_graph(&graph.unwrap(), &mut w);
+                //
+                // let string = String::from_utf8(w).unwrap();
+                // println!("{:?}", string);
             }
         }
     }
@@ -195,8 +193,8 @@ fn should_read_graph_s6() {
 fn should_read_graph_g6_from_string() {
     // let graph_g6 = "]?@G@U?OK?GP?CD?o???@G???AX??__????G???g_????CG???C???B_??GO??@PAA???A_??G";
     let graph_g6 = "]C@O?SAGC??P??O@o?Q?`????aGO????SK???O?O?OC???F??A??C??c???O@??@K???????@W";
-    let graph_res = reader_g6::read_graph(graph_g6);
-    print_graph(graph_res.unwrap());
+    let graph_res = reader_g6::G6Reader::<SimpleGraph>::read_graph(graph_g6);
+    // print_graph(graph_res.unwrap());
 }
 
 // temp

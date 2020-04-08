@@ -1,2 +1,2 @@
 pub mod bfs;
-pub mod bfs_v2;
+pub mod bfs_first;

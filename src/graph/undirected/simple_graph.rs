@@ -2,14 +2,14 @@
 // use crate::graph::graph::{Edge, Edges, Graph, Vertex, Vertices};
 // use serde::export::fmt::Error;
 // use serde::export::Formatter;
+use crate::graph::traits::edge::Edge;
+use crate::graph::traits::graph::{Edges, EdgesMut, Graph, Vertices, VerticesMut};
+use crate::graph::traits::vertex::Vertex;
+use crate::graph::undirected::edge::UndirectedEdge;
+use crate::graph::undirected::vertex::SimpleVertex;
 use std::collections::HashMap;
 use std::fmt;
 use std::iter::Map;
-use crate::graph::undirected::vertex::SimpleVertex;
-use crate::graph::undirected::edge::UndirectedEdge;
-use crate::graph::traits::edge::Edge;
-use crate::graph::traits::vertex::Vertex;
-use crate::graph::traits::graph::{Graph, Vertices, Edges, VerticesMut, EdgesMut};
 
 // #[derive(Debug, Clone)]
 // pub struct UndirectedEdge {
@@ -117,7 +117,6 @@ pub struct SimpleGraph {
     size: usize,
     vertices: Vec<SimpleVertex>,
     edges: Vec<UndirectedEdge>,
-
     // TODO impl hash map for vert->edges ?? - for fast edge retrieval (edges of vertex)
 }
 
@@ -153,7 +152,7 @@ impl Graph for SimpleGraph {
         false
     }
 
-    fn edge(&self, from: usize, to: usize) -> Option<_> {
+    fn edge(&self, from: usize, to: usize) -> Option<UndirectedEdge> {
         unimplemented!()
     }
 
@@ -161,8 +160,8 @@ impl Graph for SimpleGraph {
         Vertices::new(self.vertices.iter())
     }
 
-    fn vertices_mut(&self) -> VerticesMut<'a, _> {
-        unimplemented!()
+    fn vertices_mut(&mut self) -> VerticesMut<SimpleVertex> {
+        VerticesMut::new(self.vertices.iter_mut())
     }
 
     fn add_vertex(&mut self) {
@@ -173,8 +172,8 @@ impl Graph for SimpleGraph {
         Edges::new(self.edges.iter())
     }
 
-    fn edges_mut(&mut self) -> EdgesMut<'a, _> {
-        unimplemented!()
+    fn edges_mut(&mut self) -> EdgesMut<UndirectedEdge> {
+        EdgesMut::new(self.edges.iter_mut())
     }
 
     /*fn edges(&self, vertex: usize) -> graph::Edges<UndirectedEdge> {

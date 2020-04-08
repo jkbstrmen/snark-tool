@@ -1,4 +1,4 @@
-use crate::graph::graph::Graph;
+use crate::graph::traits::graph::Graph;
 use petgraph::graph::NodeIndex;
 use petgraph::stable_graph::StableGraph;
 use petgraph::visit::EdgeRef;

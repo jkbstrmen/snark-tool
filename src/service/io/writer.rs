@@ -1,4 +1,4 @@
-use crate::graph::graph::Graph;
+use crate::graph::traits::graph::Graph;
 use crate::service::io::error::WriteError;
 
 pub trait GraphWriter<G>

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::graph::simple_graph::SimpleGraph;
+use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::procedure::configuration::ProcedureConfig;
 use crate::procedure::procedure::BasicProcedure;
 use crate::procedure::procedure_chain::ProcedureChain;

@@ -241,36 +241,49 @@ impl BFSColourGraph {
                 }
 
                 match colored_sum {
-                    0 => { // possible if pre-colored first vertex?
+                    0 => {
+                        // possible if pre-colored first vertex?
                         for num in 3..6 {
-                            self.set_edge_color(vertex, neighbor1, color_vars[num-3].0);
-                            self.set_edge_color(vertex, neighbor2, color_vars[num-3].1);
+                            self.set_edge_color(vertex, neighbor1, color_vars[num - 3].0);
+                            self.set_edge_color(vertex, neighbor2, color_vars[num - 3].1);
                             if self.are_vertices_without_conflict(neighbor1, neighbor2)
-                                && self.color(next_vertex) { return true; }
+                                && self.color(next_vertex)
+                            {
+                                return true;
+                            }
 
-                            self.set_edge_color(vertex, neighbor1, color_vars[num-3].1);
-                            self.set_edge_color(vertex, neighbor2, color_vars[num-3].0);
+                            self.set_edge_color(vertex, neighbor1, color_vars[num - 3].1);
+                            self.set_edge_color(vertex, neighbor2, color_vars[num - 3].0);
                             if self.are_vertices_without_conflict(neighbor1, neighbor2)
-                                && self.color(next_vertex) { return true; }
+                                && self.color(next_vertex)
+                            {
+                                return true;
+                            }
                         }
                     }
                     _ => {
-
-                        self.set_edge_color(vertex, neighbor1, color_vars[colored_sum-3].0);
-                        self.set_edge_color(vertex, neighbor2, color_vars[colored_sum-3].1);
+                        self.set_edge_color(vertex, neighbor1, color_vars[colored_sum - 3].0);
+                        self.set_edge_color(vertex, neighbor2, color_vars[colored_sum - 3].1);
                         if self.are_vertices_without_conflict(neighbor1, neighbor2)
-                            && self.color(next_vertex) { return true; }
+                            && self.color(next_vertex)
+                        {
+                            return true;
+                        }
 
-                        self.set_edge_color(vertex, neighbor1, color_vars[colored_sum-3].1);
-                        self.set_edge_color(vertex, neighbor2, color_vars[colored_sum-3].0);
+                        self.set_edge_color(vertex, neighbor1, color_vars[colored_sum - 3].1);
+                        self.set_edge_color(vertex, neighbor2, color_vars[colored_sum - 3].0);
                         if self.are_vertices_without_conflict(neighbor1, neighbor2)
-                            && self.color(next_vertex) { return true; }
-
+                            && self.color(next_vertex)
+                        {
+                            return true;
+                        }
                     }
                 }
 
                 // revert changes
-                if one_edge_neighbors == 2 { self.one_edge_vert.pop(); }
+                if one_edge_neighbors == 2 {
+                    self.one_edge_vert.pop();
+                }
                 if next_from_queue && one_edge_neighbors == 0 {
                     self.one_edge_vert.push(next_vertex);
                 }

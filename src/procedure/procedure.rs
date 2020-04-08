@@ -1,6 +1,7 @@
 use crate::error::Error;
-use crate::graph::graph::{Edge, Graph};
-use crate::graph::simple_graph::SimpleGraph;
+
+use crate::graph::traits::graph::Graph;
+use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::service::io::reader::Reader;
 use crate::service::io::reader_ba::BaReader;
 use crate::service::io::reader_g6::G6Reader;

@@ -4,26 +4,52 @@ use crate::service::io::reader_g6::{get_graph_size, BIAS};
 use crate::service::io::writer_s6::{bitvec_from_u64, edge_encoding_size};
 use std::slice::Iter;
 use std::str::Chars;
-use std::{marker, result};
+use std::{marker, result, fs, io};
+use crate::service::io::reader::Reader;
+use std::fs::File;
 
 type Result<T> = result::Result<T, ReadError>;
 
-pub struct S6Reader<G> {
+pub struct S6Reader<'a, G> {
     edge_encoding_size: u8,
+    file: &'a fs::File,
+    lines: io::Lines<io::BufReader<&'a fs::File>>,
+
     _ph: marker::PhantomData<G>,
 }
 
-impl<G> S6Reader<G>
-    where
-        G: Graph,
-{
-    pub fn new(edge_encoding_size: u8) -> Self {
+impl<'a, G> Reader<'a, G> for S6Reader<'a, G> {
+    fn new(file: &'a File) -> Self {
         S6Reader{
-            edge_encoding_size,
+            edge_encoding_size: 0,
+            file,
+            lines: lines: io::BufReader::new(file).lines(),
             _ph: marker::PhantomData
         }
     }
+    
+    fn next(&mut self) -> Option<Result<G>> {
+        let line = self.lines.next();
+        match line {
+            None => {
+                // warn - file contains less graphs than specified to work with
+                return None;
+            }
+            Some(line) => {
+                if line.is_ok() {
+                    let graph = S6Reader::read_graph(line.unwrap());
+                    return Some(graph);
+                }
+            }
+        }
+        None
+    }
+}
 
+impl<'a, G> S6Reader<'_, G>
+    where
+        G: Graph,
+{
     pub fn read_graph(source: impl AsRef<str>) -> Result<G> {
         let string = String::from(source.as_ref());
 
@@ -35,15 +61,12 @@ impl<G> S6Reader<G>
             });
         }
         let size = get_graph_size(&mut chars)?;
-
         let edge_encoding_size = edge_encoding_size(size as usize);
-        let mut reader = S6Reader::new(edge_encoding_size);
-
-        let graph = reader.create_graph(&mut chars, size)?;
+        let graph = S6Reader::create_graph(&mut chars, size, edge_encoding_size)?;
         Ok(graph)
     }
 
-    fn create_graph(&mut self, iterator: &mut Chars, size: u64) -> Result<G> {
+    fn create_graph(iterator: &mut Chars, size: u64, edge_encoding_size: u8) -> Result<G> {
         let vertices = size as usize;
         // reserve edges - in default for cubic graph
         let edges = (size * 3 / 2) as usize;
@@ -54,12 +77,12 @@ impl<G> S6Reader<G>
         }
         let mut bit_vec = chars_to_bit_vector(iterator)?;
 
-        discard_additional_bits(&mut bit_vec, self.edge_encoding_size);
-        graph = self.decode_edges(&bit_vec, graph)?;
+        discard_additional_bits(&mut bit_vec, edge_encoding_size);
+        graph = S6Reader::decode_edges(&bit_vec, graph, edge_encoding_size)?;
         Ok(graph)
     }
 
-    fn decode_edges(&self, bits: &Vec<bool>, mut graph: G) -> Result<G> {
+    fn decode_edges(bits: &Vec<bool>, mut graph: G, edge_encoding_size: u8) -> Result<G> {
         let size = graph.size();
         let mut v: usize = 0;
 
@@ -71,7 +94,7 @@ impl<G> S6Reader<G>
                 v += 1;
             }
 
-            let num = bitvec_to_u64(&mut bit_iter, self.edge_encoding_size)?;
+            let num = bitvec_to_u64(&mut bit_iter, edge_encoding_size)?;
             if num >= size {
                 break;
             }

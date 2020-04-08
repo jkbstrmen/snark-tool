@@ -10,7 +10,6 @@ type Result<T> = result::Result<T, ReadError>;
 
 pub struct S6Reader<G> {
     edge_encoding_size: u8,
-
     _ph: marker::PhantomData<G>,
 }
 
@@ -18,6 +17,13 @@ impl<G> S6Reader<G>
     where
         G: Graph,
 {
+    pub fn new(edge_encoding_size: u8) -> Self {
+        S6Reader{
+            edge_encoding_size,
+            _ph: marker::PhantomData
+        }
+    }
+
     pub fn read_graph(source: impl AsRef<str>) -> Result<G> {
         let string = String::from(source.as_ref());
 
@@ -29,16 +35,18 @@ impl<G> S6Reader<G>
             });
         }
         let size = get_graph_size(&mut chars)?;
-        let graph = S6Reader::create_graph(&mut chars, size)?;
+
+        let edge_encoding_size = edge_encoding_size(graph.size());
+        let mut reader = S6Reader::new(edge_encoding_size);
+
+        let graph = reader.create_graph(&mut chars, size)?;
         Ok(graph)
     }
 
-    fn create_graph(iterator: &mut Chars, size: u64) -> Result<G> {
+    fn create_graph(&mut self, iterator: &mut Chars, size: u64) -> Result<G> {
         let vertices = size as usize;
         // reserve edges - in default for cubic graph
         let edges = (size * 3 / 2) as usize;
-        // let mut graph = StableGraph::<u8, u16, Undirected, u8>::with_capacity(vertices, edges);
-
         let mut graph = G::with_capacity(vertices, edges);
 
         for _node in 0..size {
@@ -46,15 +54,13 @@ impl<G> S6Reader<G>
         }
         let mut bit_vec = chars_to_bit_vector(iterator)?;
 
-        let edge_encoding_size = edge_encoding_size(graph.size());
-        discard_additional_bits(&mut bit_vec, edge_encoding_size);
-        graph = S6Reader::decode_edges(&bit_vec, graph)?;
+        discard_additional_bits(&mut bit_vec, self.edge_encoding_size);
+        graph = self.decode_edges(&bit_vec, graph)?;
         Ok(graph)
     }
 
-    fn decode_edges(bits: &Vec<bool>, mut graph: G) -> Result<G> {
+    fn decode_edges(&self, bits: &Vec<bool>, mut graph: G) -> Result<G> {
         let size = graph.size();
-        let edge_encoding_size = edge_encoding_size(size);
         let mut v: usize = 0;
 
         let mut bit_iter = bits.iter();
@@ -65,7 +71,7 @@ impl<G> S6Reader<G>
                 v += 1;
             }
 
-            let num = bitvec_to_u64(&mut bit_iter, edge_encoding_size)?;
+            let num = bitvec_to_u64(&mut bit_iter, self.edge_encoding_size)?;
             if num >= size {
                 break;
             }

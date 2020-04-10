@@ -4,37 +4,90 @@ use petgraph::Undirected;
 use crate::graph::pet_graph_utils::get_edges_vec;
 use std::io::Write;
 
+use crate::graph::traits::edge::Edge;
+use crate::graph::traits::graph::Graph;
+use crate::service::io::error::WriteError;
 use crate::service::io::reader_g6::BIAS;
+use crate::service::io::reader_s6::S6Reader;
 use crate::service::io::writer_g6::to_g6_size;
 use petgraph::graph::NodeIndex;
-use std::cmp;
 use std::cmp::Ordering;
-// use log::{info, trace, warn, debug};
-
-type Graph = StableGraph<u8, u16, Undirected, u8>;
+use std::fs::OpenOptions;
+use std::iter::FromIterator;
+use std::{cmp, marker, path, result};
 
 pub const ENCODING_SIZE: u8 = 6;
+type Result<T> = result::Result<T, WriteError>;
 
-pub fn write_graph(graph: &Graph, buffer: &mut impl Write) {
-    let graph_string = to_s6_string(graph);
-    writeln!(buffer, "{}", graph_string);
+pub struct S6Writer<G> {
+    _ph: marker::PhantomData<G>,
 }
 
-pub fn to_s6_string(graph: &Graph) -> String {
-    let mut edges = get_edges_vec(graph);
+impl<G> S6Writer<G>
+where
+    G: Graph,
+{
+    pub fn write_graphs_to_file(graphs: &Vec<G>, path: impl AsRef<path::Path>) -> Result<()> {
+        let file_result = OpenOptions::new().create(true).append(true).open(&path);
+        if let Err(err) = &file_result {
+            return Err(WriteError {
+                message: "open or create file error".to_string(),
+            });
+        }
+        let mut file = file_result.unwrap();
+        for graph in graphs {
+            S6Writer::write_graph(graph, &mut file)?;
+        }
+        Ok(())
+    }
 
-    edges.sort_by(|a, b| edge_max_min_compare(a, b));
+    pub fn write_graph(graph: &G, buffer: &mut impl Write) -> Result<()> {
+        let graph_string = S6Writer::graph_to_s6_string(graph);
+        writeln!(buffer, "{}", graph_string)?;
+        Ok(())
+    }
 
-    let mut encoded = encode_edges(graph.node_count(), &edges);
-    // complete encoding of six
-    complete_to_multiple_of_six(&mut encoded, graph);
+    pub fn graph_to_s6_string(graph: &G) -> String {
+        let mut edges = Vec::from_iter(graph.edges());
+        let size = graph.size();
 
-    let edges_s6_chars = to_s6_chars(encoded);
-    let mut graph_s6 = String::from(":");
+        edges.sort_by(|a, b| edge_max_min_compare(a, b));
 
-    graph_s6.push_str(to_g6_size(graph.node_count()).as_str());
-    graph_s6.push_str(edges_s6_chars.as_str());
-    graph_s6
+        let mut encoded = encode_edges(size, &edges);
+        // complete encoding of six
+        S6Writer::complete_to_multiple_of_six(&mut encoded, graph);
+
+        let edges_s6_chars = to_s6_chars(encoded);
+        let mut graph_s6 = String::from(":");
+
+        graph_s6.push_str(to_g6_size(size).as_str());
+        graph_s6.push_str(edges_s6_chars.as_str());
+        graph_s6
+    }
+
+    fn complete_to_multiple_of_six(encoding: &mut Vec<bool>, graph: &G) {
+        let rem = encoding.len() % 6;
+        let completion = 6 - rem;
+        S6Writer::check_completion_edge_case(encoding, graph);
+        let mut completion = vec![true; completion];
+        encoding.append(&mut completion);
+    }
+
+    fn check_completion_edge_case(encoding: &mut Vec<bool>, graph: &G) {
+        let n = graph.size();
+        if n == 2 || n == 4 || n == 8 || n == 16 {
+            let mut n1_edges = graph.edges_of_vertex(n - 1);
+            let mut n2_edges = graph.edges_of_vertex(n - 2);
+            if n2_edges.next().is_some() && n1_edges.next().is_none() {
+                let edge_encoding_size = edge_encoding_size(n);
+                let rem = encoding.len() % 6;
+                let complement = 6 - rem;
+                if complement > edge_encoding_size as usize {
+                    encoding.push(false);
+                }
+            }
+        }
+    }
 }
 
 fn to_s6_chars(mut edges_encoding: Vec<bool>) -> String {
@@ -57,48 +110,27 @@ fn to_s6_chars(mut edges_encoding: Vec<bool>) -> String {
     s6_chars
 }
 
-fn complete_to_multiple_of_six(encoding: &mut Vec<bool>, graph: &Graph) {
-    let rem = encoding.len() % 6;
-    let completion = 6 - rem;
-    check_completion_edge_case(encoding, graph);
-    let mut completion = vec![true; completion];
-    encoding.append(&mut completion);
-}
-
-fn check_completion_edge_case(encoding: &mut Vec<bool>, graph: &Graph) {
-    let n = graph.node_count();
-    if n == 2 || n == 4 || n == 8 || n == 16 {
-        let mut n1_edges = graph.edges(NodeIndex::new(n - 1));
-        let mut n2_edges = graph.edges(NodeIndex::new(n - 2));
-        if n2_edges.next().is_some() && n1_edges.next().is_none() {
-            let edge_encoding_size = edge_encoding_size(n);
-            let rem = encoding.len() % 6;
-            let complement = 6 - rem;
-            if complement > edge_encoding_size as usize {
-                encoding.push(false);
-            }
-        }
-    }
-}
-
-pub fn encode_edges(size: usize, edges: &Vec<(usize, usize)>) -> Vec<bool> {
+pub fn encode_edges<E>(size: usize, edges: &Vec<E>) -> Vec<bool>
+where
+    E: Edge,
+{
     let edge_encoding_size = edge_encoding_size(size);
     let mut v: usize = 0;
     let mut vec: Vec<bool> = Vec::new();
     for edge in edges {
-        if edge.1 > (v + 1) {
+        if edge.to() > (v + 1) {
             // shift v
             vec.push(false);
-            vec.append(&mut bitvec_from_u64(edge.1 as u64, edge_encoding_size));
-            v = edge.1;
+            vec.append(&mut bitvec_from_u64(edge.to() as u64, edge_encoding_size));
+            v = edge.to();
         }
-        if edge.1 == v + 1 {
+        if edge.to() == v + 1 {
             vec.push(true);
             v = v + 1;
         } else {
             vec.push(false);
         }
-        vec.append(&mut bitvec_from_u64(edge.0 as u64, edge_encoding_size));
+        vec.append(&mut bitvec_from_u64(edge.from() as u64, edge_encoding_size));
     }
     vec
 }
@@ -136,13 +168,16 @@ pub fn edge_encoding_size(graph_size: usize) -> u8 {
     (graph_size as f64).log(2 as f64).ceil() as u8
 }
 
-fn edge_max_min_compare(first: &(usize, usize), second: &(usize, usize)) -> Ordering {
-    let max_first = cmp::max(first.0, first.1);
-    let max_second = cmp::max(second.0, second.1);
+fn edge_max_min_compare<E>(first: &E, second: &E) -> Ordering
+where
+    E: Edge,
+{
+    let max_first = cmp::max(first.from(), first.to());
+    let max_second = cmp::max(second.from(), second.to());
     let compare_max = max_first.cmp(&max_second);
     if Ordering::Equal.eq(&compare_max) {
-        let min_first = cmp::min(first.0, first.1);
-        let min_second = cmp::min(second.0, second.1);
+        let min_first = cmp::min(first.from(), first.to());
+        let min_second = cmp::min(second.from(), second.to());
         return min_first.cmp(&min_second);
     }
     compare_max

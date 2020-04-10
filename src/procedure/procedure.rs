@@ -6,13 +6,15 @@ use crate::service::io::reader::Reader;
 use crate::service::io::reader_ba::BaReader;
 use crate::service::io::reader_g6::G6Reader;
 use crate::service::io::writer_ba::BaWriter;
+use crate::service::io::writer_g6::G6Writer;
+use crate::service::io::writer_s6::S6Writer;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::fs::OpenOptions;
 use std::path::Path;
 use std::result;
 use std::str::FromStr;
-use crate::service::io::writer_g6::G6Writer;
+use crate::service::io::reader_s6::S6Reader;
 
 type Config = HashMap<String, String>;
 type Result<T> = result::Result<T, Error>;
@@ -68,7 +70,7 @@ impl Procedure for BasicProcedure {
 }
 
 impl BasicProcedure {
-    fn read_graph<G>(&self, graphs: &mut Vec<G>) -> Result<()>
+    pub fn read_graph<G>(&self, graphs: &mut Vec<G>) -> Result<()>
     where
         G: Debug + Graph,
     {
@@ -108,7 +110,10 @@ impl BasicProcedure {
                 let mut reader = BaReader::<G>::new(&file);
                 BasicProcedure::read_by_format(reader, graphs, graphs_count as usize)?;
             }
-            "s6" => {}
+            "s6" => {
+                let mut reader = S6Reader::<G>::new(&file);
+                BasicProcedure::read_by_format(reader, graphs, graphs_count as usize)?;
+            }
             _ => {
                 return Err(Error::ConfigError(String::from(
                     "unknown graph format for read procedure",
@@ -144,7 +149,7 @@ impl BasicProcedure {
         Ok(())
     }
 
-    fn write_graph<G>(&self, graphs: &mut Vec<G>) -> Result<()>
+    pub fn write_graph<G>(&self, graphs: &mut Vec<G>) -> Result<()>
     where
         G: Graph + Debug,
     {
@@ -178,7 +183,7 @@ impl BasicProcedure {
                 BaWriter::write_graphs_to_file(graphs, file_path)?;
             }
             "s6" => {
-
+                S6Writer::write_graphs_to_file(graphs, file_path)?;
             }
             _ => {
                 return Err(Error::ConfigError(String::from(
@@ -190,7 +195,7 @@ impl BasicProcedure {
         Ok(())
     }
 
-    fn colour_graph<G>(&self, graphs: &mut Vec<G>) -> Result<()>
+    pub fn colour_graph<G>(&self, graphs: &mut Vec<G>) -> Result<()>
     where
         G: Debug + Graph,
     {

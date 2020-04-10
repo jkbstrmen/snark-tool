@@ -3,39 +3,41 @@ use petgraph::stable_graph::StableGraph;
 use petgraph::visit::EdgeRef;
 use petgraph::Undirected;
 
-use crate::service::io::reader_g6::{Position, BIAS};
-use std::io::Write;
-use std::{result, marker, path, io};
-use crate::service::io::error::WriteError;
 use crate::graph::traits::graph;
+use crate::service::io::error::WriteError;
+use crate::service::io::reader_g6::{Position, BIAS};
 use std::fs::OpenOptions;
+use std::io::Write;
+use std::{io, marker, path, result};
 
 type Result<T> = result::Result<T, WriteError>;
 
-pub struct G6Writer<G>
-{
+pub struct G6Writer<G> {
     _ph: marker::PhantomData<G>,
 }
 
 impl<G> G6Writer<G>
-    where
-        G: graph::Graph,
+where
+    G: graph::Graph,
 {
     pub fn write_graphs_to_file(graphs: &Vec<G>, path: impl AsRef<path::Path>) -> Result<()> {
         let file_result = OpenOptions::new().create(true).append(true).open(&path);
         if let Err(err) = &file_result {
-            return Err(WriteError{ message: "open or create file error".to_string() });
+            return Err(WriteError {
+                message: "open or create file error".to_string(),
+            });
         }
         let mut file = file_result.unwrap();
         for graph in graphs {
-            G6Writer::write_graph(graph, &mut file);
+            G6Writer::write_graph(graph, &mut file)?;
         }
         Ok(())
     }
 
-    pub fn write_graph(graph: &G, buffer: &mut impl Write) {
+    pub fn write_graph(graph: &G, buffer: &mut impl Write) -> Result<()> {
         let graph_string = G6Writer::to_g6_string(graph);
-        writeln!(buffer, "{}", graph_string);
+        writeln!(buffer, "{}", graph_string)?;
+        Ok(())
     }
 
     fn to_g6_string(graph: &G) -> String {
@@ -66,7 +68,6 @@ impl<G> G6Writer<G>
         graph_string
     }
 }
-
 
 pub fn to_g6_size(size: usize) -> String {
     let mut size_string = String::new();

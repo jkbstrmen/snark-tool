@@ -13,7 +13,7 @@ use crate::service::io::reader::Reader;
 use crate::service::io::reader_ba::BaReader;
 use crate::service::io::reader_s6::bitvec_to_u64;
 use crate::service::io::writer_g6::to_g6_size;
-use crate::service::io::writer_s6::{bitvec_from_u64, encode_edges, to_s6_string};
+use crate::service::io::writer_s6::{bitvec_from_u64, encode_edges, S6Writer};
 use crate::service::io::{reader_g6, reader_s6, writer_s6};
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
@@ -159,14 +159,14 @@ fn should_write_s6() {
             if let Ok(line_str) = line {
                 println!("{}", line_str);
 
-                // let graph = reader_g6::G6Reader::read_graph(line_str);
+                let graph = reader_g6::G6Reader::<SimpleGraph>::read_graph(line_str);
                 //
                 //
-                // let mut w = Vec::new();
-                // writer_s6::write_graph(&graph.unwrap(), &mut w);
+                let mut w = Vec::new();
+                S6Writer::write_graph(&graph.unwrap(), &mut w);
                 //
-                // let string = String::from_utf8(w).unwrap();
-                // println!("{:?}", string);
+                let string = String::from_utf8(w).unwrap();
+                println!("{:?}", string);
             }
         }
     }
@@ -195,9 +195,6 @@ fn should_read_graph_g6_from_string() {
 
 // temp
 #[test]
-fn should_open_file() {
-    let path = "test_test.txt";
-    let file_result = OpenOptions::new().read(true).open(&path);
+fn test() {
 
-    println!("{:?}", file_result);
 }

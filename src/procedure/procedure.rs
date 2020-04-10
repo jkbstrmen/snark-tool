@@ -12,6 +12,7 @@ use std::fs::OpenOptions;
 use std::path::Path;
 use std::result;
 use std::str::FromStr;
+use crate::service::io::writer_g6::G6Writer;
 
 type Config = HashMap<String, String>;
 type Result<T> = result::Result<T, Error>;
@@ -171,14 +172,14 @@ impl BasicProcedure {
 
         match graph_format.as_str() {
             "g6" => {
-                // let mut reader = G6Reader::<G>::new(&file);
-                // BasicProcedure::read_by_format(reader, graphs, graphs_count as usize);
-                // G6Wri
+                G6Writer::write_graphs_to_file(&graphs, file_path)?;
             }
             "ba" => {
                 BaWriter::write_graphs_to_file(graphs, file_path)?;
             }
-            "s6" => {}
+            "s6" => {
+
+            }
             _ => {
                 return Err(Error::ConfigError(String::from(
                     "unknown graph format for read procedure",

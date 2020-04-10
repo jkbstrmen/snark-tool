@@ -5,42 +5,68 @@ use petgraph::Undirected;
 
 use crate::service::io::reader_g6::{Position, BIAS};
 use std::io::Write;
+use std::{result, marker, path, io};
+use crate::service::io::error::WriteError;
+use crate::graph::traits::graph;
+use std::fs::OpenOptions;
 
-type Graph = StableGraph<u8, u16, Undirected, u8>;
+type Result<T> = result::Result<T, WriteError>;
 
-// TODO - handle io errors
-pub fn write_graph(graph: Graph, buffer: &mut impl Write) {
-    let graph_string = to_g6_string(graph);
-    writeln!(buffer, "{}", graph_string);
+pub struct G6Writer<G>
+{
+    _ph: marker::PhantomData<G>,
 }
 
-fn to_g6_string(graph: Graph) -> String {
-    let mut graph_string = String::new();
-    graph_string.push_str(to_g6_size(graph.node_count()).as_ref());
-    let size = graph.node_count();
-    let mut position = Position { row: 0, column: 1 };
-
-    let mut binary = String::new();
-    loop {
-        if has_edge(&graph, position.row, position.column) {
-            binary.push('1');
-        } else {
-            binary.push('0');
+impl<G> G6Writer<G>
+    where
+        G: graph::Graph,
+{
+    pub fn write_graphs_to_file(graphs: &Vec<G>, path: impl AsRef<path::Path>) -> Result<()> {
+        let file_result = OpenOptions::new().create(true).append(true).open(&path);
+        if let Err(err) = &file_result {
+            return Err(WriteError{ message: "open or create file error".to_string() });
         }
-
-        if binary.len() == 6 {
-            let intval = u8::from_str_radix(binary.as_str(), 2).unwrap();
-            graph_string.push((intval + BIAS) as char);
-            binary = String::new();
+        let mut file = file_result.unwrap();
+        for graph in graphs {
+            G6Writer::write_graph(graph, &mut file);
         }
-        position.increment();
-        if position.row > size || position.column > size {
-            break;
-        }
+        Ok(())
     }
-    trim_ending_zeros(&mut graph_string);
-    graph_string
+
+    pub fn write_graph(graph: &G, buffer: &mut impl Write) {
+        let graph_string = G6Writer::to_g6_string(graph);
+        writeln!(buffer, "{}", graph_string);
+    }
+
+    fn to_g6_string(graph: &G) -> String {
+        let mut graph_string = String::new();
+        let size = graph.size();
+        graph_string.push_str(to_g6_size(size).as_ref());
+        let mut position = Position { row: 0, column: 1 };
+
+        let mut binary = String::new();
+        loop {
+            if graph.has_edge(position.row, position.column) {
+                binary.push('1');
+            } else {
+                binary.push('0');
+            }
+
+            if binary.len() == 6 {
+                let intval = u8::from_str_radix(binary.as_str(), 2).unwrap();
+                graph_string.push((intval + BIAS) as char);
+                binary = String::new();
+            }
+            position.increment();
+            if position.row > size || position.column > size {
+                break;
+            }
+        }
+        trim_ending_zeros(&mut graph_string);
+        graph_string
+    }
 }
+
 
 pub fn to_g6_size(size: usize) -> String {
     let mut size_string = String::new();
@@ -58,17 +84,6 @@ pub fn to_g6_size(size: usize) -> String {
         return size_string;
     }
     size_string
-}
-
-// move to Graph fn
-fn has_edge(graph: &Graph, source: usize, target: usize) -> bool {
-    let edges = graph.edges(NodeIndex::new(source));
-    for edge in edges {
-        if edge.target().index().eq(&target) {
-            return true;
-        }
-    }
-    false
 }
 
 fn trim_ending_zeros(graph_string: &mut String) {

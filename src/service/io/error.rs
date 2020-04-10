@@ -1,5 +1,4 @@
 use serde::export::Formatter;
-use std::io::Error;
 use std::num::ParseIntError;
 use std::{fmt, io, num};
 
@@ -12,12 +11,6 @@ impl fmt::Display for ReadError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "read error: {}", self.message)?;
         Ok(())
-    }
-}
-
-impl ReadError {
-    pub fn new(message: String) -> Self {
-        ReadError { message }
     }
 }
 

@@ -1,11 +1,7 @@
-use std::fs::{File, OpenOptions};
-use std::io::{LineWriter, Read, Write};
+use std::fs::OpenOptions;
+use std::io::{LineWriter, Write};
 use std::path::Path;
 use std::{io, marker, result};
-
-use petgraph::stable_graph::StableGraph;
-use petgraph::visit::EdgeRef;
-use petgraph::Undirected;
 
 use crate::graph::traits::edge::Edge;
 use crate::graph::traits::graph;
@@ -15,25 +11,17 @@ use crate::service::io::reader_ba;
 
 type Result<T> = result::Result<T, WriteError>;
 
-pub struct BaWriter<'a, G>
+pub struct BaWriter<G>
 where
     G: graph::Graph,
 {
-    path: &'a String,
     _ph: marker::PhantomData<G>,
 }
 
-impl<'a, G> BaWriter<'a, G>
+impl<G> BaWriter<G>
 where
     G: graph::Graph,
 {
-    pub fn new(path: &'a String) -> Self {
-        BaWriter {
-            path,
-            _ph: marker::PhantomData,
-        }
-    }
-
     pub fn write_graph_ba(graph: &G, index: u32, mut buffer: impl Write) -> Result<()> {
         writeln!(buffer)?;
         writeln!(buffer, "{}", index)?;
@@ -59,8 +47,7 @@ where
                 return BaWriter::write_graphs_to_new_file(graphs, path);
             }
         }
-
-        let mut file = file_result?;
+        file_result?;
         return BaWriter::append_graphs_to_file(graphs, path);
     }
 

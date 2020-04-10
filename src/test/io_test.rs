@@ -1,21 +1,26 @@
+#[cfg(test)]
 use std::fs::{File, OpenOptions};
-use std::io::{self, BufRead, BufReader, Write};
+#[cfg(test)]
+use std::io::{self, BufRead, Write};
+#[cfg(test)]
 use std::path::Path;
 
-use bit_vec::BitVec;
-use petgraph::graph::NodeIndex;
-use petgraph::stable_graph::StableGraph;
-use petgraph::visit::EdgeRef;
-use petgraph::Undirected;
-
+#[cfg(test)]
 use crate::graph::undirected::simple_graph::SimpleGraph;
+#[cfg(test)]
+use crate::service::io::error::WriteError;
+#[cfg(test)]
 use crate::service::io::reader::Reader;
+#[cfg(test)]
 use crate::service::io::reader_ba::BaReader;
-use crate::service::io::reader_s6::bitvec_to_u64;
+#[cfg(test)]
 use crate::service::io::writer_g6::to_g6_size;
-use crate::service::io::writer_s6::{bitvec_from_u64, encode_edges, S6Writer};
-use crate::service::io::{reader_g6, reader_s6, writer_s6};
+#[cfg(test)]
+use crate::service::io::writer_s6::S6Writer;
+#[cfg(test)]
+use crate::service::io::{reader_g6, reader_s6};
 
+#[cfg(test)]
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
 where
     P: AsRef<Path>,
@@ -33,7 +38,7 @@ fn should_read_g6() {
         // Consumes the iterator, returns an (Optional) String
         for line in lines {
             if let Ok(line_str) = line {
-                // println!("{}", line_str);
+                println!("{}", line_str);
                 // let error = "Wrong g6 format";
                 // let graph = read_graph(line_str.as_str());
 
@@ -49,11 +54,11 @@ fn should_read_ba() {
     // let graph_path = "resources/graphs/5flow28.28";
     let graph_path = "resources/graphs/DSXDS.ALL";
 
-    if let Ok(lines) = read_lines(graph_path) {
-        // Consumes the iterator, returns an (Optional) String
-
-        // let graph = read_graph_ba(lines);
-    }
+    // if let Ok(lines) = read_lines(graph_path) {
+    //     // Consumes the iterator, returns an (Optional) String
+    //
+    //     // let graph = read_graph_ba(lines);
+    // }
 
     let file = OpenOptions::new().read(true).open(graph_path).unwrap();
 
@@ -77,10 +82,10 @@ fn should_read_ba() {
 }
 
 #[test]
-fn should_write_ba() {
+fn should_write_ba() -> Result<(), WriteError> {
     // move to test_data
-    let graph_string =
-        "]C??@Q??GCCA@??Bo??C@O?C?G_E????\\?O?A??H_??@C?@??_?C???g????G??B@??C????Ag";
+    // let graph_string =
+    //     "]C??@Q??GCCA@??Bo??C@O?C?G_E????\\?O?A??H_??@C?@??_?C???g????G??B@??C????Ag";
     let graph_path = "resources/graphs/write_ba.ALL";
 
     let file_result = OpenOptions::new().write(true).append(true).open(graph_path);
@@ -89,7 +94,7 @@ fn should_write_ba() {
         Ok(mut file) => {
             // let graph = read_graph(graph_string);
             // write graphs count
-            writeln!(file, "1");
+            writeln!(file, "1")?;
 
             // TODO
             // write_graph_ba(graph.unwrap(), 1, &mut file);
@@ -98,13 +103,14 @@ fn should_write_ba() {
         }
         _ => {}
     }
+    Ok(())
 }
 
 #[test]
 fn should_append_ba() {
-    let graph_path = "resources/graphs/append_ba.ALL";
-    let graph_string =
-        "]C??@Q??GCCA@??Bo??C@O?C?G_E????\\?O?A??H_??@C?@??_?C???g????G??B@??C????Ag";
+    // let graph_path = "resources/graphs/append_ba.ALL";
+    // let graph_string =
+    //     "]C??@Q??GCCA@??Bo??C@O?C?G_E????\\?O?A??H_??@C?@??_?C???g????G??B@??C????Ag";
     // let graph = read_graph(graph_string);
 
     // TODO
@@ -116,8 +122,8 @@ fn should_append_ba() {
 #[test]
 fn should_write_g6() {
     // move to test_data
-    let graph_string =
-        "]C??@Q??GCCA@??Bo??C@O?C?G_E????\\?O?A??H_??@C?@??_?C???g????G??B@??C????Ag";
+    // let graph_string =
+    //     "]C??@Q??GCCA@??Bo??C@O?C?G_E????\\?O?A??H_??@C?@??_?C???g????G??B@??C????Ag";
     // let graph = reader_g6::G6Reader::read_graph(graph_string);
 
     // let mut w = Vec::new();
@@ -137,18 +143,6 @@ fn should_code_size() {
     assert_eq!(res, "~~?ZZZZZ");
 }
 
-type Graph = StableGraph<u8, u16, Undirected, u8>;
-
-fn print_graph(graph: Graph) {
-    for node_index in graph.node_indices() {
-        print!("{}: ", node_index.index());
-        for edge in graph.edges(node_index) {
-            print!("{} ", edge.target().index());
-        }
-        println!();
-    }
-}
-
 #[test]
 fn should_write_s6() {
     let graph_path = "resources/graphs/petersen.g6";
@@ -163,7 +157,7 @@ fn should_write_s6() {
                 //
                 //
                 let mut w = Vec::new();
-                S6Writer::write_graph(&graph.unwrap(), &mut w);
+                S6Writer::write_graph(&graph.unwrap(), &mut w).unwrap();
                 //
                 let string = String::from_utf8(w).unwrap();
                 println!("{:?}", string);
@@ -188,13 +182,11 @@ fn should_read_graph_s6() {
 #[test]
 fn should_read_graph_g6_from_string() {
     // let graph_g6 = "]?@G@U?OK?GP?CD?o???@G???AX??__????G???g_????CG???C???B_??GO??@PAA???A_??G";
-    let graph_g6 = "]C@O?SAGC??P??O@o?Q?`????aGO????SK???O?O?OC???F??A??C??c???O@??@K???????@W";
-    let graph_res = reader_g6::G6Reader::<SimpleGraph>::read_graph(graph_g6);
+    // let graph_g6 = "]C@O?SAGC??P??O@o?Q?`????aGO????SK???O?O?OC???F??A??C??c???O@??@K???????@W";
+    // let graph_res = reader_g6::G6Reader::<SimpleGraph>::read_graph(graph_g6);
     // print_graph(graph_res.unwrap());
 }
 
 // temp
 #[test]
-fn test() {
-
-}
+fn test() {}

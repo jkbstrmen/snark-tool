@@ -1,11 +1,14 @@
-use crate::graph::traits::graph;
+#[cfg(test)]
 use crate::graph::traits::graph::Graph;
-use crate::graph::undirected::edge::UndirectedEdge;
+#[cfg(test)]
 use crate::graph::undirected::simple_graph::SimpleGraph;
-use crate::service::colour::bfs_first::BFSColourGraph;
+#[cfg(test)]
 use crate::service::io::reader::Reader;
+#[cfg(test)]
 use crate::service::io::reader_g6::G6Reader;
+#[cfg(test)]
 use std::fs::OpenOptions;
+#[cfg(test)]
 use std::time::Instant;
 
 #[test]
@@ -48,13 +51,11 @@ fn init_colouriser() {
         }
     }
 
-    // print(&matrix, graph.size() as u8);
-
-    let colour = BFSColourGraph::is_colorable(matrix, graph.size() as u8);
-
-    println!("graph is colorable: {}", colour);
+    // let colour = BFSColourGraph::is_colorable(matrix, graph.size() as u8);
+    // println!("graph is colorable: {}", colour);
 }
 
+#[cfg(test)]
 fn is_colourable(graph: &SimpleGraph) -> bool {
     let mut matrix: Vec<u8> = vec![];
     for row in 0..graph.size() {
@@ -66,8 +67,9 @@ fn is_colourable(graph: &SimpleGraph) -> bool {
             }
         }
     }
-    let colour = BFSColourGraph::is_colorable(matrix, graph.size() as u8);
-    colour
+    // let colour = BFSColourGraph::is_colorable(matrix, graph.size() as u8);
+    // colour
+    false
 }
 
 #[test]
@@ -100,15 +102,15 @@ fn measure_time() {
     println!("elapsed: {}[ms]", begin.elapsed().as_millis());
 }
 
-fn print(graph: &Vec<u8>, graph_size: u8) {
-    for row in 0..graph_size {
-        for column in 0..graph_size {
-            let index: usize = (row as usize) * graph_size as usize + column as usize;
-            print!("{} ", graph.get(index as usize).unwrap());
-        }
-        println!();
-    }
-}
+// fn print(graph: &Vec<u8>, graph_size: u8) {
+//     for row in 0..graph_size {
+//         for column in 0..graph_size {
+//             let index: usize = (row as usize) * graph_size as usize + column as usize;
+//             print!("{} ", graph.get(index as usize).unwrap());
+//         }
+//         println!();
+//     }
+// }
 
 #[test]
 fn test_bfs_v2() {
@@ -124,7 +126,7 @@ fn test_bfs_v2() {
 
     let graph = G6Reader::<SimpleGraph>::read_graph(graph_str).unwrap();
 
-    let graph_size = graph.size();
+    // let graph_size = graph.size();
 
     let result1 = is_colourable(&graph);
     // let result2 = BFSColourGraphV2::is_colorable(&graph);

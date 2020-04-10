@@ -346,17 +346,6 @@ impl BFSColourGraph {
     ) -> bool {
         self.set_color_and_check_validity(from, to, color) && self.color(next_vertex)
     }
-
-    // temp
-    pub fn print(&self) {
-        for row in 0..self.graph_size {
-            for column in 0..self.graph_size {
-                let index = row * self.graph_size + column;
-                print!("{} ", self.graph.get(index as usize).unwrap());
-            }
-            println!();
-        }
-    }
 }
 
 fn is_without_conflict(color1: u8, color2: u8, color3: u8) -> bool {

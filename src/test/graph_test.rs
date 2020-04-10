@@ -1,7 +1,7 @@
+#[cfg(test)]
 use crate::graph::traits::graph::Graph;
+#[cfg(test)]
 use crate::graph::undirected::simple_graph::SimpleGraph;
-use std::collections::HashMap;
-use std::iter::FromIterator;
 
 #[test]
 fn should_create_graph() {

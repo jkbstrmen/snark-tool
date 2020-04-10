@@ -1,20 +1,19 @@
 use crate::error::Error;
 
 use crate::graph::traits::graph::Graph;
-use crate::graph::undirected::simple_graph::SimpleGraph;
+use crate::service::colour::bfs::BFSColorizer;
 use crate::service::io::reader::Reader;
 use crate::service::io::reader_ba::BaReader;
 use crate::service::io::reader_g6::G6Reader;
+use crate::service::io::reader_s6::S6Reader;
 use crate::service::io::writer_ba::BaWriter;
 use crate::service::io::writer_g6::G6Writer;
 use crate::service::io::writer_s6::S6Writer;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::fs::OpenOptions;
-use std::path::Path;
 use std::result;
 use std::str::FromStr;
-use crate::service::io::reader_s6::S6Reader;
 
 type Config = HashMap<String, String>;
 type Result<T> = result::Result<T, Error>;
@@ -31,12 +30,12 @@ pub struct BasicProcedure {
 }
 
 impl BasicProcedure {
-    pub fn new(proc_type: impl AsRef<str>) -> Self {
-        BasicProcedure {
-            proc_type: String::from(proc_type.as_ref()),
-            config: HashMap::default(),
-        }
-    }
+    // pub fn new(proc_type: impl AsRef<str>) -> Self {
+    //     BasicProcedure {
+    //         proc_type: String::from(proc_type.as_ref()),
+    //         config: HashMap::default(),
+    //     }
+    // }
 
     pub fn new_with_config(proc_type: impl AsRef<str>, config: Config) -> Self {
         BasicProcedure {
@@ -103,15 +102,15 @@ impl BasicProcedure {
 
         match graph_format.as_str() {
             "g6" => {
-                let mut reader = G6Reader::<G>::new(&file);
+                let reader = G6Reader::<G>::new(&file);
                 BasicProcedure::read_by_format(reader, graphs, graphs_count as usize)?;
             }
             "ba" => {
-                let mut reader = BaReader::<G>::new(&file);
+                let reader = BaReader::<G>::new(&file);
                 BasicProcedure::read_by_format(reader, graphs, graphs_count as usize)?;
             }
             "s6" => {
-                let mut reader = S6Reader::<G>::new(&file);
+                let reader = S6Reader::<G>::new(&file);
                 BasicProcedure::read_by_format(reader, graphs, graphs_count as usize)?;
             }
             _ => {
@@ -203,6 +202,15 @@ impl BasicProcedure {
             "Running procedure: {} on graphs: {:?}",
             self.proc_type, graphs
         );
+
+        let mut counter = 0;
+        for graph in graphs {
+            let result = BFSColorizer::is_colorable(graph);
+            let result = if result { "true" } else { "false" };
+            println!("graph: {} is colorable: {}", counter, result);
+            counter += 1;
+        }
+
         Ok(())
     }
 

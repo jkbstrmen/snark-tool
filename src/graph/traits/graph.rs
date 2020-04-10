@@ -9,41 +9,21 @@ where
     V: Vertex,
     E: Edge,
 {
-    // fn add_edge(&mut self, edge: E) ;
-    fn add_edge(&mut self, from: usize, to: usize);
-
     fn size(&self) -> usize;
-    // size
-    // has_edge
     fn has_edge(&self, from: usize, to: usize) -> bool;
     fn edge(&self, from: usize, to: usize) -> Option<E>;
-    // fn has_edge(&self, edge: &E) -> bool;
-    // edge_iter = edge_iterator
-    // fn edges(&self);
-    // fn edges_mut(&mut self);
-
-    // vertex_iter = vertex_iterator
-    fn vertices(&self) -> Vertices<V>;
-    fn vertices_mut(&mut self) -> VerticesMut<V>;
 
     // add vertex - with param?
     fn add_vertex(&mut self);
+    fn add_edge(&mut self, from: usize, to: usize);
     // remove_edge
     // remove_vertex
-    // edges = edges of vertex - as iterator?
-    // fn edges(&self, vertex: usize) -> Eit;
-    // fn edges(&self, vertex: usize) -> impl Iterator;
-    // fn edges<'a, I>(&'a self, vertex: usize) -> I
-    // where
-    //     I: Iterator + EdgeIter<'a>;
 
+    fn vertices(&self) -> Vertices<V>;
+    fn vertices_mut(&mut self) -> VerticesMut<V>;
     fn edges(&self) -> Edges<E>;
     fn edges_mut(&mut self) -> EdgesMut<E>;
-    // fn edges(&self, vertex: usize) -> UndirectedEdges;
     fn edges_of_vertex(&self, vertex: usize) -> Edges<E>;
-
-    // vertex = vertex with index
-    // vertex_mut
 
     // edges_count
     // vertices_count
@@ -110,12 +90,12 @@ impl<'a, E> EdgesMut<'a, E> {
         EdgesMut { vertex: None, iter }
     }
 
-    pub fn of_vertex(iter: slice::IterMut<'a, E>, vertex: usize) -> Self {
-        EdgesMut {
-            vertex: Some(vertex),
-            iter,
-        }
-    }
+    // pub fn of_vertex(iter: slice::IterMut<'a, E>, vertex: usize) -> Self {
+    //     EdgesMut {
+    //         vertex: Some(vertex),
+    //         iter,
+    //     }
+    // }
 }
 
 impl<'a, E> Iterator for EdgesMut<'a, E>

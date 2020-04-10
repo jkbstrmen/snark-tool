@@ -1,22 +1,16 @@
-use petgraph::stable_graph::StableGraph;
-use petgraph::Undirected;
-
-use crate::graph::pet_graph_utils::get_edges_vec;
 use std::io::Write;
 
 use crate::graph::traits::edge::Edge;
 use crate::graph::traits::graph::Graph;
 use crate::service::io::error::WriteError;
 use crate::service::io::reader_g6::BIAS;
-use crate::service::io::reader_s6::S6Reader;
 use crate::service::io::writer_g6::to_g6_size;
-use petgraph::graph::NodeIndex;
 use std::cmp::Ordering;
 use std::fs::OpenOptions;
 use std::iter::FromIterator;
 use std::{cmp, marker, path, result};
 
-pub const ENCODING_SIZE: u8 = 6;
+// pub const S6_CONSTANT: u8 = 6;
 type Result<T> = result::Result<T, WriteError>;
 
 pub struct S6Writer<G> {
@@ -31,7 +25,7 @@ where
         let file_result = OpenOptions::new().create(true).append(true).open(&path);
         if let Err(err) = &file_result {
             return Err(WriteError {
-                message: "open or create file error".to_string(),
+                message: format!("open or create file error: {}", err),
             });
         }
         let mut file = file_result.unwrap();
@@ -90,7 +84,7 @@ where
     }
 }
 
-fn to_s6_chars(mut edges_encoding: Vec<bool>) -> String {
+fn to_s6_chars(edges_encoding: Vec<bool>) -> String {
     if edges_encoding.len() % 6 != 0 {
         //
     }
@@ -99,6 +93,7 @@ fn to_s6_chars(mut edges_encoding: Vec<bool>) -> String {
     let mut end = 6;
     while begin < edges_encoding.len() {
         let mut char: u8 = 0;
+        // encode next 6 bits into u8
         for i in begin..end {
             let bit = edges_encoding.get(i).unwrap().clone();
             char = (char << 1) | bit as u8;
@@ -133,18 +128,6 @@ where
         vec.append(&mut bitvec_from_u64(edge.from() as u64, edge_encoding_size));
     }
     vec
-}
-
-fn bitvec_to_u64(bitvec: &Vec<bool>) -> u64 {
-    if bitvec.len() <= 8 {
-        let mut result: u8 = 0;
-        for bit in bitvec {
-            println!("{}", result);
-            result = (result << 1) | bit.clone() as u8;
-        }
-        return result as u64;
-    }
-    0
 }
 
 pub fn bitvec_from_u64(mut num: u64, bits_count: u8) -> Vec<bool> {

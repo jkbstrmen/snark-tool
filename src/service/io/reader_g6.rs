@@ -3,7 +3,7 @@ use std::str::Chars;
 use crate::graph::traits::graph;
 use crate::service::io::error::ReadError;
 use crate::service::io::reader::Reader;
-use std::io::{BufRead, BufReader, Error};
+use std::io::{BufRead, BufReader};
 use std::marker::PhantomData;
 use std::{fs, io, result};
 
@@ -17,7 +17,6 @@ pub struct G6Reader<'a, G>
 where
     G: graph::Graph,
 {
-    file: &'a fs::File,
     lines: io::Lines<BufReader<&'a fs::File>>,
     _ph: PhantomData<G>,
 }
@@ -28,7 +27,6 @@ where
 {
     fn new(file: &'a fs::File) -> Self {
         G6Reader {
-            file,
             lines: io::BufReader::new(file).lines(),
             _ph: PhantomData,
         }
@@ -58,26 +56,6 @@ impl<'a, G> G6Reader<'a, G>
 where
     G: graph::Graph,
 {
-    pub fn read_by_lines(/*&self,*/ file: &fs::File, count: u64) -> Result<Vec<G>> {
-        let mut lines = io::BufReader::new(file).lines();
-        let mut graphs = vec![];
-        for _i in 0..count {
-            let line = lines.next();
-            match line {
-                None => {
-                    // warn - file contains less graphs than specified to work with
-                }
-                Some(line) => {
-                    if line.is_ok() {
-                        let graph = G6Reader::read_graph(line.unwrap());
-                        graphs.push(graph.unwrap());
-                    }
-                }
-            }
-        }
-        Ok(graphs)
-    }
-
     pub fn read_graph(source: impl AsRef<str>) -> Result<G> {
         let mut iterator = source.as_ref().chars();
         let size = get_graph_size(&mut iterator);

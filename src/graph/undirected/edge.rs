@@ -4,6 +4,7 @@ use crate::graph::traits::edge::Edge;
 pub struct UndirectedEdge {
     from: usize,
     to: usize,
+    color: u8,
 }
 
 impl Edge for UndirectedEdge {
@@ -20,16 +21,20 @@ impl Edge for UndirectedEdge {
     }
 
     fn set_color(&mut self, color: u8) {
-        unimplemented!()
+        self.color = color;
     }
 }
 
 impl UndirectedEdge {
     pub fn new(from: usize, to: usize) -> Self {
         if from > to {
-            return UndirectedEdge { from: to, to: from };
+            return UndirectedEdge {
+                from: to,
+                to: from,
+                color: 0,
+            };
         }
-        UndirectedEdge { from, to }
+        UndirectedEdge { from, to, color: 0 }
     }
 }
 
@@ -43,10 +48,8 @@ impl<'a> Edge for &'a UndirectedEdge {
     }
 
     fn color(&self) -> u8 {
-        unimplemented!()
+        (*self).color()
     }
 
-    fn set_color(&mut self, color: u8) {
-        unimplemented!()
-    }
+    fn set_color(&mut self, _color: u8) {}
 }

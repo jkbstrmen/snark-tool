@@ -12,8 +12,6 @@ use std::{fs, io, marker, result};
 type Result<T> = result::Result<T, ReadError>;
 
 pub struct S6Reader<'a, G> {
-    edge_encoding_size: u8,
-    file: &'a fs::File,
     lines: io::Lines<io::BufReader<&'a fs::File>>,
 
     _ph: marker::PhantomData<G>,
@@ -25,8 +23,6 @@ where
 {
     fn new(file: &'a File) -> Self {
         S6Reader {
-            edge_encoding_size: 0,
-            file,
             lines: io::BufReader::new(file).lines(),
             _ph: marker::PhantomData,
         }

@@ -1,6 +1,3 @@
-use petgraph::graph::NodeIndex;
-use petgraph::stable_graph::StableGraph;
-use petgraph::Undirected;
 use std::fs::File;
 use std::io::{self, BufRead};
 
@@ -14,9 +11,9 @@ type Result<T> = result::Result<T, ReadError>;
 const WRONG_FORMAT: &str = "Wrong ba format";
 
 pub struct BaReader<'a, G> {
-    file: &'a fs::File,
     lines: io::Lines<io::BufReader<&'a fs::File>>,
-    line: usize,
+    // TODO - point error to specific line
+    // line: usize,
     graphs_count: Option<usize>,
 
     _ph: marker::PhantomData<G>,
@@ -28,17 +25,14 @@ where
 {
     fn new(file: &'a File) -> Self {
         BaReader {
-            file,
             lines: io::BufReader::new(file).lines(),
-            line: 0,
+            // line: 0,
             graphs_count: None,
             _ph: marker::PhantomData,
         }
     }
 
     fn next(&mut self) -> Option<Result<G>> {
-        // TODO - point error to specific line
-
         if self.graphs_count.is_none() {
             let count = self.get_graphs_count();
             match count {
@@ -60,7 +54,7 @@ where
     G: graph::Graph,
 {
     fn get_graphs_count(&mut self) -> Result<usize> {
-        let mut graphs_count = self.next_numbers_vector()?;
+        let graphs_count = self.next_numbers_vector()?;
         let count = graphs_count.get(0);
         if count.is_some() {
             return Ok(count.unwrap().clone());
@@ -116,7 +110,6 @@ where
 
     fn get_single_number(&mut self) -> Result<Option<usize>> {
         let mut vec = self.next_numbers_vector()?;
-        let num = vec.get(0);
         if vec.len() == 1 {
             return Ok(vec.pop());
         }
@@ -151,10 +144,10 @@ pub fn read_preface_and_count(file: &File) -> Result<(usize, String)> {
     let mut comments = String::new();
     let mut line = lines.next();
     while line.is_some() {
-        if let Ok(line_str) = line.unwrap() {
+        if let Ok(mut line_str) = line.unwrap() {
             let first_char = line_str.trim().chars().next();
             if first_char.is_some() && first_char.unwrap() != '{' {
-                line_str.trim();
+                line_str = String::from(line_str.trim());
                 let count = line_str.parse()?;
                 return Ok((count, comments));
             }

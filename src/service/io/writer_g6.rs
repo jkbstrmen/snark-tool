@@ -1,14 +1,9 @@
-use petgraph::graph::NodeIndex;
-use petgraph::stable_graph::StableGraph;
-use petgraph::visit::EdgeRef;
-use petgraph::Undirected;
-
 use crate::graph::traits::graph;
 use crate::service::io::error::WriteError;
 use crate::service::io::reader_g6::{Position, BIAS};
 use std::fs::OpenOptions;
 use std::io::Write;
-use std::{io, marker, path, result};
+use std::{marker, path, result};
 
 type Result<T> = result::Result<T, WriteError>;
 
@@ -24,7 +19,7 @@ where
         let file_result = OpenOptions::new().create(true).append(true).open(&path);
         if let Err(err) = &file_result {
             return Err(WriteError {
-                message: "open or create file error".to_string(),
+                message: format!("open or create file error: {}", err),
             });
         }
         let mut file = file_result.unwrap();

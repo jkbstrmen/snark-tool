@@ -1,21 +1,21 @@
 use crate::service::io::error::{ReadError, WriteError};
-use std::{error, fmt};
+use std::fmt;
 
 #[derive(Debug)]
 pub enum Error {
     ReadError(ReadError),
     WriteError(WriteError),
-    ColourError,
+    // ColourError,
     ConfigError(String),
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Error::ReadError(error) => write!(f, "read error: {:?}", error),
-            Error::WriteError(error) => write!(f, "write error: {:?}", error),
-            Error::ColourError => write!(f, "Colour error"),
-            Error::ConfigError(msg) => write!(f, "Config error: {}", msg),
+            Error::ReadError(error) => write!(f, "read error: {:?}", error)?,
+            Error::WriteError(error) => write!(f, "write error: {:?}", error)?,
+            // Error::ColourError => write!(f, "Colour error")?,
+            Error::ConfigError(msg) => write!(f, "Config error: {}", msg)?,
         };
         Ok(())
     }

@@ -3,16 +3,15 @@ use crate::graph::traits::graph::Graph;
 use crate::graph::traits::vertex::Vertex;
 
 // Colorizer for (sub)cubic graphs only
-pub struct BFSColorGraph {
+pub struct BFSColorizer {
     // pair - (neighbor, color)
     vertices: Vec<[(usize, usize); 3]>,
     one_edge_vert: Vec<usize>,
     non_colored_edges: Vec<usize>,
     non_colored_edges_of_graph: usize,
-    graph_size: usize,
 }
 
-impl BFSColorGraph {
+impl BFSColorizer {
     pub fn is_colorable<G, V, E>(graph: &G) -> bool
     where
         G: Graph<V, E>,
@@ -41,12 +40,11 @@ impl BFSColorGraph {
             }
             vertices.push(neighbors);
         }
-        let mut color_graph = BFSColorGraph {
+        let mut color_graph = BFSColorizer {
             vertices,
             one_edge_vert: vec![],
             non_colored_edges: vec![],
             non_colored_edges_of_graph: 0,
-            graph_size: graph.size(),
         };
 
         // precolor
@@ -128,7 +126,7 @@ impl BFSColorGraph {
                 self.non_colored_edges[vertex as usize] -= 1;
                 self.non_colored_edges[neighbor1 as usize] -= 1;
                 let mut change = false;
-                let mut next_vertex = 0;
+                let next_vertex;
                 if self.non_colored_edges[neighbor1 as usize] == 1 && !self.one_edge_vert.is_empty()
                 {
                     change = true;
@@ -204,7 +202,7 @@ impl BFSColorGraph {
                 self.non_colored_edges[neighbor2 as usize] -= 1;
                 let mut one_edge_neighbors = 0;
                 let mut next_from_queue = false;
-                let mut next_vertex = 0;
+                let next_vertex;
 
                 if self.non_colored_edges[neighbor1 as usize] == 1 {
                     one_edge_neighbors += 1;
@@ -282,17 +280,16 @@ impl BFSColorGraph {
                 panic!("More than 2 uncolored edges");
             }
         }
-        false
     }
 
-    fn get_edge_color(&self, from: usize, to: usize) -> usize {
-        for neighbor in self.vertices[from].iter() {
-            if neighbor.0 == to {
-                return neighbor.1;
-            }
-        }
-        panic!("there is no edge from {} to {}", from, to);
-    }
+    // fn get_edge_color(&self, from: usize, to: usize) -> usize {
+    //     for neighbor in self.vertices[from].iter() {
+    //         if neighbor.0 == to {
+    //             return neighbor.1;
+    //         }
+    //     }
+    //     panic!("there is no edge from {} to {}", from, to);
+    // }
 
     fn set_edge_color(&mut self, from: usize, to: usize, color: usize) {
         for neighbor in self.vertices[from].iter_mut() {
@@ -308,20 +305,20 @@ impl BFSColorGraph {
     }
 
     // ttt2
-    fn is_vertex_without_conflict(&self, vertex: usize, neighbors: &[(usize, usize); 3]) -> bool {
+    fn is_vertex_without_conflict(&self, neighbors: &[(usize, usize); 3]) -> bool {
         is_without_conflict(neighbors[0].1, neighbors[1].1, neighbors[2].1)
     }
 
     // cond1
     fn set_color_and_check_validity(&mut self, from: usize, to: usize, color: usize) -> bool {
         self.set_edge_color(from, to, color);
-        self.is_vertex_without_conflict(from, &self.vertices[from])
+        self.is_vertex_without_conflict(&self.vertices[from])
     }
 
     // cond2
     fn are_vertices_without_conflict(&self, first: usize, second: usize) -> bool {
-        self.is_vertex_without_conflict(first, &self.vertices[first])
-            && self.is_vertex_without_conflict(second, &self.vertices[second])
+        self.is_vertex_without_conflict(&self.vertices[first])
+            && self.is_vertex_without_conflict(&self.vertices[second])
     }
 
     fn set_edge_check_and_color_rest(

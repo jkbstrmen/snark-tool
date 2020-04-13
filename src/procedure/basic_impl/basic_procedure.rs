@@ -1,9 +1,11 @@
 use crate::error::Error;
 
 use crate::graph::traits::graph::Graph;
+use crate::procedure::basic_impl::basic_config::BasicConfig;
+use crate::procedure::basic_impl::basic_properties::BasicProperties;
 use crate::procedure::procedure::{Config, Procedure};
 use crate::service::colour::bfs::BFSColourizer;
-use crate::service::io::error::ReadError;
+use crate::service::io::error::{ReadError, WriteError};
 use crate::service::io::reader::Reader;
 use crate::service::io::reader_ba::BaReader;
 use crate::service::io::reader_g6::G6Reader;
@@ -11,27 +13,28 @@ use crate::service::io::reader_s6::S6Reader;
 use crate::service::io::writer_ba::BaWriter;
 use crate::service::io::writer_g6::G6Writer;
 use crate::service::io::writer_s6::S6Writer;
+use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use std::fs::OpenOptions;
-use std::result;
-use std::str::FromStr;
+use std::io::Write;
+use std::{fs, path, result};
 
 type Result<T> = result::Result<T, Error>;
 
 pub struct BasicProcedure {
     proc_type: String,
-    config: Config,
+    config: BasicConfig,
 }
 
-impl Procedure for BasicProcedure {
+impl Procedure<BasicProperties> for BasicProcedure {
     fn new_with_config(proc_type: impl AsRef<str>, config: Config) -> Self {
         BasicProcedure {
             proc_type: String::from(proc_type.as_ref()),
-            config,
+            config: BasicConfig::from_config(config.clone(), proc_type.as_ref().to_string()),
         }
     }
 
-    fn run<G>(&self, graphs: &mut Vec<G>) -> Result<()>
+    fn run<G>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()>
     where
         G: Debug + Graph,
     {
@@ -45,6 +48,9 @@ impl Procedure for BasicProcedure {
             "colour" => {
                 self.colour_graph(graphs)?;
             }
+            "write-with-properties" => {
+                self.write_with_properties(graphs)?;
+            }
             _ => {
                 self.handle_unknown_type();
             }
@@ -54,34 +60,15 @@ impl Procedure for BasicProcedure {
 }
 
 impl BasicProcedure {
-    pub fn read_graph<G>(&self, graphs: &mut Vec<G>) -> Result<()>
+    pub fn read_graph<G>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()>
     where
         G: Debug + Graph,
     {
         println!("Running procedure: {}", self.proc_type);
-        let file_path_opt = self.config.get("file");
-        if file_path_opt.is_none() {
-            return Err(Error::ConfigError(String::from("input file not specified")));
-        }
-        let file_path = file_path_opt.unwrap();
-
-        let graphs_count = self.get_graphs_count();
-
-        let file_result = OpenOptions::new().read(true).open(file_path);
-        if file_result.is_err() {
-            return Err(Error::ReadError(ReadError {
-                message: String::from("input file read error"),
-            }));
-        }
-        let file = file_result.unwrap();
-
-        let graph_format = self.config.get("graph-format");
-        if graph_format.is_none() {
-            return Err(Error::ConfigError(String::from(
-                "missing graph format for read procedure",
-            )));
-        }
-        let graph_format = graph_format.unwrap();
+        let file_path = self.config.get_file()?;
+        let graphs_count = self.config.get_number_of_graphs()?;
+        let file = BasicProcedure::open_file_to_read(file_path)?;
+        let graph_format = self.config.get_graph_format()?;
 
         match graph_format.as_str() {
             "g6" => {
@@ -105,23 +92,9 @@ impl BasicProcedure {
         Ok(())
     }
 
-    // move to basic config??
-    fn get_graphs_count(&self) -> Option<usize> {
-        let graphs_count_opt = self.config.get("number-of-graphs");
-        let graphs_count;
-        if graphs_count_opt.is_none() {
-            graphs_count = None;
-        } else {
-            graphs_count = Option::Some(
-                u64::from_str(graphs_count_opt.unwrap().clone().as_str()).unwrap() as usize,
-            );
-        }
-        return graphs_count;
-    }
-
     fn read_by_format<'a, G, R>(
         mut reader: R,
-        graphs: &mut Vec<G>,
+        graphs: &mut Vec<(G, BasicProperties)>,
         graphs_count: Option<usize>,
     ) -> Result<()>
     where
@@ -132,7 +105,7 @@ impl BasicProcedure {
         let mut graph_opt = reader.next();
         while graph_opt.is_some() {
             let graph = graph_opt.unwrap()?;
-            graphs.push(graph);
+            graphs.push((graph, BasicProperties::new()));
             counter += 1;
 
             if graphs_count.is_some() && graphs_count.unwrap() < counter {
@@ -151,28 +124,13 @@ impl BasicProcedure {
         Ok(())
     }
 
-    pub fn write_graph<G>(&self, graphs: &mut Vec<G>) -> Result<()>
+    pub fn write_graph<G>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()>
     where
         G: Graph + Debug,
     {
         println!("Running procedure: {}", self.proc_type);
-
-        let file_path = self.config.get("file");
-        if file_path.is_none() {
-            return Err(Error::ConfigError(String::from(
-                "missing file path for write procedure",
-            )));
-        }
-        let file_path = file_path.unwrap();
-
-        // to fn - almost same for read proc
-        let graph_format = self.config.get("graph-format");
-        if graph_format.is_none() {
-            return Err(Error::ConfigError(String::from(
-                "missing graph format for read procedure",
-            )));
-        }
-        let graph_format = graph_format.unwrap();
+        let file_path = self.config.get_file()?;
+        let graph_format = self.config.get_graph_format()?;
 
         match graph_format.as_str() {
             "g6" => {
@@ -194,7 +152,7 @@ impl BasicProcedure {
         Ok(())
     }
 
-    pub fn colour_graph<G>(&self, graphs: &mut Vec<G>) -> Result<()>
+    pub fn colour_graph<G>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()>
     where
         G: Debug + Graph,
     {
@@ -202,7 +160,7 @@ impl BasicProcedure {
 
         let mut counter = 0;
         for graph in graphs {
-            let result = BFSColourizer::is_colorable(graph);
+            let result = BFSColourizer::is_colorable(&graph.0);
             let result = if result { "true" } else { "false" };
             println!("graph: {} is colorable: {}", counter, result);
             counter += 1;
@@ -211,7 +169,73 @@ impl BasicProcedure {
         Ok(())
     }
 
+    pub fn write_with_properties<G>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()>
+    where
+        G: Graph,
+    {
+        let file_path = self.config.get_file()?;
+        let mut file = BasicProcedure::open_file_to_write(file_path)?;
+        let graph_format = self.config.get_graph_format()?;
+        let mut vec = vec![];
+        for graph in graphs {
+            let graph_string;
+            match graph_format.as_str() {
+                "g6" => {
+                    graph_string = G6Writer::graph_to_g6_string(&graph.0);
+                }
+                "s6" => {
+                    graph_string = S6Writer::graph_to_s6_string(&graph.0);
+                }
+                _ => {
+                    return Err(Error::ConfigError(format!(
+                        "unknown graph format: '{}' for procedure: {}",
+                        graph_format, self.proc_type
+                    )));
+                }
+            }
+            let graph_with_properties = GraphWithProperties {
+                graph: graph_string,
+                properties: graph.1.clone(),
+            };
+            vec.push(graph_with_properties);
+        }
+        let serialized = serde_json::to_string_pretty(&vec).unwrap();
+        let result = writeln!(file, "{}", serialized);
+        if let Err(err) = result {
+            return Err(Error::WriteError(WriteError {
+                message: format!("error while writing to file: {}, error: {}", file_path, err),
+            }));
+        }
+        Ok(())
+    }
+
+    fn open_file_to_read<P: AsRef<path::Path>>(path: P) -> Result<fs::File> {
+        let file_result = OpenOptions::new().read(true).open(&path);
+        if file_result.is_err() {
+            return Err(Error::ReadError(ReadError {
+                message: format!("open file to read error for file: {:?}", path.as_ref()),
+            }));
+        }
+        Ok(file_result.unwrap())
+    }
+
+    fn open_file_to_write<P: AsRef<path::Path>>(path: P) -> Result<fs::File> {
+        let file_result = OpenOptions::new().write(true).create(true).open(&path);
+        if file_result.is_err() {
+            return Err(Error::ReadError(ReadError {
+                message: format!("open file to write error for file: {:?}", path.as_ref()),
+            }));
+        }
+        Ok(file_result.unwrap())
+    }
+
     fn handle_unknown_type(&self) {
         println!("Unknown procedure type: {}", self.proc_type);
     }
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct GraphWithProperties {
+    graph: String,
+    properties: BasicProperties,
 }

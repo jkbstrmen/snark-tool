@@ -4,24 +4,29 @@ use crate::procedure::configuration::ProcedureConfig;
 use crate::procedure::procedure::Procedure;
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::result;
+use std::{marker, result};
 
 type Result<T> = result::Result<T, Error>;
 
-pub struct ProcedureChain<Procedure> {
+pub struct ProcedureChain<Procedure, Prop> {
     procedures: Vec<Procedure>,
+
+    _ph: marker::PhantomData<Prop>,
 }
 
-impl<P> ProcedureChain<P>
+impl<P, Prop> ProcedureChain<P, Prop>
 where
-    P: Procedure,
+    P: Procedure<Prop>,
 {
     // pub fn new() -> Self {
     //     ProcedureChain { procedures: vec![] }
     // }
 
     pub fn from_procedures_vector(procedures: Vec<P>) -> Self {
-        ProcedureChain { procedures }
+        ProcedureChain {
+            procedures,
+            _ph: marker::PhantomData,
+        }
     }
 
     // pub fn add_procedure(&mut self, procedure: P) {
@@ -41,12 +46,12 @@ where
             };
         }
         procedures.reverse();
-        let chain: ProcedureChain<P> = ProcedureChain::from_procedures_vector(procedures);
+        let chain: ProcedureChain<P, Prop> = ProcedureChain::from_procedures_vector(procedures);
 
         chain
     }
 
-    pub fn run<G /*, Prop*/>(&self, graphs: &mut Vec<G /*(G, Prop)*/>) -> Result<()>
+    pub fn run<G>(&self, graphs: &mut Vec<(G, Prop)>) -> Result<()>
     where
         G: Debug + Graph,
     {

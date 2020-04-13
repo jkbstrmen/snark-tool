@@ -21,7 +21,10 @@ impl<G> S6Writer<G>
 where
     G: Graph,
 {
-    pub fn write_graphs_to_file(graphs: &Vec<G>, path: impl AsRef<path::Path>) -> Result<()> {
+    pub fn write_graphs_to_file<P>(
+        graphs: &Vec<(G, P)>,
+        path: impl AsRef<path::Path>,
+    ) -> Result<()> {
         let file_result = OpenOptions::new().create(true).append(true).open(&path);
         if let Err(err) = &file_result {
             return Err(WriteError {
@@ -30,7 +33,7 @@ where
         }
         let mut file = file_result.unwrap();
         for graph in graphs {
-            S6Writer::write_graph(graph, &mut file)?;
+            S6Writer::write_graph(&graph.0, &mut file)?;
         }
         Ok(())
     }

@@ -15,7 +15,10 @@ impl<G> G6Writer<G>
 where
     G: graph::Graph,
 {
-    pub fn write_graphs_to_file(graphs: &Vec<G>, path: impl AsRef<path::Path>) -> Result<()> {
+    pub fn write_graphs_to_file<P>(
+        graphs: &Vec<(G, P)>,
+        path: impl AsRef<path::Path>,
+    ) -> Result<()> {
         let file_result = OpenOptions::new().create(true).append(true).open(&path);
         if let Err(err) = &file_result {
             return Err(WriteError {
@@ -24,18 +27,18 @@ where
         }
         let mut file = file_result.unwrap();
         for graph in graphs {
-            G6Writer::write_graph(graph, &mut file)?;
+            G6Writer::write_graph(&graph.0, &mut file)?;
         }
         Ok(())
     }
 
     pub fn write_graph(graph: &G, buffer: &mut impl Write) -> Result<()> {
-        let graph_string = G6Writer::to_g6_string(graph);
+        let graph_string = G6Writer::graph_to_g6_string(graph);
         writeln!(buffer, "{}", graph_string)?;
         Ok(())
     }
 
-    fn to_g6_string(graph: &G) -> String {
+    pub fn graph_to_g6_string(graph: &G) -> String {
         let mut graph_string = String::new();
         let size = graph.size();
         graph_string.push_str(to_g6_size(size).as_ref());

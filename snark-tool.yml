@@ -17,6 +17,11 @@ procedures:
   - proc-type: write
     config:
       file: output
-      graph-format: ba
+      graph-format: s6
+
+  - proc-type: write-with-properties
+    config:
+      file: output_with_properties
+      graph-format: g6
 
   - proc-type: last-procedure

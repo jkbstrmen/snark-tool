@@ -2,7 +2,7 @@ use crate::error::Error;
 
 use crate::graph::traits::graph::Graph;
 use crate::procedure::procedure::{Config, Procedure};
-use crate::service::colour::bfs::BFSColorizer;
+use crate::service::colour::bfs::BFSColourizer;
 use crate::service::io::error::ReadError;
 use crate::service::io::reader::Reader;
 use crate::service::io::reader_ba::BaReader;
@@ -202,7 +202,7 @@ impl BasicProcedure {
 
         let mut counter = 0;
         for graph in graphs {
-            let result = BFSColorizer::is_colorable(graph);
+            let result = BFSColourizer::is_colorable(graph);
             let result = if result { "true" } else { "false" };
             println!("graph: {} is colorable: {}", counter, result);
             counter += 1;

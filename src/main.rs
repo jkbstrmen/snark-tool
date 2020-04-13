@@ -1,5 +1,7 @@
 use crate::graph::undirected::simple_graph::SimpleGraph;
+use crate::procedure::basic_impl::basic_procedure::BasicProcedure;
 use crate::procedure::configuration::Configuration;
+use crate::procedure::procedure_chain::ProcedureChain;
 use structopt::StructOpt;
 
 mod error;
@@ -8,24 +10,14 @@ mod procedure;
 mod service;
 mod test;
 
-/// Search for a pattern in a file and display the lines that contain it.
+/// Simple tool for snark analysis. For more information visit https://github.com/jstrmen/snark-tool
 #[derive(StructOpt)]
 struct Cli {
-    /// Command
+    /// Command - e.g. 'run'
     command: String,
-    /// The path to the file to read
+    /// The path to the configuration file - e.g. 'snark-tool.yml'
     #[structopt(parse(from_os_str))]
-    path: std::path::PathBuf,
-}
-
-fn read_config() -> String {
-    let args = Cli::from_args();
-    println!("command: {}", args.command);
-    println!("path to file: {:?}", args.path);
-
-    let content = std::fs::read_to_string(&args.path).expect("could not read file");
-
-    content
+    config_file_path: std::path::PathBuf,
 }
 
 fn parse_yaml_config(source: &String) -> Configuration {
@@ -37,20 +29,27 @@ fn parse_yaml_config(source: &String) -> Configuration {
 }
 
 fn main() {
-    let config_str = read_config();
-    let config = parse_yaml_config(&config_str);
+    let args = Cli::from_args();
 
-    let chain = procedure::create_procedure_chain(config.procedures);
-    let mut graphs: Vec<SimpleGraph> = vec![];
+    match args.command.as_ref() {
+        "run" => {
+            let config_str =
+                std::fs::read_to_string(&args.config_file_path).expect("could not read file");
+            let config = parse_yaml_config(&config_str);
 
-    match chain.run(&mut graphs) {
-        Err(error) => {
-            eprintln!("Error: {}", error);
+            let chain = ProcedureChain::<BasicProcedure>::from_procedures_config(config.procedures);
+            let mut graphs: Vec<SimpleGraph> = vec![];
+            // let mut graphs_with_properties: Vec<(SimpleGraph)> = vec![];
+
+            match chain.run(&mut graphs) {
+                Err(error) => {
+                    eprintln!("Error: {}", error);
+                }
+                Ok(()) => {}
+            }
         }
-        Ok(()) => {}
+        _ => {
+            println!("Unknown command");
+        }
     }
-
-    // procedure::procedures_playground(config.procedures);
-
-    println!("Hello, world!");
 }

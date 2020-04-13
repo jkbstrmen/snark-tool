@@ -3,7 +3,7 @@ use crate::graph::traits::graph::Graph;
 use crate::graph::traits::vertex::Vertex;
 
 // Colorizer for (sub)cubic graphs only
-pub struct BFSColorizer {
+pub struct BFSColourizer {
     // pair - (neighbor, color)
     vertices: Vec<[(usize, usize); 3]>,
     one_edge_vert: Vec<usize>,
@@ -11,7 +11,7 @@ pub struct BFSColorizer {
     non_colored_edges_of_graph: usize,
 }
 
-impl BFSColorizer {
+impl BFSColourizer {
     pub fn is_colorable<G, V, E>(graph: &G) -> bool
     where
         G: Graph<V, E>,
@@ -40,7 +40,7 @@ impl BFSColorizer {
             }
             vertices.push(neighbors);
         }
-        let mut color_graph = BFSColorizer {
+        let mut color_graph = BFSColourizer {
             vertices,
             one_edge_vert: vec![],
             non_colored_edges: vec![],

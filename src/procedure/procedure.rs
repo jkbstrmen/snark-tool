@@ -2,6 +2,7 @@ use crate::error::Error;
 
 use crate::graph::traits::graph::Graph;
 use crate::service::colour::bfs::BFSColorizer;
+use crate::service::io::error::ReadError;
 use crate::service::io::reader::Reader;
 use crate::service::io::reader_ba::BaReader;
 use crate::service::io::reader_g6::G6Reader;
@@ -73,23 +74,21 @@ impl BasicProcedure {
     where
         G: Debug + Graph,
     {
-        println!(
-            "Running procedure: {} on graph: {:?}",
-            self.proc_type, graphs
-        );
+        println!("Running procedure: {}", self.proc_type);
+        let file_path_opt = self.config.get("file");
+        if file_path_opt.is_none() {
+            return Err(Error::ConfigError(String::from("input file not specified")));
+        }
+        let file_path = file_path_opt.unwrap();
 
-        // handle Err
-        let file_path = self.config.get("file").expect("file path not specified");
-
-        let graphs_count_opt = self.config.get("number-of-graphs");
-
-        // if not specified - read all graphs from file
-        // handle unwrap
-        let graphs_count = u64::from_str(graphs_count_opt.unwrap().clone().as_str()).unwrap();
+        let graphs_count = self.get_graphs_count();
 
         let file_result = OpenOptions::new().read(true).open(file_path);
-
-        // handle unwrap
+        if file_result.is_err() {
+            return Err(Error::ReadError(ReadError {
+                message: String::from("input file read error"),
+            }));
+        }
         let file = file_result.unwrap();
 
         let graph_format = self.config.get("graph-format");
@@ -103,15 +102,15 @@ impl BasicProcedure {
         match graph_format.as_str() {
             "g6" => {
                 let reader = G6Reader::<G>::new(&file);
-                BasicProcedure::read_by_format(reader, graphs, graphs_count as usize)?;
+                BasicProcedure::read_by_format(reader, graphs, graphs_count)?;
             }
             "ba" => {
                 let reader = BaReader::<G>::new(&file);
-                BasicProcedure::read_by_format(reader, graphs, graphs_count as usize)?;
+                BasicProcedure::read_by_format(reader, graphs, graphs_count)?;
             }
             "s6" => {
                 let reader = S6Reader::<G>::new(&file);
-                BasicProcedure::read_by_format(reader, graphs, graphs_count as usize)?;
+                BasicProcedure::read_by_format(reader, graphs, graphs_count)?;
             }
             _ => {
                 return Err(Error::ConfigError(String::from(
@@ -122,30 +121,65 @@ impl BasicProcedure {
         Ok(())
     }
 
+    // move to basic config??
+    fn get_graphs_count(&self) -> Option<usize>{
+        let graphs_count_opt = self.config.get("number-of-graphs");
+        let graphs_count;
+        if graphs_count_opt.is_none() {
+            graphs_count = None;
+        } else {
+            graphs_count = Option::Some(
+                u64::from_str(graphs_count_opt.unwrap().clone().as_str()).unwrap() as usize,
+            );
+        }
+        return graphs_count;
+    }
+
     fn read_by_format<'a, G, R>(
         mut reader: R,
         graphs: &mut Vec<G>,
-        graphs_count: usize,
+        graphs_count: Option<usize>,
     ) -> Result<()>
     where
         R: Reader<'a, G>,
         G: Graph,
     {
-        for _i in 0..graphs_count {
-            let graph = reader.next();
+        let mut counter = 1;
+        let mut graph_opt = reader.next();
+        while graph_opt.is_some() {
+            let graph = graph_opt.unwrap()?;
+            graphs.push(graph);
+            counter += 1;
 
-            if graph.is_some() {
-                let graph = graph.unwrap()?;
-                graphs.push(graph);
-            } else {
-                println!(
-                    "You asked for: {} graphs but given file contains only {}",
-                    graphs_count, _i
-                );
+            if graphs_count.is_some() && graphs_count.unwrap() < counter {
                 break;
             }
+
+            graph_opt = reader.next();
+        }
+        if graphs_count.is_some() && graphs_count.unwrap() > counter {
+            println!(
+                "You asked for: {} graphs but given file contains only {}",
+                graphs_count.unwrap(),
+                counter
+            );
         }
         Ok(())
+
+        // for _i in 0..graphs_count {
+        //     let graph = reader.next();
+        //
+        //     if graph.is_some() {
+        //         let graph = graph.unwrap()?;
+        //         graphs.push(graph);
+        //     } else {
+        //         println!(
+        //             "You asked for: {} graphs but given file contains only {}",
+        //             graphs_count, _i
+        //         );
+        //         break;
+        //     }
+        // }
     }
 
     pub fn write_graph<G>(&self, graphs: &mut Vec<G>) -> Result<()>

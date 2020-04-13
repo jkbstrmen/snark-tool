@@ -7,7 +7,7 @@ pub struct Configuration {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub options: Option<Vec<String>>,
-    // pub procedures: HashMap<String, HashMap<String, String>>,
+
     pub procedures: Vec<ProcedureConfig>,
 }
 

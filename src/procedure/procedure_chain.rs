@@ -1,6 +1,8 @@
 use crate::error::Error;
 use crate::graph::traits::graph::Graph;
+use crate::procedure::configuration::ProcedureConfig;
 use crate::procedure::procedure::Procedure;
+use std::collections::HashMap;
 use std::fmt::Debug;
 use std::result;
 
@@ -26,8 +28,25 @@ where
     //     self.procedures.push(procedure);
     // }
 
-    // return result? take graphs by move
-    pub fn run<G>(&self, graphs: &mut Vec<G>) -> Result<()>
+    pub fn from_procedures_config(mut proc_configs: Vec<ProcedureConfig>) -> Self {
+        let mut procedures: Vec<P> = vec![];
+        while !proc_configs.is_empty() {
+            if let Some(proc_config) = proc_configs.pop() {
+                let config = match proc_config.config {
+                    Some(map) => map,
+                    None => HashMap::default(),
+                };
+                let proc = P::new_with_config(proc_config.proc_type, config);
+                procedures.push(proc);
+            };
+        }
+        procedures.reverse();
+        let chain: ProcedureChain<P> = ProcedureChain::from_procedures_vector(procedures);
+
+        chain
+    }
+
+    pub fn run<G /*, Prop*/>(&self, graphs: &mut Vec<G /*(G, Prop)*/>) -> Result<()>
     where
         G: Debug + Graph,
     {

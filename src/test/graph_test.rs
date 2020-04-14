@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod graph_tests {
-    use crate::graph::traits::graph::Graph;
+    use crate::graph::graph::Graph;
     use crate::graph::undirected::simple_graph::SimpleGraph;
 
     #[test]

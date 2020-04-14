@@ -1,4 +1,4 @@
-use crate::graph::traits::graph;
+use crate::graph::graph;
 use crate::service::io::error::WriteError;
 use crate::service::io::reader_g6::{Position, BIAS};
 use std::fs::OpenOptions;

@@ -1,6 +1,6 @@
 use crate::error::Error;
 
-use crate::graph::traits::graph::Graph;
+use crate::graph::graph::Graph;
 use crate::procedure::basic_impl::basic_config::BasicConfig;
 use crate::procedure::basic_impl::basic_properties::BasicProperties;
 use crate::procedure::procedure::{Config, Procedure};

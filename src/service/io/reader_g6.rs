@@ -1,6 +1,6 @@
 use std::str::Chars;
 
-use crate::graph::traits::graph;
+use crate::graph::graph;
 use crate::service::io::error::ReadError;
 use crate::service::io::reader::Reader;
 use std::io::{BufRead, BufReader};

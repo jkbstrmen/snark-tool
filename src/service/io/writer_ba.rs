@@ -3,9 +3,9 @@ use std::io::Write;
 use std::path;
 use std::{io, marker, result};
 
-use crate::graph::traits::edge::Edge;
-use crate::graph::traits::graph;
-use crate::graph::traits::vertex::Vertex;
+use crate::graph::edge::Edge;
+use crate::graph::graph;
+use crate::graph::vertex::Vertex;
 use crate::service::io::error::WriteError;
 use crate::service::io::reader_ba;
 

@@ -1,4 +1,4 @@
-use crate::graph::traits::vertex::Vertex;
+use crate::graph::vertex::Vertex;
 
 #[derive(Debug, Hash, Eq, PartialEq)]
 pub struct SimpleVertex {

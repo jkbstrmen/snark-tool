@@ -1,6 +1,6 @@
-use crate::graph::traits::edge::Edge;
-use crate::graph::traits::graph::Graph;
-use crate::graph::traits::vertex::Vertex;
+use crate::graph::edge::Edge;
+use crate::graph::graph::Graph;
+use crate::graph::vertex::Vertex;
 
 // Colorizer for (sub)cubic graphs only
 pub struct BFSColourizer {

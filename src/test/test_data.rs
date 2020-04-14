@@ -1,6 +1,6 @@
 #[cfg(test)]
 pub mod test_data {
-    use crate::graph::traits::graph::Graph;
+    use crate::graph::graph::Graph;
     use crate::graph::undirected::simple_graph::SimpleGraph;
 
     pub const SNARK_IN_G6_10_PETERSEN: &str = "I?h]@eOWG";

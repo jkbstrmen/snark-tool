@@ -1,5 +1,5 @@
-use crate::graph::traits::edge::Edge;
-use crate::graph::traits::vertex::Vertex;
+use crate::graph::edge::Edge;
+use crate::graph::vertex::Vertex;
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::vertex::SimpleVertex;
 use std::slice;

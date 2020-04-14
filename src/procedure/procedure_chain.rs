@@ -1,5 +1,5 @@
 use crate::error::Error;
-use crate::graph::traits::graph::Graph;
+use crate::graph::graph::Graph;
 use crate::procedure::configuration::ProcedureConfig;
 use crate::procedure::procedure::Procedure;
 use std::collections::HashMap;

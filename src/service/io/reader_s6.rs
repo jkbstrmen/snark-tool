@@ -1,4 +1,4 @@
-use crate::graph::traits::graph::Graph;
+use crate::graph::graph::Graph;
 use crate::service::io::error::ReadError;
 use crate::service::io::reader::Reader;
 use crate::service::io::reader_g6::{get_graph_size, BIAS};

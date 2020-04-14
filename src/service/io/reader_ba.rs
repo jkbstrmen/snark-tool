@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 
-use crate::graph::traits::graph;
+use crate::graph::graph;
 use crate::service::io::error::ReadError;
 use crate::service::io::reader::Reader;
 use std::{fs, marker, result};

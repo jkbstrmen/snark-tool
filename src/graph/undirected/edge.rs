@@ -1,4 +1,4 @@
-use crate::graph::traits::edge::Edge;
+use crate::graph::edge::Edge;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UndirectedEdge {

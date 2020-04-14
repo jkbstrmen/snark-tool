@@ -1,7 +1,7 @@
 use std::io::Write;
 
-use crate::graph::traits::edge::Edge;
-use crate::graph::traits::graph::Graph;
+use crate::graph::edge::Edge;
+use crate::graph::graph::Graph;
 use crate::service::io::error::WriteError;
 use crate::service::io::reader_g6::BIAS;
 use crate::service::io::writer_g6::to_g6_size;

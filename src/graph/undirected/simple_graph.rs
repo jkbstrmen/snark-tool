@@ -1,9 +1,10 @@
+use std::fmt;
+
 use crate::graph::traits::edge::Edge;
 use crate::graph::traits::graph::{Edges, EdgesMut, Graph, Vertices, VerticesMut};
 use crate::graph::traits::vertex::Vertex;
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::vertex::SimpleVertex;
-use std::fmt;
 
 #[derive(Debug)]
 pub struct SimpleGraph {
@@ -20,8 +21,9 @@ impl Graph for SimpleGraph {
     }
 
     fn has_edge(&self, from: usize, to: usize) -> bool {
+        let edge_to_check = UndirectedEdge::new(from, to);
         for edge in &self.edges {
-            if edge.from() == from && edge.to() == to {
+            if edge.from() == edge_to_check.from() && edge.to() == edge_to_check.to() {
                 return true;
             }
         }
@@ -101,3 +103,20 @@ impl fmt::Display for SimpleGraph {
         Ok(())
     }
 }
+
+impl PartialEq for SimpleGraph {
+    fn eq(&self, other: &Self) -> bool {
+        if self.size != other.size {
+            return false;
+        }
+        if self.edges[..] != other.edges[..] {
+            return false;
+        }
+        if self.vertices[..] != other.vertices[..] {
+            return false;
+        }
+        true
+    }
+}
+
+impl Eq for SimpleGraph {}

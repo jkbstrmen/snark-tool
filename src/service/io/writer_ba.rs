@@ -1,6 +1,6 @@
 use std::fs::OpenOptions;
-use std::io::{LineWriter, Write};
-use std::path::Path;
+use std::io::Write;
+use std::path;
 use std::{io, marker, result};
 
 use crate::graph::traits::edge::Edge;
@@ -22,7 +22,10 @@ impl<G> BaWriter<G>
 where
     G: graph::Graph,
 {
-    pub fn write_graphs_to_file<P>(graphs: &Vec<(G, P)>, path: impl AsRef<Path>) -> Result<()> {
+    pub fn write_graphs_to_file<P>(
+        graphs: &Vec<(G, P)>,
+        path: impl AsRef<path::Path>,
+    ) -> Result<()> {
         let file_result = OpenOptions::new().read(true).open(&path);
         if let Err(err) = &file_result {
             if err.kind() == io::ErrorKind::NotFound {
@@ -33,7 +36,10 @@ where
         return BaWriter::append_graphs_to_file(graphs, path);
     }
 
-    fn write_graphs_to_new_file<P>(graphs: &Vec<(G, P)>, path: impl AsRef<Path>) -> Result<()> {
+    fn write_graphs_to_new_file<P>(
+        graphs: &Vec<(G, P)>,
+        path: impl AsRef<path::Path>,
+    ) -> Result<()> {
         let mut file = OpenOptions::new().create(true).write(true).open(&path)?;
         writeln!(file, "{}", graphs.len())?;
         let mut index = 0;
@@ -44,7 +50,7 @@ where
         Ok(())
     }
 
-    fn append_graphs_to_file<P>(graphs: &Vec<(G, P)>, path: impl AsRef<Path>) -> Result<()> {
+    fn append_graphs_to_file<P>(graphs: &Vec<(G, P)>, path: impl AsRef<path::Path>) -> Result<()> {
         let file = OpenOptions::new().read(true).open(&path)?;
         // let count_preface = get_graphs_count_with_preface(&file)?;
         let count_preface = reader_ba::read_preface_and_count(&file)?;
@@ -60,7 +66,7 @@ where
         Ok(())
     }
 
-    pub fn write_graph_ba(graph: &G, index: u32, mut buffer: impl Write) -> Result<()> {
+    pub fn write_graph_ba(graph: &G, index: u32, mut buffer: impl io::Write) -> Result<()> {
         writeln!(buffer)?;
         writeln!(buffer, "{}", index)?;
         writeln!(buffer, "{}", graph.size())?;
@@ -79,12 +85,12 @@ where
     }
 
     fn update_graphs_count(
-        path: impl AsRef<Path>,
+        path: impl AsRef<path::Path>,
         new_count: usize,
         preface: String,
     ) -> Result<()> {
         let file = OpenOptions::new().write(true).open(path)?;
-        let mut writer = LineWriter::new(file);
+        let mut writer = io::LineWriter::new(file);
         writer.write_all(preface.as_bytes())?;
         let count_str = format!("{}", new_count);
         writer.write_all(count_str.as_bytes())?;

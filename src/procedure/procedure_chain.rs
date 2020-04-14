@@ -18,20 +18,12 @@ impl<P, Prop> ProcedureChain<P, Prop>
 where
     P: Procedure<Prop>,
 {
-    // pub fn new() -> Self {
-    //     ProcedureChain { procedures: vec![] }
-    // }
-
     pub fn from_procedures_vector(procedures: Vec<P>) -> Self {
         ProcedureChain {
             procedures,
             _ph: marker::PhantomData,
         }
     }
-
-    // pub fn add_procedure(&mut self, procedure: P) {
-    //     self.procedures.push(procedure);
-    // }
 
     pub fn from_procedures_config(mut proc_configs: Vec<ProcedureConfig>) -> Self {
         let mut procedures: Vec<P> = vec![];

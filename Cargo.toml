@@ -13,7 +13,3 @@ serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 serde_json = "1.0"
 bit-vec = "0.6.1"
-
-# remove
-petgraph = "0.5.0"
-

@@ -2,9 +2,9 @@ use std::fmt;
 
 use crate::graph::edge::Edge;
 use crate::graph::graph::{Edges, EdgesMut, Graph, Vertices, VerticesMut};
-use crate::graph::vertex::Vertex;
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::vertex::SimpleVertex;
+use crate::graph::vertex::Vertex;
 
 #[derive(Debug)]
 pub struct SimpleGraph {

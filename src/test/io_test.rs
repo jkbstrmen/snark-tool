@@ -96,7 +96,7 @@ mod io_tests {
     // }
 
     #[test]
-    fn should_read_g6_write_s6(){
+    fn should_read_g6_write_s6() {
         let mut target = Vec::new();
         let graph = G6Reader::<SimpleGraph>::read_graph(test_data::NO_SNARK_IN_G6_112);
         let result = S6Writer::write_graph(&graph.unwrap(), &mut target);

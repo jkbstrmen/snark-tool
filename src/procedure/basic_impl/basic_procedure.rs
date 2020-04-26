@@ -5,6 +5,8 @@ use crate::procedure::basic_impl::basic_config::BasicConfig;
 use crate::procedure::basic_impl::basic_properties::BasicProperties;
 use crate::procedure::procedure::{Config, Procedure};
 use crate::service::colour::bfs::BFSColourizer;
+use crate::service::colour::colouriser::Colourizer;
+use crate::service::colour::sat::SATColourizer;
 use crate::service::io::error::{ReadError, WriteError};
 use crate::service::io::reader::Reader;
 use crate::service::io::reader_ba::BaReader;
@@ -158,15 +160,46 @@ impl BasicProcedure {
     {
         println!("Running procedure: {}", self.proc_type);
 
+        let colouriser_type_opt = self.config.get_colouriser_type()?;
+        let colouriser_type;
+        if colouriser_type_opt.is_none() {
+            // resolve according to graph size
+
+            colouriser_type = "bfs";
+        } else {
+            colouriser_type = colouriser_type_opt.unwrap();
+        }
+
+        match colouriser_type {
+            "bfs" => {
+                BasicProcedure::color_by_colourizer::<G, BFSColourizer>(graphs);
+            }
+            "sat" => {
+                BasicProcedure::color_by_colourizer::<G, SATColourizer>(graphs);
+            }
+            _ => {
+                return Err(Error::ConfigError(String::from(
+                    "unknown colouriser type for colour procedure",
+                )))
+            }
+        }
+        Ok(())
+    }
+
+    fn color_by_colourizer<G, C>(graphs: &mut Vec<(G, BasicProperties)>)
+    where
+        C: Colourizer,
+        G: Graph,
+    {
         let mut counter = 0;
         for graph in graphs {
-            let result = BFSColourizer::is_colorable(&graph.0);
-            let result = if result { "true" } else { "false" };
+            let result = C::is_colorable(&graph.0);
+            graph.1.colorable = result;
+
+            // temp
             println!("graph: {} is colorable: {}", counter, result);
             counter += 1;
         }
-
-        Ok(())
     }
 
     pub fn write_with_properties<G>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()>

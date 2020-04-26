@@ -49,4 +49,15 @@ impl BasicConfig {
         }
         Ok(graphs_count)
     }
+
+    pub fn get_colouriser_type(&self) -> Result<Option<&String>> {
+        let colouriser_type_opt = self.config.get("colouriser-type");
+        let colouriser_type;
+        if colouriser_type_opt.is_none() {
+            colouriser_type = None;
+        } else {
+            colouriser_type = Option::Some(colouriser_type_opt.unwrap());
+        }
+        Ok(colouriser_type)
+    }
 }

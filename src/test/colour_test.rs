@@ -2,6 +2,7 @@
 pub mod colour_tests {
     use crate::graph::undirected::simple_graph::SimpleGraph;
     use crate::service::colour::bfs::BFSColourizer;
+    use crate::service::colour::colouriser::Colourizer;
     use crate::service::colour::sat;
     use crate::service::io::reader::Reader;
     use crate::service::io::reader_ba::BaReader;

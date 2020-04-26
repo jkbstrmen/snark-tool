@@ -1,6 +1,7 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
+use crate::service::colour::colouriser::Colourizer;
 
 // Colorizer for (sub)cubic graphs only
 pub struct BFSColourizer {
@@ -11,8 +12,8 @@ pub struct BFSColourizer {
     non_colored_edges_of_graph: usize,
 }
 
-impl BFSColourizer {
-    pub fn is_colorable<G, V, E>(graph: &G) -> bool
+impl Colourizer for BFSColourizer {
+    fn is_colorable<G, V, E>(graph: &G) -> bool
     where
         G: Graph<V, E>,
         V: Vertex,
@@ -89,7 +90,9 @@ impl BFSColourizer {
         color_graph.non_colored_edges_of_graph = non_colored_edges_of_graph;
         color_graph.color(first_vertex)
     }
+}
 
+impl BFSColourizer {
     fn color(&mut self, vertex: usize) -> bool {
         let color_vars = [(4, 5), (3, 5), (3, 4)];
 

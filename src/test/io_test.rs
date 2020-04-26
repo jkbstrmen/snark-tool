@@ -102,6 +102,13 @@ mod io_tests {
         let result = S6Writer::write_graph(&graph.unwrap(), &mut target);
         let graph_string = String::from_utf8(target).unwrap();
         assert_eq!(result.is_ok(), true);
-        assert_eq!(graph_string, test_data::NO_SNARK_IN_S6_112);
+        assert_eq!(graph_string, format!("{}{}", test_data::NO_SNARK_IN_S6_112, "\n"));
+    }
+
+    #[test]
+    fn should_read_g6_s6_same_graph() {
+        let graph_s6 = S6Reader::<SimpleGraph>::read_graph(test_data::NO_SNARK_IN_S6_112);
+        let graph_g6 = G6Reader::<SimpleGraph>::read_graph(test_data::NO_SNARK_IN_G6_112);
+        assert_eq!(graph_s6.unwrap(), graph_g6.unwrap());
     }
 }

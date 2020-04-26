@@ -118,7 +118,7 @@ where
     for edge in edges {
         if edge.to() > (v + 1) {
             // shift v
-            vec.push(false);
+            vec.push(true);
             vec.append(&mut bitvec_from_u64(edge.to() as u64, edge_encoding_size));
             v = edge.to();
         }

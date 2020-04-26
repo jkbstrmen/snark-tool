@@ -7,6 +7,7 @@ mod io_tests {
     use crate::service::io::reader_ba::BaReader;
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::io::reader_s6::S6Reader;
+    //use crate::service::io::writer_adj::AdjWriter;
     use crate::service::io::writer_ba::BaWriter;
     use crate::service::io::writer_g6::G6Writer;
     use crate::service::io::writer_s6::S6Writer;
@@ -83,5 +84,24 @@ mod io_tests {
         let graph_string = String::from_utf8(target).unwrap();
         assert_eq!(result.is_ok(), true);
         assert_eq!(graph_string, test_data::SNARK_IN_BA_10_PETERSEN);
+    }
+
+    // #[test]
+    // fn should_write_adj_matrix() {
+    //     let mut target = Vec::new();
+    //     let result = AdjWriter::write_graph(&test_data::get_petersen_graph(), &mut target);
+    //     let graph_string = String::from_utf8(target).unwrap();
+    //     assert_eq!(result.is_ok(), true);
+    //     assert_eq!(graph_string, test_data::SNARK_IN_ADJ_10_PETERSEN);
+    // }
+
+    #[test]
+    fn should_read_g6_write_s6(){
+        let mut target = Vec::new();
+        let graph = G6Reader::<SimpleGraph>::read_graph(test_data::NO_SNARK_IN_G6_112);
+        let result = S6Writer::write_graph(&graph.unwrap(), &mut target);
+        let graph_string = String::from_utf8(target).unwrap();
+        assert_eq!(result.is_ok(), true);
+        assert_eq!(graph_string, test_data::NO_SNARK_IN_S6_112);
     }
 }

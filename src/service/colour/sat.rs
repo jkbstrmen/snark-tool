@@ -1,9 +1,7 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
-use serde::export::fmt::Debug;
 use std::collections::HashMap;
-use std::hash::Hash;
 use std::iter::FromIterator;
 use varisat::solver::Solver;
 use varisat::{CnfFormula, ExtendFormula};
@@ -22,7 +20,7 @@ where
 
     for edge in graph.edges() {
         let (xij1, xij2, xij3) = solver.new_lits();
-        edge_lits.insert((edge.from(), edge.to()), ((xij1, xij2, xij3)));
+        edge_lits.insert((edge.from(), edge.to()), (xij1, xij2, xij3));
 
         let mut formula = CnfFormula::new();
         formula.add_clause(&[xij1, xij2, xij3]);

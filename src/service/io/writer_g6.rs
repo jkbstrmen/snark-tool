@@ -1,9 +1,7 @@
 use crate::graph::graph;
 use crate::service::io::error::WriteError;
 use crate::service::io::reader_g6::{Position, BIAS};
-use std::fs::OpenOptions;
-use std::io::Write;
-use std::{marker, path, result};
+use std::{fs, io, marker, path, result};
 
 type Result<T> = result::Result<T, WriteError>;
 
@@ -19,7 +17,7 @@ where
         graphs: &Vec<(G, P)>,
         path: impl AsRef<path::Path>,
     ) -> Result<()> {
-        let file_result = OpenOptions::new().create(true).append(true).open(&path);
+        let file_result = fs::OpenOptions::new().create(true).append(true).open(&path);
         if let Err(err) = &file_result {
             return Err(WriteError {
                 message: format!("open or create file error: {}", err),
@@ -32,7 +30,7 @@ where
         Ok(())
     }
 
-    pub fn write_graph(graph: &G, buffer: &mut impl Write) -> Result<()> {
+    pub fn write_graph(graph: &G, buffer: &mut impl io::Write) -> Result<()> {
         let graph_string = G6Writer::graph_to_g6_string(graph);
         writeln!(buffer, "{}", graph_string)?;
         Ok(())

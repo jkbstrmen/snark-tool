@@ -9,6 +9,8 @@ use varisat::{CnfFormula, ExtendFormula};
 
 pub struct SATColourizer {}
 
+// TODO - adjust for subcubic graphs
+
 impl Colourizer for SATColourizer {
     fn is_colorable<G, V, E>(graph: &G) -> bool
     where
@@ -62,7 +64,7 @@ impl Colourizer for SATColourizer {
                 .get(&(edges_to[2].from(), edges_to[2].to()))
                 .unwrap();
 
-            // adjust for subcubic graphs
+            // TODO - adjust for subcubic graphs
 
             let mut formula = CnfFormula::new();
             // cannot be all edges colour with the same colour

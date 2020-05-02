@@ -72,16 +72,32 @@ pub mod colour_tests {
     }
 
     #[test]
-    fn run_cvd() {
-        // let graph = G6Reader::<SimpleGraph>::read_graph(test_data::NO_SNARK_IN_G6_18).unwrap();
-        // let graph = G6Reader::<SimpleGraph>::read_graph(test_data::SNARK_IN_G6_10_PETERSEN).unwrap();
-        // let graph = G6Reader::<SimpleGraph>::read_graph(test_data::NO_SNARK_IN_G6_112).unwrap();
-        // let graph = G6Reader::<SimpleGraph>::read_graph(test_data::SNARK_IN_G6_20).unwrap();
-        // let graph = G6Reader::<SimpleGraph>::read_graph(test_data::SNARK_IN_G6_36).unwrap();
-        let graph = G6Reader::<SimpleGraph>::read_graph(test_data::SNARK_IN_G6_40).unwrap();
-        // let graph = test_data::get_colorable_graph_20();
-
+    fn should_be_colourable_cvd() {
+        let graph = G6Reader::<SimpleGraph>::read_graph(test_data::NO_SNARK_IN_G6_18).unwrap();
         let result = cvd::is_colorable(&graph);
-        println!("{:?}", result);
+        assert_eq!(result, Some(true));
+        let graph = G6Reader::<SimpleGraph>::read_graph(test_data::NO_SNARK_IN_G6_112).unwrap();
+        let result = cvd::is_colorable(&graph);
+        assert_eq!(result, Some(true));
+        let graph = test_data::get_colorable_graph_20();
+        let result = cvd::is_colorable(&graph);
+        assert_eq!(result, Some(true));
+    }
+
+    #[test]
+    fn should_be_unknown_cvd() {
+        let graph =
+            G6Reader::<SimpleGraph>::read_graph(test_data::SNARK_IN_G6_10_PETERSEN).unwrap();
+        let result = cvd::is_colorable(&graph);
+        assert_eq!(result, None);
+        let graph = G6Reader::<SimpleGraph>::read_graph(test_data::SNARK_IN_G6_20).unwrap();
+        let result = cvd::is_colorable(&graph);
+        assert_eq!(result, None);
+        let graph = G6Reader::<SimpleGraph>::read_graph(test_data::SNARK_IN_G6_36).unwrap();
+        let result = cvd::is_colorable(&graph);
+        assert_eq!(result, None);
+        let graph = G6Reader::<SimpleGraph>::read_graph(test_data::SNARK_IN_G6_40).unwrap();
+        let result = cvd::is_colorable(&graph);
+        assert_eq!(result, None);
     }
 }

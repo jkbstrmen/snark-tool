@@ -233,8 +233,7 @@ impl CVDGraph {
     fn next_vertex_of_chain(&self) -> (usize, u8) {
         let mut next = None;
         let mut next_color = 0;
-        let last_vertex_of_chain =
-            self.kempe_chain.vertices[self.kempe_chain.vertices.len() - 1];
+        let last_vertex_of_chain = self.kempe_chain.vertices[self.kempe_chain.vertices.len() - 1];
         let second_last_vertex_of_chain =
             self.kempe_chain.vertices[self.kempe_chain.vertices.len() - 2];
         for neighbor in self.vertices[last_vertex_of_chain].iter() {
@@ -253,7 +252,11 @@ impl CVDGraph {
         (next.unwrap(), next_color)
     }
 
-    fn kempe_step(&mut self, next_vertex: usize, next_colour: u8/*, previous: usize, current: usize, new_color: u8*/) {
+    fn kempe_step(
+        &mut self,
+        next_vertex: usize,
+        next_colour: u8, /*, previous: usize, current: usize, new_color: u8*/
+    ) {
         if self.kempe_chain.vertices.len() > self.size {
             return;
         }
@@ -288,13 +291,13 @@ impl CVDGraph {
     }
 
     // temp
-    fn print(&self) {
-        let mut i = 0;
-        for vertex in self.vertices.iter() {
-            print!("{}: ", i);
-            println!("{:?}", vertex);
-            i += 1;
-        }
-        println!("\n");
-    }
+    // fn print(&self) {
+    //     let mut i = 0;
+    //     for vertex in self.vertices.iter() {
+    //         print!("{}: ", i);
+    //         println!("{:?}", vertex);
+    //         i += 1;
+    //     }
+    //     println!("\n");
+    // }
 }

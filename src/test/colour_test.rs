@@ -3,13 +3,13 @@ pub mod colour_tests {
     use crate::graph::undirected::simple_graph::SimpleGraph;
     use crate::service::colour::bfs::BFSColourizer;
     use crate::service::colour::colouriser::Colourizer;
-    use crate::service::colour::sat;
+    use crate::service::colour::sat::SATColourizer;
+    use crate::service::colour::{cvd, sat};
     use crate::service::io::reader::Reader;
     use crate::service::io::reader_ba::BaReader;
     use crate::service::io::reader_g6::G6Reader;
     use crate::test::test_data::test_data;
     use std::fs::OpenOptions;
-    use crate::service::colour::sat::SATColourizer;
 
     #[test]
     fn should_be_snark_bfs() {
@@ -72,10 +72,16 @@ pub mod colour_tests {
     }
 
     #[test]
-    fn run_cvd(){
+    fn run_cvd() {
+        // let graph = G6Reader::<SimpleGraph>::read_graph(test_data::NO_SNARK_IN_G6_18).unwrap();
+        // let graph = G6Reader::<SimpleGraph>::read_graph(test_data::SNARK_IN_G6_10_PETERSEN).unwrap();
+        // let graph = G6Reader::<SimpleGraph>::read_graph(test_data::NO_SNARK_IN_G6_112).unwrap();
+        // let graph = G6Reader::<SimpleGraph>::read_graph(test_data::SNARK_IN_G6_20).unwrap();
+        // let graph = G6Reader::<SimpleGraph>::read_graph(test_data::SNARK_IN_G6_36).unwrap();
+        let graph = G6Reader::<SimpleGraph>::read_graph(test_data::SNARK_IN_G6_40).unwrap();
+        // let graph = test_data::get_colorable_graph_20();
 
-
-
-
+        let result = cvd::is_colorable(&graph);
+        println!("{:?}", result);
     }
 }

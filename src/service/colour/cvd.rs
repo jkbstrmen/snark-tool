@@ -2,19 +2,8 @@ use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
 
-// extern crate rand;
-
-use rand::Rng;
 use rand::seq::SliceRandom;
-
-// pub struct CVDColourizer<G, V, E>
-// where
-//     G: Graph<V, E>,
-//     V: Vertex,
-//     E: Edge, {
-//
-//
-// }
+use rand::Rng;
 
 struct CVDGraph {
     vertices: Vec<[(usize, u8); 3]>,
@@ -24,9 +13,15 @@ struct CVDGraph {
     vertices_to_try: Vec<usize>,
     conflicting_vertices: Vec<usize>,
 
-    kempe_chain: Vec<usize>
+    kempe_chain: KempeChain,
 }
 
+struct KempeChain {
+    vertices: Vec<usize>,
+    conflicting_colour: u8,
+    resolving_colour: u8,
+    last_colour_of_chain: u8,
+}
 
 pub fn is_colorable<G, V, E>(graph: &G) -> Option<bool>
 where
@@ -36,10 +31,11 @@ where
 {
     let mut graph = create_cvd_graph(graph);
 
-    let l_limit = 5;
+    // todo - how to choose l_limit?
+    let l_limit = graph.size;
     for i in 0..l_limit {
-        // iteration
         graph.next_pre_colour();
+
         let colorable = graph.is_colorable();
         if colorable {
             return Some(true);
@@ -85,12 +81,18 @@ where
         size: graph.size(),
         vertices_to_try,
         conflicting_vertices: vec![],
-        kempe_chain: vec![]
+        kempe_chain: KempeChain {
+            vertices: vec![],
+            conflicting_colour: 0,
+            resolving_colour: 0,
+            last_colour_of_chain: 0,
+        },
     }
 }
 
 impl CVDGraph {
     fn is_colorable(&mut self) -> bool {
+        // todo - how to choose r_limit?
         let r_limit = 10;
         let mut i = 0;
         while i < r_limit {
@@ -102,9 +104,7 @@ impl CVDGraph {
             // do not choose randomly twice the same cv
             let next = cvs.choose(&mut rand::thread_rng()).unwrap();
 
-
             self.kempe_chain_swap(next.clone());
-
 
             let cvs_after = self.conflicting_vertices();
             if cvs.len() == cvs_after.len() {
@@ -132,8 +132,10 @@ impl CVDGraph {
             return;
         }
         let current = to_visit.pop().unwrap();
+
         let mut available = self.available_colors_of_vertex(current);
         if available.is_empty() {
+            self.bfs_pre_colour(to_visit);
             return;
         }
         let mut neighbors = self.vertices[current];
@@ -142,6 +144,7 @@ impl CVDGraph {
                 let color = available.pop().unwrap();
                 neighbor.1 = color;
                 self.set_edge_color(current, neighbor.0, color);
+                // do not push duplicates?
                 to_visit.push(neighbor.0);
             }
         }
@@ -164,13 +167,29 @@ impl CVDGraph {
     fn available_colors_of_vertex(&self, vertex: usize) -> Vec<u8> {
         let mut colors = vec![3, 4, 5];
         for neighbor in self.vertices[vertex].iter() {
-            colors.retain(|&item| { item != neighbor.1 })
+            colors.retain(|&item| item != neighbor.1)
         }
         colors
     }
 
+    fn conflicting_color_of_vertex(&self, vertex: usize) -> Option<u8> {
+        let mut index = 0;
+        let vertex = &self.vertices[vertex];
+        for neighbor in vertex.iter() {
+            let next_index = (index + 1) % vertex.len();
+            if vertex[index].1 == vertex[next_index].1 {
+                return Some(neighbor.1);
+            }
+            index += 1;
+        }
+        None
+    }
+
     fn next_random_vertex(&mut self) -> usize {
-        let next = self.vertices_to_try.choose(&mut rand::thread_rng()).unwrap();
+        let next = self
+            .vertices_to_try
+            .choose(&mut rand::thread_rng())
+            .unwrap();
         let to_return = next.clone();
         self.vertices_to_try.retain(|&x| x != to_return);
         to_return
@@ -178,17 +197,9 @@ impl CVDGraph {
 
     fn conflicting_vertices(&self) -> Vec<usize> {
         let mut cvs = vec![];
-
         let mut index = 0;
         for vertex in self.vertices.iter() {
-            let mut colours = vec![];
-            for neighbor in vertex.iter() {
-                colours.push(neighbor.1);
-            }
-            colours.sort();
-            let size_before = colours.len();
-            colours.dedup();
-            if size_before > colours.len() {
+            if self.is_conflicting_vertex(vertex) {
                 cvs.push(index);
             }
             index += 1;
@@ -196,68 +207,94 @@ impl CVDGraph {
         cvs
     }
 
-    fn kempe_chain_swap(&mut self, start_vertex: usize){
-        self.kempe_chain.push(start_vertex);
+    fn kempe_chain_swap(&mut self, start_vertex: usize) {
+        self.kempe_chain.vertices = vec![];
+        self.kempe_chain.resolving_colour = 0;
+        self.kempe_chain.conflicting_colour = 0;
+        self.kempe_chain.last_colour_of_chain = 0;
 
-        // TODO
+        self.kempe_chain.vertices.push(start_vertex);
 
-        // find edge to go to
-        let next = self.next_vertex_of_chain(start_vertex, start_vertex);
+        let conflicting_colour = self.conflicting_color_of_vertex(start_vertex).unwrap();
+        let resolving_colour = self.available_colors_of_vertex(start_vertex)[0];
+        self.kempe_chain.conflicting_colour = conflicting_colour;
+        self.kempe_chain.resolving_colour = resolving_colour;
 
-        // resolve second color
-
-        // go to vertex by edge
-
-
-    }
-
-    fn next_vertex_of_chain(&self, current: usize, previous: usize) -> (usize, u8) {
-        let vertex = &self.vertices[current];
-        let mut next_vertex = 0;
-        let mut conflicting_colour;
-        let mut index = 0;
-        for neighbor in vertex.iter() {
-            if neighbor.0 == previous {
-                index += 1;
-                continue;
+        let mut next = None;
+        for neighbors in self.vertices[start_vertex].iter() {
+            if neighbors.1 == self.kempe_chain.conflicting_colour {
+                next = Some(neighbors.0);
             }
-
-            let next_index = (index+1)% vertex.len();
-            if vertex[index].1 == vertex[next_index].1 {
-                next_vertex = neighbor.0;
-                conflicting_colour = neighbor.1;
-            }
-            index += 1;
         }
 
-        let available = self.available_colors_of_vertex(current);
-        let resolving_colour = available[0];
-        (next_vertex, resolving_colour)
+        self.kempe_step(next.unwrap(), resolving_colour);
     }
 
-    fn kempe_step(&mut self, previous: usize, current: usize, new_color: u8){
-        if self.kempe_chain.len() == self.size { return; }
+    fn next_vertex_of_chain(&self) -> (usize, u8) {
+        let mut next = None;
+        let mut next_color = 0;
+        let last_vertex_of_chain =
+            self.kempe_chain.vertices[self.kempe_chain.vertices.len() - 1];
+        let second_last_vertex_of_chain =
+            self.kempe_chain.vertices[self.kempe_chain.vertices.len() - 2];
+        for neighbor in self.vertices[last_vertex_of_chain].iter() {
+            if neighbor.1 == self.kempe_chain.last_colour_of_chain
+                && neighbor.0 != second_last_vertex_of_chain
+            {
+                next = Some(neighbor.0);
+            }
+        }
+        if self.kempe_chain.last_colour_of_chain == self.kempe_chain.conflicting_colour {
+            next_color = self.kempe_chain.resolving_colour;
+        } else {
+            next_color = self.kempe_chain.conflicting_colour;
+        }
 
-        if self.is_conflicting_vertex(current) {
-           // swap edge color
-            self.set_edge_color(previous, current, new_color);
+        (next.unwrap(), next_color)
+    }
+
+    fn kempe_step(&mut self, next_vertex: usize, next_colour: u8/*, previous: usize, current: usize, new_color: u8*/) {
+        if self.kempe_chain.vertices.len() > self.size {
             return;
         }
-        self.set_edge_color(previous, current, new_color);
 
-        // find edge to go to
-        // self.kempe_step(current, next, ...);
+        let current = self.kempe_chain.vertices[self.kempe_chain.vertices.len() - 1];
 
+        if self.is_conflicting_vertex(&self.vertices[next_vertex]) {
+            self.set_edge_color(current, next_vertex, next_colour);
+            return;
+        }
+        self.kempe_chain.vertices.push(next_vertex);
+        self.kempe_chain.last_colour_of_chain = next_colour;
+        self.set_edge_color(current, next_vertex, next_colour);
+
+        // get next
+        let next = self.next_vertex_of_chain();
+        self.kempe_step(next.0, next.1);
     }
 
-    fn is_conflicting_vertex(&self, vertex: usize) -> bool {
-
-        // TODO
-
+    fn is_conflicting_vertex(&self, vertex: &[(usize, u8); 3]) -> bool {
+        let mut colours = vec![];
+        for neighbor in vertex.iter() {
+            colours.push(neighbor.1);
+        }
+        colours.sort();
+        let size_before = colours.len();
+        colours.dedup();
+        if size_before > colours.len() {
+            return true;
+        }
         false
     }
 
-    // fn swap_colours_of_edges(&mut self, ){
-    //
-    // }
+    // temp
+    fn print(&self) {
+        let mut i = 0;
+        for vertex in self.vertices.iter() {
+            print!("{}: ", i);
+            println!("{:?}", vertex);
+            i += 1;
+        }
+        println!("\n");
+    }
 }

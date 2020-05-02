@@ -39,4 +39,40 @@ pub mod test_data {
         graph.add_edge(8, 9);
         graph
     }
+
+    pub fn get_colorable_graph_20() -> SimpleGraph {
+        let mut graph = SimpleGraph::with_capacity(20, 30);
+        graph.add_edge(0, 1);
+        graph.add_edge(0, 4);
+        graph.add_edge(0, 5);
+        graph.add_edge(1, 2);
+        graph.add_edge(1, 7);
+        graph.add_edge(2, 3);
+        graph.add_edge(2, 9);
+        graph.add_edge(3, 4);
+        graph.add_edge(3, 11);
+        graph.add_edge(4, 13);
+        graph.add_edge(5, 6);
+        graph.add_edge(5, 14);
+        graph.add_edge(6, 7);
+        graph.add_edge(6, 16);
+        graph.add_edge(7, 8);
+        graph.add_edge(8, 9);
+        graph.add_edge(8, 17);
+        graph.add_edge(9, 10);
+        graph.add_edge(10, 11);
+        graph.add_edge(10, 18);
+        graph.add_edge(11, 12);
+        graph.add_edge(12, 13);
+        graph.add_edge(12, 19);
+        graph.add_edge(13, 14);
+        graph.add_edge(14, 15);
+        graph.add_edge(15, 16);
+        graph.add_edge(15, 19);
+        graph.add_edge(16, 17);
+        graph.add_edge(17, 18);
+        graph.add_edge(18, 19);
+
+        graph
+    }
 }

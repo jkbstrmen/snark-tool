@@ -4,12 +4,20 @@ use crate::graph::vertex::Vertex;
 use crate::service::colour::colouriser::Colourizer;
 
 // Colorizer for (sub)cubic graphs only
-pub struct BFSColourizer {
+pub struct BFSColourizer {}
+
+struct BFSColourizerGraph {
     // pair - (neighbor, color)
     vertices: Vec<[(usize, usize); 3]>,
     one_edge_vert: Vec<usize>,
     non_colored_edges: Vec<usize>,
     non_colored_edges_of_graph: usize,
+}
+
+impl BFSColourizer {
+    pub fn new() -> Self {
+        BFSColourizer {}
+    }
 }
 
 impl Colourizer for BFSColourizer {
@@ -41,7 +49,7 @@ impl Colourizer for BFSColourizer {
             }
             vertices.push(neighbors);
         }
-        let mut color_graph = BFSColourizer {
+        let mut color_graph = BFSColourizerGraph {
             vertices,
             one_edge_vert: vec![],
             non_colored_edges: vec![],
@@ -92,7 +100,7 @@ impl Colourizer for BFSColourizer {
     }
 }
 
-impl BFSColourizer {
+impl BFSColourizerGraph {
     fn color(&mut self, vertex: usize) -> bool {
         let color_vars = [(4, 5), (3, 5), (3, 4)];
 

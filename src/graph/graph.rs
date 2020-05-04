@@ -17,7 +17,11 @@ where
     fn add_vertex(&mut self);
     fn add_edge(&mut self, from: usize, to: usize);
     // remove_edge
+    fn remove_edge(&mut self, from: usize, to: usize);
+    // ??
+    fn remove_edges_of_vertex(&mut self, index: usize);
     // remove_vertex
+    // fn remove_vertex(&mut self, index: usize);
 
     fn vertices(&self) -> Vertices<V>;
     fn vertices_mut(&mut self) -> VerticesMut<V>;

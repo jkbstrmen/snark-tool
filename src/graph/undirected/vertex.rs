@@ -1,6 +1,6 @@
 use crate::graph::vertex::Vertex;
 
-#[derive(Debug, Hash, Eq, PartialEq)]
+#[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct SimpleVertex {
     index: usize,
 }

@@ -102,7 +102,10 @@ mod io_tests {
         let result = S6Writer::write_graph(&graph.unwrap(), &mut target);
         let graph_string = String::from_utf8(target).unwrap();
         assert_eq!(result.is_ok(), true);
-        assert_eq!(graph_string, format!("{}{}", test_data::NO_SNARK_IN_S6_112, "\n"));
+        assert_eq!(
+            graph_string,
+            format!("{}{}", test_data::NO_SNARK_IN_S6_112, "\n")
+        );
     }
 
     #[test]

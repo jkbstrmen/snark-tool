@@ -2,6 +2,9 @@
 mod graph_tests {
     use crate::graph::graph::Graph;
     use crate::graph::undirected::simple_graph::SimpleGraph;
+    use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
+    use crate::graph::undirected::edge::UndirectedEdge;
+    use crate::graph::edge::EdgeConstructor;
 
     #[test]
     fn should_create_graph() {
@@ -53,5 +56,26 @@ mod graph_tests {
         graph.add_edge(2, 1);
         graph.add_edge(0, 1);
         graph
+    }
+
+    #[test]
+    fn simple_sparse_graph() {
+        let mut graph = SimpleSparseGraph::with_capacity(10);
+
+        graph.add_edge(0, 1);
+        graph.add_edge(2, 5);
+        graph.add_edge(2, 4);
+
+        let mut edges = graph.edges();
+        let edge = edges.next();
+        assert_eq!(edge, Some(UndirectedEdge::new(0, 1)));
+
+        assert_eq!(graph.has_edge(0, 1), true);
+        assert_eq!(graph.has_edge(2, 4), true);
+        assert_eq!(graph.has_edge(2, 5), true);
+        assert_eq!(graph.has_edge(1, 4), false);
+        assert_eq!(graph.has_edge(2, 6), false);
+
+        assert_eq!(graph.size(), 6);
     }
 }

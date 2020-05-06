@@ -1,17 +1,17 @@
-use std::fmt;
+use std::{fmt, marker};
 
-use crate::graph::edge::Edge;
+use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::{Edges, EdgesMut, Graph, Vertices, VerticesMut};
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::vertex::SimpleVertex;
 use crate::graph::vertex::Vertex;
+use std::iter::FromIterator;
 
 #[derive(Debug, Clone)]
 pub struct SimpleGraph {
-    size: usize,
-    vertices: Vec<SimpleVertex>,
-    edges: Vec<UndirectedEdge>,
-    // impl hash map for vert->edges ?? - for fast edge retrieval (edges of vertex)
+    pub size: usize,
+    pub vertices: Vec<SimpleVertex>,
+    pub edges: Vec<UndirectedEdge>,
 }
 
 /// undirected, without loop, without multiple edges
@@ -57,23 +57,14 @@ impl Graph for SimpleGraph {
     }
 
     fn remove_edge(&mut self, from: usize, to: usize) {
-        self.edges.retain(|edge| {
-            edge.from() != from && edge.to() != to
-        });
+        self.edges
+            .retain(|edge| edge.from() != from && edge.to() != to);
     }
 
-    fn remove_edges_of_vertex(&mut self, index: usize) {
-        let mut edges_to_remove = vec![];
-        let mut index = 0;
-        for edge in self.edges.iter() {
-            if edge.from() == index || edge.to() == index {
-                edges_to_remove.push(index);
-            }
-            index += 1;
-        }
-        for index in edges_to_remove {
-            self.edges.remove(index);
-        }
+    fn remove_edges_of_vertex(&mut self, vertex: usize) /*-> Self*/
+    {
+        self.edges
+            .retain(|edge| edge.from() != vertex && edge.to() != vertex);
     }
 
     fn vertices(&self) -> Vertices<SimpleVertex> {
@@ -101,6 +92,24 @@ impl Graph for SimpleGraph {
             size: 0,
             vertices: Vec::with_capacity(vertices),
             edges: Vec::with_capacity(edges),
+        }
+    }
+}
+
+impl SimpleGraph {
+    pub fn from_graph<G: Graph>(graph: &G) -> Self {
+        let mut vertices = vec![];
+        for vertex in graph.vertices() {
+            vertices.push(vertex.clone());
+        }
+        let mut edges = vec![];
+        for edge in graph.edges() {
+            edges.push(edge.clone());
+        }
+        SimpleGraph {
+            size: graph.size(),
+            vertices,
+            edges,
         }
     }
 }

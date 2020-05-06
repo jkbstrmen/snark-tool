@@ -1,15 +1,19 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
+use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::graph::vertex::Vertex;
 use crate::service::colour::bfs::BFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
+use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
 
-pub struct CriticalProperties<G, C>
+// TODO - use own graph struct?
+
+pub struct CriticalProperties<C>
 where
-    G: Graph + Clone,
     C: Colourizer,
 {
-    graph: G,
+    untouched_graph: SimpleSparseGraph,
+    graph: SimpleSparseGraph,
     colourizer: C,
 
     is_critical: bool,
@@ -21,14 +25,15 @@ where
     computed: bool,
 }
 
-impl<G, C> CriticalProperties<G, C>
+impl<C> CriticalProperties<C>
 where
-    G: Graph + Clone,
     C: Colourizer,
 {
-    pub fn of_graph_with_colourizer(graph: &G, colourizer: C) -> Self {
+    pub fn of_graph_with_colourizer<G: Graph + Clone >(graph: &G, colourizer: C) -> Self {
+        let local_graph = SimpleSparseGraph::from_graph(graph);
         CriticalProperties {
-            graph: graph.clone(),
+            untouched_graph: local_graph.clone(),
+            graph: local_graph,
             colourizer,
             is_critical: false,
             is_cocritical: false,
@@ -84,84 +89,98 @@ where
     ///
     /// Compute criticality, cocriticality and vertex subcriticality of graph
     ///
-    fn compute_vertex_properties(&mut self){
-
-        // TODO
-
+    fn compute_vertex_properties(&mut self) {
         self.is_critical = true;
         self.is_cocritical = true;
 
-        let graph = &self.graph;
+        let graph = &mut self.graph;
 
-        // let vertices = self.graph.vertices();
-
-        for first_vertex in graph.vertices() {
+        for first_vertex in 0..graph.size {
             self.is_vertex_subcritical = false;
 
-            // remove edges of first vertex
-            // graph.remove_edges_of_vertex(first_vertex.index());
+            graph.remove_edges_of_vertex(first_vertex);
 
-            for second_vertex in graph.vertices() {
+            for second_vertex in 0..graph.size() {
                 if first_vertex == second_vertex {
                     continue;
                 }
 
                 // skip unnecessary tests
-                if self.graph.has_edge(first_vertex.index(), second_vertex.index()) && !self.is_critical && self.is_vertex_subcritical {
+                if graph.has_edge(first_vertex, second_vertex)
+                    && !self.is_critical
+                    && self.is_vertex_subcritical
+                {
                     continue;
                 }
-                if !self.graph.has_edge(first_vertex.index(), second_vertex.index()) && !self.is_cocritical && self.is_vertex_subcritical {
+                if !graph.has_edge(first_vertex, second_vertex)
+                    && !self.is_cocritical
+                    && self.is_vertex_subcritical
+                {
                     continue;
                 }
 
-                let colourable_opt = self.colourings[first_vertex.index() * self.graph.size() + second_vertex.index()];
-                let colourable;
+                let colourable_opt = self.colourings[first_vertex * graph.size() + second_vertex];
+                let mut colourable= false;
                 if colourable_opt.is_some() {
                     colourable = colourable_opt.unwrap();
                 } else {
-
                     // remove edges of second_vertex
+                    graph.remove_edges_of_vertex(second_vertex);
 
-                    // self.colourizer.
+                    // TODO
+                    // colourable = C::is_colorable(graph);
 
-                    // set colouring
+                    self.colourings[first_vertex * graph.size() + second_vertex] = Some(colourable);
+
+                    // revert edges removal
+                    Self::restore_edges_of_vertex_except_for(&self.untouched_graph, graph, second_vertex, first_vertex);
                 }
 
-                // produce consequences
-                // if (!colourable) {
-                //     if (graph_.isEdge(firstVertex, secondVertex)) {
-                //         isCritical_ = false;
-                //     } else {
-                //         isCocritical_ = false;
-                //     }
-                // } else {
-                //     isVertexSubcritical_ = true;
-                // }
-
-
+                // check properties
+                if !colourable {
+                    if self.untouched_graph.has_edge(first_vertex, second_vertex) {
+                        self.is_critical = false;
+                    } else {
+                        self.is_cocritical = false;
+                    }
+                } else {
+                    self.is_vertex_subcritical = true;
+                }
             }
 
+            Self::restore_edges_of_vertex(&self.untouched_graph, graph, first_vertex);
 
-            // if (!isVertexSubcritical_) return;
+            if !self.is_vertex_subcritical {
+                return;
+            }
         }
-
     }
 
-    fn compute_edge_properties(&mut self){
+    fn compute_edge_properties(&mut self) {
 
         // TODO
-
     }
+
+    fn restore_edges_of_vertex(original_graph: &SimpleSparseGraph, changed_graph: &mut SimpleSparseGraph, vertex: usize){
+        for neighbor in original_graph.vertices[vertex].neighbors.iter() {
+            changed_graph.add_edge(vertex, neighbor.index());
+        }
+    }
+
+    fn restore_edges_of_vertex_except_for(original_graph: &SimpleSparseGraph, changed_graph: &mut SimpleSparseGraph, vertex: usize, except_for: usize){
+        for neighbor in original_graph.vertices[vertex].neighbors.iter() {
+            if neighbor.index() == except_for {
+                continue;
+            }
+            changed_graph.add_edge(vertex, neighbor.index());
+        }
+    }
+
 }
 
-impl<G> CriticalProperties<G, BFSColourizer>
-where
-    G: Graph + Clone,
+impl CriticalProperties<BFSColourizer>
 {
-    pub fn of_graph(graph: &G) -> Self {
-        CriticalProperties::<G, BFSColourizer>::of_graph_with_colourizer(
-            graph,
-            BFSColourizer::new(),
-        )
+    pub fn of_graph<G: Graph + Clone>(graph: &G) -> Self {
+        CriticalProperties::<BFSColourizer>::of_graph_with_colourizer(graph, BFSColourizer::new())
     }
 }

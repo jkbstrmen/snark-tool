@@ -20,6 +20,7 @@ use std::fmt::Debug;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::{fs, path, result};
+use crate::service::chromatic_properties::critical_prop::CriticalProperties;
 
 type Result<T> = result::Result<T, Error>;
 
@@ -52,6 +53,9 @@ impl Procedure<BasicProperties> for BasicProcedure {
             }
             "write-with-properties" => {
                 self.write_with_properties(graphs)?;
+            }
+            "chromatic-properties" => {
+                self.chromatic_properties(graphs)?;
             }
             _ => {
                 self.handle_unknown_type();
@@ -194,7 +198,7 @@ impl BasicProcedure {
         let mut counter = 0;
         for graph in graphs {
             let result = C::is_colorable(&graph.0);
-            graph.1.colorable = result;
+            graph.1.colorable = Some(result);
 
             // temp
             println!("graph: {} is colorable: {}", counter, result);
@@ -260,6 +264,30 @@ impl BasicProcedure {
             }));
         }
         Ok(file_result.unwrap())
+    }
+
+    fn chromatic_properties<G: Graph>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()>
+    {
+        println!("Running procedure: {}", self.proc_type);
+        // let mut filtered = vec![];
+        // filtered.push((graphs[0].0.clone(), graphs[0].1.clone()));
+        // *graphs = filtered;
+        let mut critical = 0;
+        let mut cocritical = 0;
+        let mut vsubcritical = 0;
+
+        for graph in graphs {
+            let mut props = CriticalProperties::of_graph(&graph.0);
+            critical += props.is_critical() as usize;
+            cocritical += props.is_cocritical() as usize;
+            vsubcritical += props.is_vertex_subcritical() as usize;
+        }
+
+        println!("CRITICAL: {}", critical);
+        println!("COCRITICAL: {}", cocritical);
+        println!("VERTEX SUBCRITICAL: {}", vsubcritical);
+
+        Ok(())
     }
 
     fn handle_unknown_type(&self) {

@@ -112,6 +112,7 @@ impl GraphConstructor for SimpleSparseGraph {
 impl SimpleSparseGraph {
     pub fn from_graph<G: Graph>(graph: &G) -> Self {
         let mut result = SimpleSparseGraph::with_vertices_capacity(graph.size());
+        result.size = graph.size();
         for edge in graph.edges() {
             result.add_edge(edge.from(), edge.to());
         }
@@ -178,5 +179,18 @@ impl fmt::Display for SimpleSparseGraph {
             writeln!(f)?;
         }
         Ok(())
+    }
+}
+
+// TODO - to compare like this - we need to sort edges after new edge to vertex is added
+impl PartialEq for SimpleSparseGraph {
+    fn eq(&self, other: &Self) -> bool {
+        if self.size != other.size {
+            return false;
+        }
+        if self.vertices[..] != other.vertices[..] {
+            return false;
+        }
+        true
     }
 }

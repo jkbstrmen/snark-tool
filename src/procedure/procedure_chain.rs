@@ -1,5 +1,5 @@
 use crate::error::Error;
-use crate::graph::graph::Graph;
+use crate::graph::graph::{Graph, GraphConstructor};
 use crate::procedure::configuration::ProcedureConfig;
 use crate::procedure::procedure::Procedure;
 use std::collections::HashMap;
@@ -45,7 +45,7 @@ where
 
     pub fn run<G>(&self, graphs: &mut Vec<(G, Prop)>) -> Result<()>
     where
-        G: Debug + Graph,
+        G: Debug + Graph + GraphConstructor,
     {
         for procedure in self.procedures.iter() {
             procedure.run(graphs)?;

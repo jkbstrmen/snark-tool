@@ -1,6 +1,6 @@
 use std::str::Chars;
 
-use crate::graph::graph;
+use crate::graph::graph::{Graph, GraphConstructor};
 use crate::service::io::error::ReadError;
 use crate::service::io::reader::Reader;
 use std::io::{BufRead, BufReader};
@@ -15,7 +15,7 @@ type Result<T> = result::Result<T, ReadError>;
 
 pub struct G6Reader<'a, G>
 where
-    G: graph::Graph,
+    G: Graph,
 {
     lines: io::Lines<BufReader<&'a fs::File>>,
     _ph: PhantomData<G>,
@@ -23,7 +23,7 @@ where
 
 impl<'a, G> Reader<'a, G> for G6Reader<'a, G>
 where
-    G: graph::Graph,
+    G: Graph + GraphConstructor,
 {
     fn new(file: &'a fs::File) -> Self {
         G6Reader {
@@ -54,7 +54,7 @@ where
 
 impl<'a, G> G6Reader<'a, G>
 where
-    G: graph::Graph,
+    G: Graph + GraphConstructor,
 {
     pub fn read_graph(source: impl AsRef<str>) -> Result<G> {
         let mut iterator = source.as_ref().chars();

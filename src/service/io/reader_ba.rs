@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 
-use crate::graph::graph;
+use crate::graph::graph::{Graph, GraphConstructor};
 use crate::service::io::error::ReadError;
 use crate::service::io::reader::Reader;
 use std::{fs, marker, result};
@@ -21,7 +21,7 @@ pub struct BaReader<'a, G> {
 
 impl<'a, G> Reader<'a, G> for BaReader<'a, G>
 where
-    G: graph::Graph,
+    G: Graph + GraphConstructor,
 {
     fn new(file: &'a File) -> Self {
         BaReader {
@@ -51,7 +51,7 @@ where
 
 impl<'a, G> BaReader<'a, G>
 where
-    G: graph::Graph,
+    G: Graph + GraphConstructor,
 {
     fn get_graphs_count(&mut self) -> Result<usize> {
         let graphs_count = self.next_numbers_vector()?;

@@ -1,10 +1,11 @@
-use crate::graph::edge::Edge;
+use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::Graph;
+use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::simple_graph::SimpleGraph;
+use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
 use crate::graph::vertex::Vertex;
 use crate::service::colour::bfs::BFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
-use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
 
 // TODO - use own graph struct?
 
@@ -29,7 +30,7 @@ impl<C> CriticalProperties<C>
 where
     C: Colourizer,
 {
-    pub fn of_graph_with_colourizer<G: Graph + Clone >(graph: &G, colourizer: C) -> Self {
+    pub fn of_graph_with_colourizer<G: Graph + Clone>(graph: &G, colourizer: C) -> Self {
         let local_graph = SimpleSparseGraph::from_graph(graph);
         CriticalProperties {
             untouched_graph: local_graph.clone(),
@@ -120,20 +121,21 @@ where
                 }
 
                 let colourable_opt = self.colourings[first_vertex * graph.size() + second_vertex];
-                let mut colourable= false;
+                let mut colourable = false;
                 if colourable_opt.is_some() {
                     colourable = colourable_opt.unwrap();
                 } else {
-                    // remove edges of second_vertex
                     graph.remove_edges_of_vertex(second_vertex);
 
-                    // TODO
-                    // colourable = C::is_colorable(graph);
+                    colourable = C::is_colorable(graph);
 
                     self.colourings[first_vertex * graph.size() + second_vertex] = Some(colourable);
-
-                    // revert edges removal
-                    Self::restore_edges_of_vertex_except_for(&self.untouched_graph, graph, second_vertex, first_vertex);
+                    Self::restore_edges_of_vertex_except_for(
+                        &self.untouched_graph,
+                        graph,
+                        second_vertex,
+                        first_vertex,
+                    );
                 }
 
                 // check properties
@@ -161,25 +163,35 @@ where
         // TODO
     }
 
-    fn restore_edges_of_vertex(original_graph: &SimpleSparseGraph, changed_graph: &mut SimpleSparseGraph, vertex: usize){
-        for neighbor in original_graph.vertices[vertex].neighbors.iter() {
-            changed_graph.add_edge(vertex, neighbor.index());
+    fn restore_edges_of_vertex(
+        original_graph: &SimpleSparseGraph,
+        changed_graph: &mut SimpleSparseGraph,
+        vertex: usize,
+    ) {
+        for neighboring_edge in original_graph.vertices[vertex].edges.iter() {
+            changed_graph.add_edge(neighboring_edge.from(), neighboring_edge.to());
         }
     }
 
-    fn restore_edges_of_vertex_except_for(original_graph: &SimpleSparseGraph, changed_graph: &mut SimpleSparseGraph, vertex: usize, except_for: usize){
-        for neighbor in original_graph.vertices[vertex].neighbors.iter() {
-            if neighbor.index() == except_for {
+    fn restore_edges_of_vertex_except_for(
+        original_graph: &SimpleSparseGraph,
+        changed_graph: &mut SimpleSparseGraph,
+        vertex: usize,
+        except_for: usize,
+    ) {
+        let except_for_edge = UndirectedEdge::new(vertex, except_for);
+        for neighboring_edge in original_graph.vertices[vertex].edges.iter() {
+            if neighboring_edge.from() == except_for_edge.from()
+                && neighboring_edge.to() == except_for_edge.to()
+            {
                 continue;
             }
-            changed_graph.add_edge(vertex, neighbor.index());
+            changed_graph.add_edge(neighboring_edge.from(), neighboring_edge.to());
         }
     }
-
 }
 
-impl CriticalProperties<BFSColourizer>
-{
+impl CriticalProperties<BFSColourizer> {
     pub fn of_graph<G: Graph + Clone>(graph: &G) -> Self {
         CriticalProperties::<BFSColourizer>::of_graph_with_colourizer(graph, BFSColourizer::new())
     }

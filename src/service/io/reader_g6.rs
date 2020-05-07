@@ -1,11 +1,11 @@
 use std::str::Chars;
 
+use crate::graph::graph::{Graph, GraphConstructor};
 use crate::service::io::error::ReadError;
 use crate::service::io::reader::Reader;
 use std::io::{BufRead, BufReader};
 use std::marker::PhantomData;
 use std::{fs, io, result};
-use crate::graph::graph::{GraphConstructor, Graph};
 
 pub const BIAS: u8 = 63;
 pub const SMALLN: u64 = 62;

@@ -1,10 +1,10 @@
 use std::fs::File;
 use std::io::{self, BufRead};
 
+use crate::graph::graph::{Graph, GraphConstructor};
 use crate::service::io::error::ReadError;
 use crate::service::io::reader::Reader;
 use std::{fs, marker, result};
-use crate::graph::graph::{GraphConstructor, Graph};
 
 type Result<T> = result::Result<T, ReadError>;
 

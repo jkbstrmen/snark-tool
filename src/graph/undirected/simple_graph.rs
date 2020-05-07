@@ -30,11 +30,6 @@ impl Graph for SimpleGraph {
         false
     }
 
-    fn edge(&self, from: usize, to: usize) -> Option<UndirectedEdge> {
-        println!("{} {}", from, to);
-        unimplemented!()
-    }
-
     fn add_vertex(&mut self) {
         self.vertices.push(SimpleVertex::new(self.vertices.len()));
     }
@@ -72,22 +67,33 @@ impl Graph for SimpleGraph {
         Box::new(iter)
     }
 
-    fn edges<'a>(&'a self) -> Box<dyn Iterator<Item=&'a UndirectedEdge> + 'a> {
+    fn edges<'a>(&'a self) -> Box<dyn Iterator<Item = &'a UndirectedEdge> + 'a> {
         Box::new(self.edges.iter())
     }
 
-    fn edges_of_vertex<'a>(&'a self, vertex: usize) -> Box<dyn Iterator<Item=&'a UndirectedEdge> + 'a> {
+    fn edges_of_vertex<'a>(
+        &'a self,
+        vertex: usize,
+    ) -> Box<dyn Iterator<Item = &'a UndirectedEdge> + 'a> {
         Box::new(Edges::of_vertex(self.edges.iter(), vertex))
     }
 }
 
 impl GraphConstructor for SimpleGraph {
+    fn new() -> Self {
+        Self::with_vertices_capacity(20)
+    }
+
     fn with_capacity(vertices: usize, edges: usize) -> Self {
         SimpleGraph {
             size: 0,
             vertices: Vec::with_capacity(vertices),
             edges: Vec::with_capacity(edges),
         }
+    }
+
+    fn with_vertices_capacity(vertices: usize) -> Self {
+        Self::with_capacity(vertices, vertices * 2)
     }
 }
 
@@ -145,8 +151,6 @@ impl PartialEq for SimpleGraph {
 
 impl Eq for SimpleGraph {}
 
-
-
 /// Edges
 pub struct Edges<'a, E> {
     vertex: Option<usize>,
@@ -166,8 +170,8 @@ impl<'a, E> Edges<'a, E> {
 }
 
 impl<'a, E> Iterator for Edges<'a, E>
-    where
-        E: Edge,
+where
+    E: Edge,
 {
     type Item = &'a E;
     fn next(&mut self) -> Option<Self::Item> {

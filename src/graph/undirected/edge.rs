@@ -1,6 +1,6 @@
 use crate::graph::edge::{Edge, EdgeConstructor};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct UndirectedEdge {
     from: usize,
     to: usize,

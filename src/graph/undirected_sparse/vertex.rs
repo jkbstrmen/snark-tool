@@ -1,42 +1,41 @@
+use crate::graph::edge::{Edge, EdgeConstructor};
+use crate::graph::undirected::edge::UndirectedEdge;
+use crate::graph::vertex::Vertex;
 use std::slice::Iter;
 
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
-pub struct VertexWithNeighbors {
+pub struct VertexWithEdges {
     index: usize,
-    pub neighbors: Vec<Neighbor>,
+    pub edges: Vec<UndirectedEdge>,
 }
 
-impl VertexWithNeighbors {
-    pub fn new(index: usize) -> Self {
-        VertexWithNeighbors {
+impl Vertex for VertexWithEdges {
+    fn new(index: usize) -> Self {
+        VertexWithEdges {
             index,
-            neighbors: vec![],
+            edges: vec![],
         }
     }
-    pub fn index(&self) -> usize {
+    fn index(&self) -> usize {
         self.index
-    }
-
-    pub fn add_neighbor(&mut self, index: usize, colour: u8) {
-        self.neighbors.push(Neighbor::new(index, colour));
     }
 }
 
-#[derive(Debug, Hash, Eq, PartialEq, Clone)]
-pub struct Neighbor {
-    index: usize,
-    colour: u8,
-}
-
-impl Neighbor {
-    pub fn new(index: usize, colour: u8) -> Self {
-        Neighbor { index, colour }
+impl VertexWithEdges {
+    pub fn add_edge(&mut self, to: usize, colour: u8) {
+        self.edges
+            .push(UndirectedEdge::new_with_colour(self.index, to, colour));
     }
 
-    pub fn index(&self) -> usize {
-        self.index
-    }
-    pub fn colour(&self) -> u8 {
-        self.colour
+    pub fn neighbors(&self) -> Vec<usize> {
+        let mut neighbors = vec![];
+        for edge in self.edges.iter() {
+            if edge.from() == self.index {
+                neighbors.push(edge.to())
+            } else {
+                neighbors.push(edge.from());
+            }
+        }
+        neighbors
     }
 }

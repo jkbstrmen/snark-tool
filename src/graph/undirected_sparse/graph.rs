@@ -1,44 +1,43 @@
 use crate::graph::edge::{Edge, EdgeConstructor};
-use crate::graph::graph::Graph;
+use crate::graph::graph::{Graph, GraphConstructor};
 use crate::graph::undirected::edge::UndirectedEdge;
-use crate::graph::undirected_sparse::vertex::{Neighbor, VertexWithNeighbors};
+use crate::graph::undirected::vertex::SimpleVertex;
+use crate::graph::undirected_sparse::vertex::VertexWithEdges;
+use crate::graph::vertex::Vertex;
 use std::slice::{Iter, IterMut};
 use std::{fmt, marker, slice};
 
-// best for sparse graphs
-
-// TODO - adjust Graph trait (edges() -> Edges), then implement
-
+/// best for sparse graphs
 #[derive(Debug, Clone)]
 pub struct SimpleSparseGraph {
     pub size: usize,
-    pub vertices: Vec<VertexWithNeighbors>,
+    pub vertices: Vec<VertexWithEdges>,
 }
 
-impl SimpleSparseGraph {
-    pub fn size(&self) -> usize {
+impl Graph<VertexWithEdges, UndirectedEdge> for SimpleSparseGraph {
+    fn size(&self) -> usize {
         self.vertices.len()
     }
 
-    pub fn has_edge(&self, from: usize, to: usize) -> bool {
+    fn has_edge(&self, from: usize, to: usize) -> bool {
         if from >= self.vertices.len() || to >= self.vertices.len() {
             return false;
         }
         let from_vertex = &self.vertices[from];
-        for neighbor in from_vertex.neighbors.iter() {
-            if neighbor.index() == to {
+        for edge in from_vertex.edges.iter() {
+            if edge.from() == from && edge.to() == to || edge.from() == to && edge.to() == from {
                 return true;
             }
         }
         false
     }
 
-    pub fn add_vertex(&mut self) {
+    fn add_vertex(&mut self) {
         self.vertices
-            .push(VertexWithNeighbors::new(self.vertices.len()));
+            .push(VertexWithEdges::new(self.vertices.len()));
     }
 
-    pub fn add_edge(&mut self, from: usize, to: usize) {
+    fn add_edge(&mut self, from: usize, to: usize) {
         let edge = UndirectedEdge::new(from, to);
         if self.has_edge(from, to) {
             return;
@@ -47,55 +46,72 @@ impl SimpleSparseGraph {
             self.add_vertex();
         }
         let from_vertex = &mut self.vertices[from];
-        from_vertex.add_neighbor(to, 0);
+        from_vertex.add_edge(to, 0);
         let to_vertex = &mut self.vertices[to];
-        to_vertex.add_neighbor(from, 0);
+        to_vertex.add_edge(from, 0);
     }
 
-    pub fn remove_edge(&mut self, from: usize, to: usize) {
+    fn remove_edge(&mut self, from: usize, to: usize) {
+        let edge_to_remove = UndirectedEdge::new(from, to);
+
         let from_vertex = &mut self.vertices[from];
-        from_vertex
-            .neighbors
-            .retain(|neighbor| neighbor.index() != to);
+        from_vertex.edges.retain(|edge| {
+            edge.from() != edge_to_remove.from() || edge.to() != edge_to_remove.to()
+        });
 
         let to_vertex = &mut self.vertices[to];
-        to_vertex
-            .neighbors
-            .retain(|neighbor| neighbor.index() != from);
+        to_vertex.edges.retain(|edge| {
+            edge.from() != edge_to_remove.from() || edge.to() != edge_to_remove.to()
+        });
     }
 
-    pub fn remove_edges_of_vertex(&mut self, vertex: usize) {
-        let neighbors = self.vertices[vertex].neighbors.clone();
-        self.vertices[vertex].neighbors = vec![];
-
+    fn remove_edges_of_vertex(&mut self, vertex: usize) {
+        let neighbors = self.vertices[vertex].neighbors().clone();
+        self.vertices[vertex].edges = vec![];
         for neighbor in neighbors {
-            self.vertices[neighbor.index()]
-                .neighbors
-                .retain(|neighbor| neighbor.index() != vertex);
+            let edge_to_remove = UndirectedEdge::new(vertex, neighbor);
+            self.vertices[neighbor].edges.retain(|edge| {
+                edge_to_remove.from() != edge.from() || edge_to_remove.to() != edge.to()
+            });
         }
     }
 
-    pub fn vertices(&self) -> Iter<VertexWithNeighbors> {
-        self.vertices.iter()
+    fn vertices<'a>(&'a self) -> Box<dyn Iterator<Item = &'a VertexWithEdges> + 'a> {
+        Box::new(self.vertices.iter())
     }
 
-    pub fn vertices_mut(&mut self) -> IterMut<VertexWithNeighbors> {
-        self.vertices.iter_mut()
+    fn edges<'a>(&'a self) -> Box<dyn Iterator<Item = &'a UndirectedEdge> + 'a> {
+        Box::new(Edges::new(&self.vertices))
     }
 
-    pub fn edges(&self) -> Edges<UndirectedEdge> {
-        Edges::new(&self.vertices)
+    fn edges_of_vertex<'a>(
+        &'a self,
+        vertex: usize,
+    ) -> Box<dyn Iterator<Item = &'a UndirectedEdge> + 'a> {
+        Box::new(self.vertices[vertex].edges.iter())
+    }
+}
+
+impl GraphConstructor for SimpleSparseGraph {
+    fn new() -> Self {
+        Self::with_vertices_capacity(20)
     }
 
-    pub fn with_capacity(vertices: usize) -> Self {
+    fn with_capacity(vertices: usize, edges: usize) -> Self {
+        Self::with_vertices_capacity(vertices)
+    }
+
+    fn with_vertices_capacity(vertices: usize) -> Self {
         SimpleSparseGraph {
             size: 0,
             vertices: Vec::with_capacity(vertices),
         }
     }
+}
 
+impl SimpleSparseGraph {
     pub fn from_graph<G: Graph>(graph: &G) -> Self {
-        let mut result = SimpleSparseGraph::with_capacity(graph.size());
+        let mut result = SimpleSparseGraph::with_vertices_capacity(graph.size());
         for edge in graph.edges() {
             result.add_edge(edge.from(), edge.to());
         }
@@ -104,52 +120,43 @@ impl SimpleSparseGraph {
 }
 
 /// Edges
-pub struct Edges<'a, E> {
-    vertices: &'a Vec<VertexWithNeighbors>,
+pub struct Edges<'a> {
+    vertices: &'a Vec<VertexWithEdges>,
     position: (usize, usize),
-
-    _ph: marker::PhantomData<E>,
 }
 
-impl<'a, E> Edges<'a, E> {
-    pub fn new(vertices: &'a Vec<VertexWithNeighbors>) -> Self {
+impl<'a> Edges<'a> {
+    pub fn new(vertices: &'a Vec<VertexWithEdges>) -> Self {
         Edges {
             vertices,
             position: (0, 0),
-            _ph: marker::PhantomData,
         }
     }
 }
 
-impl<'a, E> Iterator for Edges<'a, E>
-where
-    E: Edge + EdgeConstructor,
-{
-    type Item = E;
+impl<'a> Iterator for Edges<'a> {
+    type Item = &'a UndirectedEdge;
     fn next(&mut self) -> Option<Self::Item> {
         if self.vertices.len() <= self.position.0 {
             return None;
         }
 
         let vertex = &self.vertices[self.position.0];
-        if vertex.neighbors.len() <= self.position.1 {
+        if vertex.edges.len() <= self.position.1 {
             self.position.0 += 1;
             self.position.1 = 0;
             return self.next();
         }
 
-        let neighbor = &vertex.neighbors[self.position.1];
-        if neighbor.index() < vertex.index() {
+        let neighboring_edge = &vertex.edges[self.position.1];
+
+        if neighboring_edge.from() != vertex.index() {
             self.position.1 += 1;
             return self.next();
         }
 
         self.position.1 += 1;
-        Some(E::new_with_colour(
-            vertex.index(),
-            neighbor.index(),
-            neighbor.colour(),
-        ))
+        Some(neighboring_edge)
     }
 }
 
@@ -158,8 +165,13 @@ impl fmt::Display for SimpleSparseGraph {
         for vertex in &self.vertices {
             write!(f, "{}: ", vertex.index())?;
             let mut separ = String::from("");
-            for neighbor in vertex.neighbors.iter() {
-                write!(f, "{}{}", separ, neighbor.index())?;
+            for edge in vertex.edges.iter() {
+                let neighbor = if edge.from() == vertex.index() {
+                    edge.to()
+                } else {
+                    edge.from()
+                };
+                write!(f, "{}{}", separ, neighbor)?;
                 separ = String::from(", ");
             }
 

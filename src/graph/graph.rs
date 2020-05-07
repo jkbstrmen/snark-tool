@@ -11,7 +11,7 @@ where
 {
     fn size(&self) -> usize;
     fn has_edge(&self, from: usize, to: usize) -> bool;
-    fn edge(&self, from: usize, to: usize) -> Option<E>;
+    // fn edge(&self, from: usize, to: usize) -> Option<E>;
 
     // add vertex - with param?
     fn add_vertex(&mut self);
@@ -44,8 +44,8 @@ where
 
 pub trait GraphConstructor {
     // CONSTRUCTORS
+    fn new() -> Self;
     fn with_capacity(vertices: usize, edges: usize) -> Self;
-    // new
-    // with_vertices_capacity
+    fn with_vertices_capacity(vertices: usize) -> Self;
     // with_edes_capacity
 }

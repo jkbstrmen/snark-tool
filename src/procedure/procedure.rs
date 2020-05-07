@@ -1,5 +1,5 @@
 use crate::error::Error;
-use crate::graph::graph::Graph;
+use crate::graph::graph::{Graph, GraphConstructor};
 use std::collections::HashMap;
 use std::{fmt, result};
 
@@ -11,5 +11,5 @@ pub trait Procedure<P> {
 
     fn run<G>(&self, graphs: &mut Vec<(G, P)>) -> Result<()>
     where
-        G: fmt::Debug + Graph;
+        G: fmt::Debug + Graph + GraphConstructor;
 }

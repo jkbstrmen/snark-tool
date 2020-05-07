@@ -1,6 +1,6 @@
 #[cfg(test)]
 pub mod test_data {
-    use crate::graph::graph::Graph;
+    use crate::graph::graph::{Graph, GraphConstructor};
     use crate::graph::undirected::simple_graph::SimpleGraph;
 
     pub const SNARK_IN_G6_10_PETERSEN: &str = "I?h]@eOWG";
@@ -13,7 +13,7 @@ pub mod test_data {
 
     pub const NO_SNARK_IN_S6_112: &str = ":~?@o_GA?`_UCc?_JaOiKBwsMc@EQCpQWDh][EhmeDhiWexeVfXqGFg_^aQEIGgkcaaUHGGkbbAYLIG{kbaeNIwwibQuKHwS]`qQCFw[a`AEDGGWd`aM]HiClgambIX{fhQqcIi?glb}{PJ\\@nSUwOjk}mSAyOxksdq}\\JhcoeBUYKXWrfBJMTk|VsDbPU\\HYtTvSVLLZpc^IR[lKqCe@Vd}AWEE@WeUAWuQBXeeBXub";
 
-    pub const SNARK_IN_S6_10_PETERSEN: &str = ":IG?SPc_EOrOFCQN";
+    pub const SNARK_IN_S6_10_PETERSEN: &str = ":Ig?SPc_EOrOFCQN";
 
     pub const SNARK_IN_BA_10_PETERSEN: &str =
         "\n1\n10\n4 6 8 \n5 6 9 \n4 7 9 \n5 7 8 \n0 2 5 \n1 3 4 \n0 1 7 \n2 3 6 \n0 3 9 \n1 2 8 \n";

@@ -1,4 +1,4 @@
-use crate::graph::graph::Graph;
+use crate::graph::graph::{Graph, GraphConstructor};
 use crate::service::io::error::ReadError;
 use crate::service::io::reader::Reader;
 use crate::service::io::reader_g6::{get_graph_size, BIAS};
@@ -19,7 +19,7 @@ pub struct S6Reader<'a, G> {
 
 impl<'a, G> Reader<'a, G> for S6Reader<'a, G>
 where
-    G: Graph,
+    G: Graph + GraphConstructor,
 {
     fn new(file: &'a File) -> Self {
         S6Reader {
@@ -48,7 +48,7 @@ where
 
 impl<'a, G> S6Reader<'_, G>
 where
-    G: Graph,
+    G: Graph + GraphConstructor,
 {
     pub fn read_graph(source: impl AsRef<str>) -> Result<G> {
         let string = String::from(source.as_ref());

@@ -1,10 +1,10 @@
 #[cfg(test)]
 mod graph_tests {
-    use crate::graph::graph::Graph;
+    use crate::graph::edge::EdgeConstructor;
+    use crate::graph::graph::{Graph, GraphConstructor};
+    use crate::graph::undirected::edge::UndirectedEdge;
     use crate::graph::undirected::simple_graph::SimpleGraph;
     use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
-    use crate::graph::undirected::edge::UndirectedEdge;
-    use crate::graph::edge::EdgeConstructor;
 
     #[test]
     fn should_create_graph() {
@@ -56,6 +56,31 @@ mod graph_tests {
         graph.add_edge(2, 1);
         graph.add_edge(0, 1);
         graph
+    }
+
+    #[test]
+    fn should_iter_edges(){
+        let graph = get_graph();
+        let mut index = 0;
+        for edge in graph.edges() {
+            if index == 0 { assert_eq!(edge, &UndirectedEdge::new(0, 1)); }
+            if index == 1 { assert_eq!(edge, &UndirectedEdge::new(0, 2)); }
+            if index == 2 { assert_eq!(edge, &UndirectedEdge::new(1, 2)); }
+            index += 1;
+        }
+        assert_eq!(index, 3);
+    }
+
+    #[test]
+    fn should_iter_edges_of_vertex(){
+        let graph = get_graph();
+        let mut index = 0;
+        for edge in graph.edges_of_vertex(1) {
+            if index == 0 { assert_eq!(edge, &UndirectedEdge::new(0, 1)); }
+            if index == 1 { assert_eq!(edge, &UndirectedEdge::new(1, 2)); }
+            index += 1;
+        }
+        assert_eq!(index, 2);
     }
 
     #[test]

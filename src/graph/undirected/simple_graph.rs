@@ -1,7 +1,7 @@
-use std::{fmt, marker};
+use std::{fmt, marker, slice};
 
 use crate::graph::edge::{Edge, EdgeConstructor};
-use crate::graph::graph::{Edges, EdgesMut, Graph, Vertices, VerticesMut};
+use crate::graph::graph::{Graph, GraphConstructor};
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::vertex::SimpleVertex;
 use crate::graph::vertex::Vertex;
@@ -67,26 +67,21 @@ impl Graph for SimpleGraph {
             .retain(|edge| edge.from() != vertex && edge.to() != vertex);
     }
 
-    fn vertices(&self) -> Vertices<SimpleVertex> {
-        Vertices::new(self.vertices.iter())
+    fn vertices<'a>(&'a self) -> Box<dyn Iterator<Item = &'a SimpleVertex> + 'a> {
+        let iter: slice::Iter<'a, SimpleVertex> = self.vertices.iter();
+        Box::new(iter)
     }
 
-    fn vertices_mut(&mut self) -> VerticesMut<SimpleVertex> {
-        VerticesMut::new(self.vertices.iter_mut())
+    fn edges<'a>(&'a self) -> Box<dyn Iterator<Item=&'a UndirectedEdge> + 'a> {
+        Box::new(self.edges.iter())
     }
 
-    fn edges(&self) -> Edges<UndirectedEdge> {
-        Edges::new(self.edges.iter())
+    fn edges_of_vertex<'a>(&'a self, vertex: usize) -> Box<dyn Iterator<Item=&'a UndirectedEdge> + 'a> {
+        Box::new(Edges::of_vertex(self.edges.iter(), vertex))
     }
+}
 
-    fn edges_mut(&mut self) -> EdgesMut<UndirectedEdge> {
-        EdgesMut::new(self.edges.iter_mut())
-    }
-
-    fn edges_of_vertex(&self, vertex: usize) -> Edges<UndirectedEdge> {
-        Edges::of_vertex(self.edges.iter(), vertex)
-    }
-
+impl GraphConstructor for SimpleGraph {
     fn with_capacity(vertices: usize, edges: usize) -> Self {
         SimpleGraph {
             size: 0,
@@ -149,3 +144,44 @@ impl PartialEq for SimpleGraph {
 }
 
 impl Eq for SimpleGraph {}
+
+
+
+/// Edges
+pub struct Edges<'a, E> {
+    vertex: Option<usize>,
+    iter: slice::Iter<'a, E>,
+}
+
+impl<'a, E> Edges<'a, E> {
+    pub fn new(iter: slice::Iter<'a, E>) -> Self {
+        Edges { vertex: None, iter }
+    }
+    pub fn of_vertex(iter: slice::Iter<'a, E>, vertex: usize) -> Self {
+        Edges {
+            vertex: Some(vertex),
+            iter,
+        }
+    }
+}
+
+impl<'a, E> Iterator for Edges<'a, E>
+    where
+        E: Edge,
+{
+    type Item = &'a E;
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.vertex.is_some() {
+            let mut edge_opt = self.iter.next();
+            while edge_opt.is_some() {
+                let edge = edge_opt.unwrap();
+                if edge.from() == self.vertex.unwrap() || edge.to() == self.vertex.unwrap() {
+                    return edge_opt;
+                }
+                edge_opt = self.iter.next();
+            }
+            return None;
+        }
+        self.iter.next()
+    }
+}

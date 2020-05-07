@@ -1,6 +1,6 @@
 use crate::error::Error;
 
-use crate::graph::graph::Graph;
+use crate::graph::graph::{Graph, GraphConstructor};
 use crate::procedure::basic_impl::basic_config::BasicConfig;
 use crate::procedure::basic_impl::basic_properties::BasicProperties;
 use crate::procedure::procedure::{Config, Procedure};
@@ -38,7 +38,7 @@ impl Procedure<BasicProperties> for BasicProcedure {
 
     fn run<G>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()>
     where
-        G: Debug + Graph,
+        G: Debug + Graph + GraphConstructor,
     {
         match self.proc_type.as_str() {
             "read" => {
@@ -64,7 +64,7 @@ impl Procedure<BasicProperties> for BasicProcedure {
 impl BasicProcedure {
     pub fn read_graph<G>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()>
     where
-        G: Debug + Graph,
+        G: Debug + Graph + GraphConstructor,
     {
         println!("Running procedure: {}", self.proc_type);
         let file_path = self.config.get_file()?;

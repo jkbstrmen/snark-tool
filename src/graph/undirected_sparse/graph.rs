@@ -1,5 +1,5 @@
 use crate::graph::edge::{Edge, EdgeConstructor};
-use crate::graph::graph::{EdgesMut, Graph};
+use crate::graph::graph::Graph;
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected_sparse::vertex::{Neighbor, VertexWithNeighbors};
 use std::slice::{Iter, IterMut};
@@ -34,7 +34,8 @@ impl SimpleSparseGraph {
     }
 
     pub fn add_vertex(&mut self) {
-        self.vertices.push(VertexWithNeighbors::new(self.vertices.len()));
+        self.vertices
+            .push(VertexWithNeighbors::new(self.vertices.len()));
     }
 
     pub fn add_edge(&mut self, from: usize, to: usize) {

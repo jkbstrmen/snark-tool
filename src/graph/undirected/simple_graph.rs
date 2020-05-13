@@ -52,8 +52,9 @@ impl Graph for SimpleGraph {
     }
 
     fn remove_edge(&mut self, from: usize, to: usize) {
+        let to_remove = UndirectedEdge::new(from, to);
         self.edges
-            .retain(|edge| edge.from() != from && edge.to() != to);
+            .retain(|edge| edge.from() != to_remove.from() && edge.to() != to_remove.to());
     }
 
     fn remove_edges_of_vertex(&mut self, vertex: usize) /*-> Self*/
@@ -98,14 +99,14 @@ impl GraphConstructor for SimpleGraph {
 }
 
 impl SimpleGraph {
-    pub fn from_graph<G: Graph>(graph: &G) -> Self {
+    pub fn from_graph<G: Graph<V, E>, V: Vertex, E: Edge>(graph: &G) -> Self {
         let mut vertices = vec![];
         for vertex in graph.vertices() {
-            vertices.push(vertex.clone());
+            vertices.push(SimpleVertex::new(vertex.index()));
         }
         let mut edges = vec![];
         for edge in graph.edges() {
-            edges.push(edge.clone());
+            edges.push(UndirectedEdge::new(edge.from(), edge.to()));
         }
         SimpleGraph {
             size: graph.size(),

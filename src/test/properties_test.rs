@@ -7,37 +7,74 @@ pub mod properties_tests {
     use std::any::Any;
 
     #[test]
-    fn should_be_critical(){
-        let graph: SimpleGraph = G6Reader::read_graph(test_data::SNARK_IN_G6_26_CRITICAL_1).unwrap();
+    fn should_be_critical() {
+        let graph: SimpleGraph =
+            G6Reader::read_graph(test_data::SNARK_IN_G6_26_CRITICAL_1).unwrap();
         let mut props = CriticalProperties::of_graph(&graph);
         assert_eq!(props.is_critical(), true);
         assert_eq!(props.is_cocritical(), true);
         assert_eq!(props.is_vertex_subcritical(), true);
-        // assert_eq!(props.is_edge_subcritical(), true);
+        assert_eq!(props.is_edge_subcritical(), true);
 
-        let graph: SimpleGraph = G6Reader::read_graph(test_data::SNARK_IN_G6_26_CRITICAL_2).unwrap();
+        let graph: SimpleGraph =
+            G6Reader::read_graph(test_data::SNARK_IN_G6_26_CRITICAL_2).unwrap();
         let mut props = CriticalProperties::of_graph(&graph);
         assert_eq!(props.is_critical(), true);
         assert_eq!(props.is_cocritical(), true);
         assert_eq!(props.is_vertex_subcritical(), true);
-        // assert_eq!(props.is_edge_subcritical(), true);
+        assert_eq!(props.is_edge_subcritical(), true);
     }
 
     #[test]
-    fn should_be_strictly_cocritical(){
-        let graph: SimpleGraph = G6Reader::read_graph(test_data::SNARK_IN_G6_26_SCOCRITICAL_1).unwrap();
+    fn should_be_strictly_cocritical() {
+        let graph: SimpleGraph =
+            G6Reader::read_graph(test_data::SNARK_IN_G6_26_SCOCRITICAL_1).unwrap();
         let mut props = CriticalProperties::of_graph(&graph);
         assert_eq!(props.is_critical(), false);
         assert_eq!(props.is_cocritical(), true);
         assert_eq!(props.is_vertex_subcritical(), true);
-        // assert_eq!(props.is_edge_subcritical(), true);
+        assert_eq!(props.is_edge_subcritical(), true);
 
-        let graph: SimpleGraph = G6Reader::read_graph(test_data::SNARK_IN_G6_26_SCOCRITICAL_2).unwrap();
+        let graph: SimpleGraph =
+            G6Reader::read_graph(test_data::SNARK_IN_G6_26_SCOCRITICAL_2).unwrap();
         let mut props = CriticalProperties::of_graph(&graph);
         assert_eq!(props.is_critical(), false);
         assert_eq!(props.is_cocritical(), true);
         assert_eq!(props.is_vertex_subcritical(), true);
-        // assert_eq!(props.is_edge_subcritical(), true);
+        assert_eq!(props.is_edge_subcritical(), true);
+    }
+
+    #[test]
+    fn should_be_acritical() {
+        let graph: SimpleGraph = G6Reader::read_graph(test_data::SNARK_IN_G6_34_STABLE_1).unwrap();
+        let mut props = CriticalProperties::of_graph(&graph);
+        assert_eq!(props.is_critical(), false);
+        assert_eq!(props.is_cocritical(), false);
+        assert_eq!(props.is_vertex_subcritical(), false);
+        assert_eq!(props.is_edge_subcritical(), false);
+
+        let graph: SimpleGraph = G6Reader::read_graph(test_data::SNARK_IN_G6_34_STABLE_2).unwrap();
+        let mut props = CriticalProperties::of_graph(&graph);
+        assert_eq!(props.is_critical(), false);
+        assert_eq!(props.is_cocritical(), false);
+        assert_eq!(props.is_vertex_subcritical(), false);
+        assert_eq!(props.is_edge_subcritical(), false);
+
+        let graph: SimpleGraph =
+            G6Reader::read_graph(test_data::SNARK_IN_G6_30_ACRITICAL_1).unwrap();
+        let mut props = CriticalProperties::of_graph(&graph);
+        assert_eq!(props.is_critical(), false);
+        assert_eq!(props.is_cocritical(), false);
+        assert_eq!(props.is_vertex_subcritical(), false);
+        assert_eq!(props.is_edge_subcritical(), false);
+
+        let graph: SimpleGraph =
+            G6Reader::read_graph(test_data::SNARK_IN_G6_30_ACRITICAL_2).unwrap();
+        let mut props = CriticalProperties::of_graph(&graph);
+        assert_eq!(props.is_critical(), false);
+        assert_eq!(props.is_cocritical(), false);
+        assert_eq!(props.is_vertex_subcritical(), false);
+        assert_eq!(props.is_edge_subcritical(), false);
     }
 
     #[test]

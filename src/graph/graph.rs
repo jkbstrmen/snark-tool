@@ -4,7 +4,7 @@ use crate::graph::undirected::vertex::SimpleVertex;
 use crate::graph::vertex::Vertex;
 use std::slice;
 
-pub trait Graph<V = SimpleVertex, E = UndirectedEdge> : PartialEq + Clone
+pub trait Graph<V = SimpleVertex, E = UndirectedEdge>: PartialEq + Clone
 where
     V: Vertex,
     E: Edge,

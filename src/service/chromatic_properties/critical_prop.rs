@@ -82,7 +82,7 @@ where
 
         self.is_edge_subcritical = true;
         if !self.is_critical {
-            self.compute_edge_properties();
+            self.compute_edge_subcriticality();
         }
         self.computed = true;
     }
@@ -158,9 +158,33 @@ where
         }
     }
 
-    fn compute_edge_properties(&mut self) {
+    fn compute_edge_subcriticality(&mut self) {
+        let mut local_graph = SimpleGraph::from_graph(&self.graph);
+        let mut edge_subcritical = true;
 
-        // TODO
+        for first_edge in local_graph.edges.iter() {
+            self.graph.remove_edge(first_edge.from(), first_edge.to());
+
+            for second_edge in local_graph.edges.iter() {
+                if first_edge.eq(second_edge) {
+                    continue;
+                }
+                self.graph.remove_edge(second_edge.from(), second_edge.to());
+                let colourable = C::is_colorable(&self.graph);
+                self.graph.add_edge(second_edge.from(), second_edge.to());
+                if colourable {
+                    edge_subcritical = true;
+                    break;
+                }
+                edge_subcritical = false;
+            }
+            self.graph.add_edge(first_edge.from(), first_edge.to());
+            if !edge_subcritical {
+                self.is_edge_subcritical = false;
+                return;
+            }
+        }
+        self.is_edge_subcritical = true;
     }
 
     fn restore_edges_of_vertex(

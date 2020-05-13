@@ -4,6 +4,7 @@ use crate::graph::graph::{Graph, GraphConstructor};
 use crate::procedure::basic_impl::basic_config::BasicConfig;
 use crate::procedure::basic_impl::basic_properties::BasicProperties;
 use crate::procedure::procedure::{Config, Procedure};
+use crate::service::chromatic_properties::critical_prop::CriticalProperties;
 use crate::service::colour::bfs::BFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
 use crate::service::colour::sat::SATColourizer;
@@ -20,7 +21,6 @@ use std::fmt::Debug;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::{fs, path, result};
-use crate::service::chromatic_properties::critical_prop::CriticalProperties;
 
 type Result<T> = result::Result<T, Error>;
 
@@ -266,8 +266,7 @@ impl BasicProcedure {
         Ok(file_result.unwrap())
     }
 
-    fn chromatic_properties<G: Graph>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()>
-    {
+    fn chromatic_properties<G: Graph>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
         println!("Running procedure: {}", self.proc_type);
         // let mut filtered = vec![];
         // filtered.push((graphs[0].0.clone(), graphs[0].1.clone()));

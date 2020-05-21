@@ -1,10 +1,12 @@
 use crate::error::Error;
 
 use crate::graph::graph::{Graph, GraphConstructor};
+use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::procedure::basic_impl::basic_config::BasicConfig;
 use crate::procedure::basic_impl::basic_properties::BasicProperties;
 use crate::procedure::procedure::{Config, Procedure};
 use crate::service::chromatic_properties::critical_prop::CriticalProperties;
+use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
 use crate::service::colour::bfs::BFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
 use crate::service::colour::sat::SATColourizer;
@@ -20,7 +22,8 @@ use serde::{Deserialize, Serialize};
 use std::fmt::Debug;
 use std::fs::OpenOptions;
 use std::io::Write;
-use std::{fs, path, result};
+use std::sync::mpsc;
+use std::{fs, marker, path, result, thread, time};
 
 type Result<T> = result::Result<T, Error>;
 
@@ -65,6 +68,7 @@ impl Procedure<BasicProperties> for BasicProcedure {
     }
 }
 
+// TODO - add G<V, E> to BasicProcedure struct
 impl BasicProcedure {
     pub fn read_graph<G>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()>
     where
@@ -195,14 +199,9 @@ impl BasicProcedure {
         C: Colourizer,
         G: Graph,
     {
-        let mut counter = 0;
         for graph in graphs {
             let result = C::is_colorable(&graph.0);
             graph.1.colorable = Some(result);
-
-            // temp
-            println!("graph: {} is colorable: {}", counter, result);
-            counter += 1;
         }
     }
 
@@ -266,26 +265,219 @@ impl BasicProcedure {
         Ok(file_result.unwrap())
     }
 
-    fn chromatic_properties<G: Graph>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
+    fn chromatic_properties<G: Graph>(
+        &self,
+        graphs: &mut Vec<(G, BasicProperties)>,
+    ) -> Result<()> {
         println!("Running procedure: {}", self.proc_type);
-        // let mut filtered = vec![];
-        // filtered.push((graphs[0].0.clone(), graphs[0].1.clone()));
-        // *graphs = filtered;
+
+        let parallel = self.config.get_parallel()?;
+        if parallel {
+            // self.critical_properties_in_parallel(graphs);
+            self.critical_and_stable_properties_in_parallel(graphs);
+        } else {
+            // self.critical_properties_sequential(graphs);
+            self.critical_and_stable_properties_sequential(graphs);
+        }
+        Ok(())
+    }
+
+    // todo - refactor
+    fn critical_and_stable_properties_sequential<G: Graph>(
+        &self,
+        graphs: &mut Vec<(G, BasicProperties)>,
+    ) -> Result<()> {
         let mut critical = 0;
         let mut cocritical = 0;
         let mut vsubcritical = 0;
+        let mut esubcritical = 0;
+        let mut stable = 0;
+        let mut costable = 0;
+
+        let mut index = 0;
+
+        for graph in graphs {
+            let begin = time::Instant::now();
+
+            let mut props = StableAndCriticalProperties::of_graph(&graph.0);
+            critical += props.is_critical() as usize;
+            cocritical += props.is_cocritical() as usize;
+            vsubcritical += props.is_vertex_subcritical() as usize;
+            esubcritical += props.is_edge_subcritical() as usize;
+            stable += props.is_stable() as usize;
+            costable += props.is_costable() as usize;
+
+            println!(
+                "graph: {} elapsed: {} ms",
+                index,
+                begin.elapsed().as_millis()
+            );
+
+            index += 1;
+        }
+
+        // temp
+        println!("CRITICAL: {}", critical);
+        println!("COCRITICAL: {}", cocritical);
+        println!("VERTEX SUBCRITICAL: {}", vsubcritical);
+        println!("EDGE SUBCRITICAL: {}", esubcritical);
+        println!("STABLE: {}", stable);
+        println!("COSTABLE: {}", costable);
+
+        Ok(())
+    }
+
+    fn critical_and_stable_properties_in_parallel<G: Graph>(
+        &self,
+        graphs: &mut Vec<(G, BasicProperties)>,
+    ) -> Result<()> {
+        let mut threads = vec![];
+        let mut index = 0;
+        let (tx, rx) = mpsc::channel();
+
+        for graph in graphs {
+            let graph_local = SimpleGraph::from_graph(&graph.0);
+            let tx_cloned = mpsc::Sender::clone(&tx);
+
+            let handle = thread::spawn(move || {
+                // println!("graph: {}", index);
+                let mut props = StableAndCriticalProperties::of_graph(&graph_local);
+
+                let result = ChromaticPropertiesResult {
+                    graph_index: index,
+                    critical: props.is_critical(),
+                    cocritical: props.is_cocritical(),
+                    vertex_subcritical: props.is_vertex_subcritical(),
+                    edge_subcritical: props.is_edge_subcritical(),
+                    stable: props.is_stable(),
+                    costable: props.is_costable(),
+                };
+                tx_cloned.send(result);
+            });
+            threads.push(handle);
+            index += 1;
+        }
+
+        drop(tx);
+        let mut critical = 0;
+        let mut cocritical = 0;
+        let mut vsubcritical = 0;
+        let mut esubcritical = 0;
+        let mut stable = 0;
+        let mut costable = 0;
+
+        for received in rx {
+            // println!("Got: {:?}", received);
+
+            critical += received.critical as usize;
+            cocritical += received.cocritical as usize;
+            vsubcritical += received.vertex_subcritical as usize;
+            esubcritical += received.edge_subcritical as usize;
+            stable += received.stable as usize;
+            costable += received.costable as usize;
+        }
+
+        println!("===========================================");
+        println!("CRITICAL: {}", critical);
+        println!("COCRITICAL: {}", cocritical);
+        println!("VERTEX SUBCRITICAL: {}", vsubcritical);
+        println!("EDGE SUBCRITICAL: {}", esubcritical);
+        println!("STABLE: {}", stable);
+        println!("COSTABLE: {}", costable);
+
+        for thread in threads {
+            thread.join().unwrap();
+        }
+        Ok(())
+    }
+
+    fn critical_properties_sequential<G: Graph>(
+        &self,
+        graphs: &mut Vec<(G, BasicProperties)>,
+    ) -> Result<()> {
+        let mut critical = 0;
+        let mut cocritical = 0;
+        let mut vsubcritical = 0;
+        let mut esubcritical = 0;
 
         for graph in graphs {
             let mut props = CriticalProperties::of_graph(&graph.0);
             critical += props.is_critical() as usize;
             cocritical += props.is_cocritical() as usize;
             vsubcritical += props.is_vertex_subcritical() as usize;
+            esubcritical += props.is_edge_subcritical() as usize;
         }
 
         println!("CRITICAL: {}", critical);
         println!("COCRITICAL: {}", cocritical);
         println!("VERTEX SUBCRITICAL: {}", vsubcritical);
+        println!("EDGE SUBCRITICAL: {}", esubcritical);
 
+        Ok(())
+    }
+
+    fn critical_properties_in_parallel<G: Graph>(
+        &self,
+        graphs: &mut Vec<(G, BasicProperties)>,
+    ) -> Result<()> {
+        let mut threads = vec![];
+        let mut index = 0;
+        let (tx, rx) = mpsc::channel();
+
+        for graph in graphs {
+            let graph_local = SimpleGraph::from_graph(&graph.0);
+            let tx_cloned = mpsc::Sender::clone(&tx);
+
+            let handle = thread::spawn(move || {
+                // println!("graph: {}", index);
+                let mut props = CriticalProperties::of_graph(&graph_local);
+
+                let result = ChromaticPropertiesResult {
+                    graph_index: index,
+                    critical: props.is_critical(),
+                    cocritical: props.is_cocritical(),
+                    vertex_subcritical: props.is_vertex_subcritical(),
+                    edge_subcritical: props.is_edge_subcritical(),
+                    stable: false,
+                    costable: false,
+                };
+                tx_cloned.send(result);
+            });
+            threads.push(handle);
+            index += 1;
+        }
+
+        drop(tx);
+        let mut critical = 0;
+        let mut cocritical = 0;
+        let mut vsubcritical = 0;
+        let mut esubcritical = 0;
+
+        for received in rx {
+            // println!("Got: {:?}", received);
+
+            critical += received.critical as usize;
+            cocritical += received.cocritical as usize;
+            vsubcritical += received.vertex_subcritical as usize;
+            esubcritical += received.edge_subcritical as usize;
+        }
+
+        println!("===========================================");
+        println!("CRITICAL: {}", critical);
+        println!("COCRITICAL: {}", cocritical);
+        println!("VERTEX SUBCRITICAL: {}", vsubcritical);
+        println!("EDGE SUBCRITICAL: {}", esubcritical);
+
+        for thread in threads {
+            thread.join().unwrap();
+        }
+        Ok(())
+    }
+
+    fn filter<G: Graph>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
+        let mut filtered = vec![];
+        filtered.push((graphs[0].0.clone(), graphs[0].1.clone()));
+        *graphs = filtered;
         Ok(())
     }
 
@@ -298,4 +490,15 @@ impl BasicProcedure {
 struct GraphWithProperties {
     graph: String,
     properties: BasicProperties,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct ChromaticPropertiesResult {
+    graph_index: usize,
+    critical: bool,
+    cocritical: bool,
+    vertex_subcritical: bool,
+    edge_subcritical: bool,
+    stable: bool,
+    costable: bool,
 }

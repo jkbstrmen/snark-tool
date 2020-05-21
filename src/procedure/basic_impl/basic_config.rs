@@ -60,4 +60,18 @@ impl BasicConfig {
         }
         Ok(colouriser_type)
     }
+
+    pub fn get_parallel(&self) -> Result<bool> {
+        let parallel_opt = self.config.get("parallel");
+        let mut parallel = true;
+        if parallel_opt.is_some() {
+            if parallel_opt.unwrap() == "true" {
+                parallel = true;
+            }
+            if parallel_opt.unwrap() == "false" {
+                parallel = false;
+            }
+        }
+        Ok(parallel)
+    }
 }

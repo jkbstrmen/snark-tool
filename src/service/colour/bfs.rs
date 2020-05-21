@@ -8,7 +8,8 @@ pub struct BFSColourizer {}
 
 struct BFSColourizerGraph {
     // pair - (neighbor, color)
-    vertices: Vec<Vec<(usize, usize)>>,
+    vertices: Vec<[(usize, usize); 3]>,
+    // vertices: Vec<Vec<(usize, usize)>>,
     one_edge_vert: Vec<usize>,
     non_colored_edges: Vec<usize>,
     non_colored_edges_of_graph: usize,
@@ -29,22 +30,26 @@ impl Colourizer for BFSColourizer {
     {
         let mut vertices = Vec::with_capacity(graph.size());
         for vertex in graph.vertices() {
-            // let mut neighbors = [(0, 1); 3];
-            let mut neighbors = Vec::with_capacity(3);
+            let mut neighbors = [(0, 1); 3];
+            // let mut neighbors = Vec::with_capacity(3);
             let mut i = 0;
             for edge in graph.edges_of_vertex(vertex.index()) {
                 if edge.from() == vertex.index() {
-                    // neighbors[i].0 = edge.to();
-                    neighbors.push((edge.to(), 1))
+                    neighbors[i].0 = edge.to();
+                    // neighbors.push((edge.to(), 1))
                 } else {
-                    // neighbors[i].0 = edge.from();
-                    neighbors.push((edge.from(), 1))
+                    neighbors[i].0 = edge.from();
+                    // neighbors.push((edge.from(), 1))
                 }
                 i += 1;
             }
-            while neighbors.len() < 3 {
-                neighbors.push((vertex.index(), 0))
+            while i < 3 {
+                neighbors[i].0 = vertex.index();
+                i += 1;
             }
+            // while neighbors.len() < 3 {
+            //     neighbors.push((vertex.index(), 0))
+            // }
             vertices.push(neighbors);
         }
         let mut color_graph = BFSColourizerGraph {
@@ -59,6 +64,13 @@ impl Colourizer for BFSColourizer {
         let mut first_vertex = 0;
         let mut index = 0;
         for vertex in color_graph.vertices.clone() {
+
+            // experimental - todo - if only vertices of order 2 - should be ok
+            if vertex[2].0 == index {
+                index += 1;
+                continue;
+            }
+
             let mut i = 0;
             for neighbor in vertex.iter() {
                 if neighbor.0 == index {
@@ -114,6 +126,11 @@ impl BFSColourizerGraph {
         let mut neighbor2 = 0;
         let mut colored_sum: usize = 0;
         for neighbor in self.vertices[vertex].iter() {
+
+            if neighbor.0 == vertex {
+                continue;
+            }
+
             let color = neighbor.1;
             if color == 1 {
                 neighbor2 = neighbor1;
@@ -322,7 +339,8 @@ impl BFSColourizerGraph {
     }
 
     // ttt2
-    fn is_vertex_without_conflict(&self, neighbors: &Vec<(usize, usize)>) -> bool {
+    fn is_vertex_without_conflict(&self, neighbors: &[(usize, usize); 3]) -> bool {
+    // fn is_vertex_without_conflict(&self, neighbors: &Vec<(usize, usize)>) -> bool {
         is_without_conflict(neighbors[0].1, neighbors[1].1, neighbors[2].1)
     }
 

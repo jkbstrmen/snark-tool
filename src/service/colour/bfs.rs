@@ -36,7 +36,7 @@ impl Colourizer for BFSColourizer {
             for edge in graph.edges_of_vertex(vertex.index()) {
                 if edge.from() == vertex.index() {
                     neighbors[i].0 = edge.to();
-                    // neighbors.push((edge.to(), 1))
+                // neighbors.push((edge.to(), 1))
                 } else {
                     neighbors[i].0 = edge.from();
                     // neighbors.push((edge.from(), 1))
@@ -64,7 +64,6 @@ impl Colourizer for BFSColourizer {
         let mut first_vertex = 0;
         let mut index = 0;
         for vertex in color_graph.vertices.clone() {
-
             // experimental - todo - if only vertices of order 2 - should be ok
             if vertex[2].0 == index {
                 index += 1;
@@ -126,7 +125,6 @@ impl BFSColourizerGraph {
         let mut neighbor2 = 0;
         let mut colored_sum: usize = 0;
         for neighbor in self.vertices[vertex].iter() {
-
             if neighbor.0 == vertex {
                 continue;
             }
@@ -340,7 +338,7 @@ impl BFSColourizerGraph {
 
     // ttt2
     fn is_vertex_without_conflict(&self, neighbors: &[(usize, usize); 3]) -> bool {
-    // fn is_vertex_without_conflict(&self, neighbors: &Vec<(usize, usize)>) -> bool {
+        // fn is_vertex_without_conflict(&self, neighbors: &Vec<(usize, usize)>) -> bool {
         is_without_conflict(neighbors[0].1, neighbors[1].1, neighbors[2].1)
     }
 

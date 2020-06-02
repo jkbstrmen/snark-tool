@@ -8,4 +8,13 @@ pub trait Colourizer {
         G: Graph<V, E>,
         V: Vertex,
         E: Edge;
+
+    fn new() -> Self;
+
+    // temp
+    fn is_colorable_with_counter<G, V, E>(graph: &G, counter: &mut usize) -> bool
+    where
+        G: Graph<V, E>,
+        V: Vertex,
+        E: Edge;
 }

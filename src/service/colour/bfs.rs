@@ -15,11 +15,11 @@ struct BFSColourizerGraph {
     non_colored_edges_of_graph: usize,
 }
 
-impl BFSColourizer {
-    pub fn new() -> Self {
-        BFSColourizer {}
-    }
-}
+// impl BFSColourizer {
+//     pub fn new() -> Self {
+//         BFSColourizer {}
+//     }
+// }
 
 impl Colourizer for BFSColourizer {
     fn is_colorable<G, V, E>(graph: &G) -> bool
@@ -96,6 +96,18 @@ impl Colourizer for BFSColourizer {
         color_graph.non_colored_edges = non_colored_edges_of_vertex_count;
         color_graph.non_colored_edges_of_graph = non_colored_edges_of_graph;
         color_graph.color(first_vertex)
+    }
+
+    fn new() -> Self {
+        BFSColourizer{}
+    }
+
+    // todo - temp
+    fn is_colorable_with_counter<G, V, E>(graph: &G, counter: &mut usize) -> bool where
+        G: Graph<V, E>,
+        V: Vertex,
+        E: Edge {
+        unimplemented!()
     }
 }
 

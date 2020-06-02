@@ -11,22 +11,28 @@ procedures:
 #      file: resources/graphs/gg.26.05-scocritical-2.g6
 #      file: resources/graphs/gg.26.05-critical-10.g6
 #      file: resources/graphs/12snarksForTest.g6
-      file: resources/graphs/Generated_100_36vert_snarks.g6
+#      file: resources/graphs/Generated_100_36vert_snarks.g6
+#      file: resources/graphs/Generated_20_36vert_snarks.g6
 #      file: resources/graphs/temp-measurements-chrom-prop.g6
 #      file: resources/graphs/petersen.g6
 #      file: resources/graphs/Generated_2100_36vert_snarks.g6
-      graph-format: g6
+      file: resources/graphs/PSC6XJ5.118
+#      graph-format: g6
+      graph-format: ba
 #      number-of-graphs: 2
 
 #  - proc-type: colour
 #    config:
 ##      colouriser-type: sat
-#      colouriser-type: bfs
+#      colouriser-type: cvd-dfs
+##      colouriser-type: bfs
 
   - proc-type: chromatic-properties
     config:
       filter: true
-      parallel: true
+      parallel: false
+#      colouriser-type: cvd-sat
+      colouriser-type: sat
 
 #  - proc-type: write
 #    config:

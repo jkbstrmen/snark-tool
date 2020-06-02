@@ -9,6 +9,7 @@ use crate::service::chromatic_properties::critical_prop::CriticalProperties;
 use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
 use crate::service::colour::bfs::BFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
+use crate::service::colour::cvd_dfs::CvdDfsColourizer;
 use crate::service::colour::sat::SATColourizer;
 use crate::service::io::error::{ReadError, WriteError};
 use crate::service::io::reader::Reader;
@@ -24,6 +25,7 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::sync::mpsc;
 use std::{fs, marker, path, result, thread, time};
+use crate::service::colour::cvd_sat::CvdSatColourizer;
 
 type Result<T> = result::Result<T, Error>;
 
@@ -185,6 +187,9 @@ impl BasicProcedure {
             "sat" => {
                 BasicProcedure::color_by_colourizer::<G, SATColourizer>(graphs);
             }
+            "cvd-dfs" => {
+                BasicProcedure::color_by_colourizer::<G, CvdDfsColourizer>(graphs);
+            }
             _ => {
                 return Err(Error::ConfigError(String::from(
                     "unknown colouriser type for colour procedure",
@@ -265,27 +270,62 @@ impl BasicProcedure {
         Ok(file_result.unwrap())
     }
 
-    fn chromatic_properties<G: Graph>(
-        &self,
-        graphs: &mut Vec<(G, BasicProperties)>,
-    ) -> Result<()> {
+    fn chromatic_properties<G: Graph>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
         println!("Running procedure: {}", self.proc_type);
 
         let parallel = self.config.get_parallel()?;
+        let colourizer_type = self.config.get_colouriser_type()?;
+        match colourizer_type {
+            Some(col_type) => {
+                match col_type.as_str() {
+                    "sat" => {
+                        return self.critical_and_stable_properties(graphs, SATColourizer::new(), parallel);
+                    }
+                    "bfs" => {
+                        return self.critical_and_stable_properties(graphs, BFSColourizer::new(), parallel);
+                    }
+                    "cvd-bfs" => {
+                        return self.critical_and_stable_properties(graphs, CvdDfsColourizer::new(), parallel);
+                    }
+                    "cvd-sat" => {
+                        return self.critical_and_stable_properties(graphs, CvdSatColourizer::new(), parallel);
+                    }
+                    _ => {
+                        // return Err();
+                    }
+                }
+            }
+            None => {
+                return self.critical_and_stable_properties(graphs, BFSColourizer::new(), parallel);
+            }
+            _ => {
+                // return err
+            }
+        }
+        Ok(())
+    }
+
+    fn critical_and_stable_properties<G: Graph, C: Colourizer>(
+        &self,
+        graphs: &mut Vec<(G, BasicProperties)>,
+        colourizer: C,
+        parallel: bool
+    ) -> Result<()> {
         if parallel {
             // self.critical_properties_in_parallel(graphs);
-            self.critical_and_stable_properties_in_parallel(graphs);
+            self.critical_and_stable_properties_in_parallel(graphs, colourizer);
         } else {
             // self.critical_properties_sequential(graphs);
-            self.critical_and_stable_properties_sequential(graphs);
+            self.critical_and_stable_properties_sequential(graphs, colourizer);
         }
         Ok(())
     }
 
     // todo - refactor
-    fn critical_and_stable_properties_sequential<G: Graph>(
+    fn critical_and_stable_properties_sequential<G: Graph, C: Colourizer>(
         &self,
         graphs: &mut Vec<(G, BasicProperties)>,
+        colourizer: C
     ) -> Result<()> {
         let mut critical = 0;
         let mut cocritical = 0;
@@ -297,9 +337,11 @@ impl BasicProcedure {
         let mut index = 0;
 
         for graph in graphs {
+            // temp
             let begin = time::Instant::now();
 
-            let mut props = StableAndCriticalProperties::of_graph(&graph.0);
+            let mut props =
+                StableAndCriticalProperties::of_graph_with_colourizer(&graph.0, C::new());
             critical += props.is_critical() as usize;
             cocritical += props.is_cocritical() as usize;
             vsubcritical += props.is_vertex_subcritical() as usize;
@@ -307,6 +349,7 @@ impl BasicProcedure {
             stable += props.is_stable() as usize;
             costable += props.is_costable() as usize;
 
+            // temp
             println!(
                 "graph: {} elapsed: {} ms",
                 index,
@@ -327,9 +370,10 @@ impl BasicProcedure {
         Ok(())
     }
 
-    fn critical_and_stable_properties_in_parallel<G: Graph>(
+    fn critical_and_stable_properties_in_parallel<G: Graph, C: Colourizer>(
         &self,
         graphs: &mut Vec<(G, BasicProperties)>,
+        colourizer: C
     ) -> Result<()> {
         let mut threads = vec![];
         let mut index = 0;
@@ -340,8 +384,8 @@ impl BasicProcedure {
             let tx_cloned = mpsc::Sender::clone(&tx);
 
             let handle = thread::spawn(move || {
-                // println!("graph: {}", index);
-                let mut props = StableAndCriticalProperties::of_graph(&graph_local);
+                let mut props =
+                    StableAndCriticalProperties::of_graph_with_colourizer(&graph_local, C::new());
 
                 let result = ChromaticPropertiesResult {
                     graph_index: index,
@@ -367,8 +411,6 @@ impl BasicProcedure {
         let mut costable = 0;
 
         for received in rx {
-            // println!("Got: {:?}", received);
-
             critical += received.critical as usize;
             cocritical += received.cocritical as usize;
             vsubcritical += received.vertex_subcritical as usize;
@@ -408,6 +450,7 @@ impl BasicProcedure {
             esubcritical += props.is_edge_subcritical() as usize;
         }
 
+        // temp
         println!("CRITICAL: {}", critical);
         println!("COCRITICAL: {}", cocritical);
         println!("VERTEX SUBCRITICAL: {}", vsubcritical);
@@ -429,9 +472,7 @@ impl BasicProcedure {
             let tx_cloned = mpsc::Sender::clone(&tx);
 
             let handle = thread::spawn(move || {
-                // println!("graph: {}", index);
                 let mut props = CriticalProperties::of_graph(&graph_local);
-
                 let result = ChromaticPropertiesResult {
                     graph_index: index,
                     critical: props.is_critical(),
@@ -454,14 +495,13 @@ impl BasicProcedure {
         let mut esubcritical = 0;
 
         for received in rx {
-            // println!("Got: {:?}", received);
-
             critical += received.critical as usize;
             cocritical += received.cocritical as usize;
             vsubcritical += received.vertex_subcritical as usize;
             esubcritical += received.edge_subcritical as usize;
         }
 
+        // temp
         println!("===========================================");
         println!("CRITICAL: {}", critical);
         println!("COCRITICAL: {}", cocritical);

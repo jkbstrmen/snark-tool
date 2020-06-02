@@ -6,7 +6,8 @@ use rand::seq::SliceRandom;
 use rand::Rng;
 
 struct CVDGraph {
-    vertices: Vec<[(usize, u8); 3]>,
+    // vertices: Vec<[(usize, u8); 3]>,
+    vertices: Vec<Vec<(usize, u8)>>,
     // available_colors: Vec<Vec<u8>>,
     size: usize,
 
@@ -30,9 +31,8 @@ where
     E: Edge,
 {
     let mut graph = create_cvd_graph(graph);
+    let l_limit = graph.vertices_to_try.len();
 
-    // todo - how to choose l_limit?
-    let l_limit = graph.size;
     for i in 0..l_limit {
         graph.next_pre_colour();
 
@@ -41,7 +41,6 @@ where
             return Some(true);
         }
     }
-
     None
 }
 
@@ -51,15 +50,19 @@ where
     V: Vertex,
     E: Edge,
 {
-    let mut vertices: Vec<[(usize, u8); 3]> = Vec::with_capacity(graph.size());
+    // let mut vertices: Vec<[(usize, u8); 3]> = Vec::with_capacity(graph.size());
+    let mut vertices: Vec<Vec<(usize, u8)>> = Vec::with_capacity(graph.size());
     for vertex in graph.vertices() {
-        let mut vertex_new: [(usize, u8); 3] = [(0, 0); 3];
+        // let mut vertex_new: [(usize, u8); 3] = [(0, 0); 3];
+        let mut vertex_new = vec![];
         let mut i = 0;
         for edge in graph.edges_of_vertex(vertex.index()) {
             if edge.from() == vertex.index() {
-                vertex_new[i] = (edge.to(), 0);
+                // vertex_new[i] = (edge.to(), 1);
+                vertex_new.push((edge.to(), 0));
             } else {
-                vertex_new[i] = (edge.from(), 0);
+                // vertex_new[i] = (edge.from(), 1);
+                vertex_new.push((edge.from(), 0));
             }
             i += 1;
         }
@@ -72,7 +75,9 @@ where
     // }
     let mut vertices_to_try = Vec::with_capacity(graph.size());
     for i in 0..graph.size() {
-        vertices_to_try.push(i);
+        if graph.edges_of_vertex(i).next().is_some() {
+            vertices_to_try.push(i);
+        }
     }
 
     CVDGraph {
@@ -93,7 +98,8 @@ where
 impl CVDGraph {
     fn is_colorable(&mut self) -> bool {
         // todo - how to choose r_limit?
-        let r_limit = 10;
+        let r_limit = self.vertices_to_try.len() / 4;
+
         let mut i = 0;
         while i < r_limit {
             let cvs = self.conflicting_vertices();
@@ -118,6 +124,9 @@ impl CVDGraph {
         // clean graph colors
         for mut vertex in self.vertices.iter_mut() {
             for neighbor in vertex.iter_mut() {
+                // if neighbor.1 != 0 {
+                //     neighbor.1 = 1;
+                // }
                 neighbor.1 = 0;
             }
         }
@@ -134,15 +143,18 @@ impl CVDGraph {
         let current = to_visit.pop().unwrap();
 
         let mut available = self.available_colors_of_vertex(current);
-        if available.is_empty() {
+        let uncolored_neighbors_of_vertex = self.uncolored_edges_of_vertex(current);
+        if uncolored_neighbors_of_vertex.is_empty() {
             self.bfs_pre_colour(to_visit);
             return;
         }
-        let mut neighbors = self.vertices[current];
-        for neighbor in neighbors.iter_mut() {
+        // let mut neighbors = self.vertices[current];
+        let mut neighbors = self.vertices[current].clone();
+        for neighbor in neighbors.iter() {
+        // for neighbor in self.vertices[current].iter_mut() {
             if neighbor.1 == 0 {
                 let color = available.pop().unwrap();
-                neighbor.1 = color;
+                // neighbor.1 = color;
                 self.set_edge_color(current, neighbor.0, color);
                 // do not push duplicates?
                 to_visit.push(neighbor.0);
@@ -170,6 +182,16 @@ impl CVDGraph {
             colors.retain(|&item| item != neighbor.1)
         }
         colors
+    }
+
+    fn uncolored_edges_of_vertex(&self, vertex: usize) -> Vec<usize> {
+        let mut uncolored_neighbors = vec![];
+        for neighbor in self.vertices[vertex].iter() {
+            if neighbor.1 == 0 {
+                uncolored_neighbors.push(neighbor.0);
+            }
+        }
+        uncolored_neighbors
     }
 
     fn conflicting_color_of_vertex(&self, vertex: usize) -> Option<u8> {
@@ -230,7 +252,7 @@ impl CVDGraph {
         self.kempe_step(next.unwrap(), resolving_colour);
     }
 
-    fn next_vertex_of_chain(&self) -> (usize, u8) {
+    fn next_vertex_of_chain(&self) -> Option<(usize, u8)> {
         let mut next = None;
         let mut next_color = 0;
         let last_vertex_of_chain = self.kempe_chain.vertices[self.kempe_chain.vertices.len() - 1];
@@ -243,13 +265,16 @@ impl CVDGraph {
                 next = Some(neighbor.0);
             }
         }
+        // for subcubic graphs
+        if next.is_none() {
+            return None;
+        }
         if self.kempe_chain.last_colour_of_chain == self.kempe_chain.conflicting_colour {
             next_color = self.kempe_chain.resolving_colour;
         } else {
             next_color = self.kempe_chain.conflicting_colour;
         }
-
-        (next.unwrap(), next_color)
+        Some((next.unwrap(), next_color))
     }
 
     fn kempe_step(
@@ -273,10 +298,16 @@ impl CVDGraph {
 
         // get next
         let next = self.next_vertex_of_chain();
+        // adjustment for subcubic graphs - if none - conflict is cancelled out
+        if next.is_none() {
+            return;
+        }
+        let next = next.unwrap();
         self.kempe_step(next.0, next.1);
     }
 
-    fn is_conflicting_vertex(&self, vertex: &[(usize, u8); 3]) -> bool {
+    // fn is_conflicting_vertex(&self, vertex: &[(usize, u8); 3]) -> bool {
+    fn is_conflicting_vertex(&self, vertex: &Vec<(usize, u8)>) -> bool {
         let mut colours = vec![];
         for neighbor in vertex.iter() {
             colours.push(neighbor.1);

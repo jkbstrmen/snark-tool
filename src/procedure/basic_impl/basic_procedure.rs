@@ -3,13 +3,13 @@ use crate::error::Error;
 use crate::graph::graph::{Graph, GraphConstructor};
 use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::procedure::basic_impl::basic_config::BasicConfig;
-use crate::procedure::basic_impl::basic_properties::BasicProperties;
 use crate::procedure::procedure::{Config, Procedure};
 use crate::service::chromatic_properties::critical_prop::CriticalProperties;
 use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
 use crate::service::colour::bfs::BFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
 use crate::service::colour::cvd_dfs::CvdDfsColourizer;
+use crate::service::colour::cvd_sat::CvdSatColourizer;
 use crate::service::colour::sat::SATColourizer;
 use crate::service::io::error::{ReadError, WriteError};
 use crate::service::io::reader::Reader;
@@ -20,12 +20,12 @@ use crate::service::io::writer_ba::BaWriter;
 use crate::service::io::writer_g6::G6Writer;
 use crate::service::io::writer_s6::S6Writer;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fmt::Debug;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::sync::mpsc;
 use std::{fs, marker, path, result, thread, time};
-use crate::service::colour::cvd_sat::CvdSatColourizer;
 
 type Result<T> = result::Result<T, Error>;
 
@@ -33,6 +33,8 @@ pub struct BasicProcedure {
     proc_type: String,
     config: BasicConfig,
 }
+
+type BasicProperties = HashMap<String, String>;
 
 impl Procedure<BasicProperties> for BasicProcedure {
     fn new_with_config(proc_type: impl AsRef<str>, config: Config) -> Self {
@@ -98,7 +100,7 @@ impl BasicProcedure {
             _ => {
                 return Err(Error::ConfigError(String::from(
                     "unknown graph format for read procedure",
-                )))
+                )));
             }
         }
         Ok(())
@@ -157,7 +159,7 @@ impl BasicProcedure {
             _ => {
                 return Err(Error::ConfigError(String::from(
                     "unknown graph format for read procedure",
-                )))
+                )));
             }
         }
 
@@ -193,7 +195,7 @@ impl BasicProcedure {
             _ => {
                 return Err(Error::ConfigError(String::from(
                     "unknown colouriser type for colour procedure",
-                )))
+                )));
             }
         }
         Ok(())
@@ -206,7 +208,9 @@ impl BasicProcedure {
     {
         for graph in graphs {
             let result = C::is_colorable(&graph.0);
-            graph.1.colorable = Some(result);
+            graph
+                .1
+                .insert("colourable".to_string(), format!("{}", result));
         }
     }
 
@@ -276,25 +280,42 @@ impl BasicProcedure {
         let parallel = self.config.get_parallel()?;
         let colourizer_type = self.config.get_colouriser_type()?;
         match colourizer_type {
-            Some(col_type) => {
-                match col_type.as_str() {
-                    "sat" => {
-                        return self.critical_and_stable_properties(graphs, SATColourizer::new(), parallel);
-                    }
-                    "bfs" => {
-                        return self.critical_and_stable_properties(graphs, BFSColourizer::new(), parallel);
-                    }
-                    "cvd-bfs" => {
-                        return self.critical_and_stable_properties(graphs, CvdDfsColourizer::new(), parallel);
-                    }
-                    "cvd-sat" => {
-                        return self.critical_and_stable_properties(graphs, CvdSatColourizer::new(), parallel);
-                    }
-                    _ => {
-                        // return Err();
-                    }
+            Some(col_type) => match col_type.as_str() {
+                "sat" => {
+                    return self.critical_and_stable_properties(
+                        graphs,
+                        SATColourizer::new(),
+                        parallel,
+                    );
                 }
-            }
+                "bfs" => {
+                    return self.critical_and_stable_properties(
+                        graphs,
+                        BFSColourizer::new(),
+                        parallel,
+                    );
+                }
+                "cvd-bfs" => {
+                    return self.critical_and_stable_properties(
+                        graphs,
+                        CvdDfsColourizer::new(),
+                        parallel,
+                    );
+                }
+                "cvd-sat" => {
+                    return self.critical_and_stable_properties(
+                        graphs,
+                        CvdSatColourizer::new(),
+                        parallel,
+                    );
+                }
+                _ => {
+                    return Err(Error::ConfigError(format!(
+                        "unknown colourizer: {} for chromatic properties",
+                        col_type
+                    )));
+                }
+            },
             None => {
                 return self.critical_and_stable_properties(graphs, BFSColourizer::new(), parallel);
             }
@@ -309,7 +330,7 @@ impl BasicProcedure {
         &self,
         graphs: &mut Vec<(G, BasicProperties)>,
         colourizer: C,
-        parallel: bool
+        parallel: bool,
     ) -> Result<()> {
         if parallel {
             // self.critical_properties_in_parallel(graphs);
@@ -325,7 +346,7 @@ impl BasicProcedure {
     fn critical_and_stable_properties_sequential<G: Graph, C: Colourizer>(
         &self,
         graphs: &mut Vec<(G, BasicProperties)>,
-        colourizer: C
+        colourizer: C,
     ) -> Result<()> {
         let mut critical = 0;
         let mut cocritical = 0;
@@ -373,64 +394,105 @@ impl BasicProcedure {
     fn critical_and_stable_properties_in_parallel<G: Graph, C: Colourizer>(
         &self,
         graphs: &mut Vec<(G, BasicProperties)>,
-        colourizer: C
+        colourizer: C,
     ) -> Result<()> {
         let mut threads = vec![];
         let mut index = 0;
         let (tx, rx) = mpsc::channel();
+        let cpus_count = num_cpus::get();
 
-        for graph in graphs {
+        // init first threads
+        let mut graphs_iter = graphs.iter();
+        let mut next_graph = graphs_iter.next();
+        while next_graph.is_some() {
+            let graph = next_graph.unwrap();
             let graph_local = SimpleGraph::from_graph(&graph.0);
             let tx_cloned = mpsc::Sender::clone(&tx);
-
-            let handle = thread::spawn(move || {
-                let mut props =
-                    StableAndCriticalProperties::of_graph_with_colourizer(&graph_local, C::new());
-
-                let result = ChromaticPropertiesResult {
-                    graph_index: index,
-                    critical: props.is_critical(),
-                    cocritical: props.is_cocritical(),
-                    vertex_subcritical: props.is_vertex_subcritical(),
-                    edge_subcritical: props.is_edge_subcritical(),
-                    stable: props.is_stable(),
-                    costable: props.is_costable(),
-                };
-                tx_cloned.send(result);
-            });
+            let handle = Self::thread_for_graph(graph_local, index, tx_cloned, &colourizer);
             threads.push(handle);
             index += 1;
+
+            if index >= cpus_count {
+                break;
+            }
+            next_graph = graphs_iter.next();
+        }
+
+        let mut results = Vec::with_capacity(graphs.len());
+        // receive results and create new threads while next graphs exists
+        for received in &rx {
+            results.push(received);
+
+            next_graph = graphs_iter.next();
+            if next_graph.is_some() {
+                let graph = next_graph.unwrap();
+                let graph_local = SimpleGraph::from_graph(&graph.0);
+                let tx_cloned = mpsc::Sender::clone(&tx);
+                let handle = Self::thread_for_graph(graph_local, index, tx_cloned, &colourizer);
+                threads.push(handle);
+                index += 1;
+            } else {
+                break;
+            }
         }
 
         drop(tx);
-        let mut critical = 0;
-        let mut cocritical = 0;
-        let mut vsubcritical = 0;
-        let mut esubcritical = 0;
-        let mut stable = 0;
-        let mut costable = 0;
 
+        // receive remaining results
         for received in rx {
-            critical += received.critical as usize;
-            cocritical += received.cocritical as usize;
-            vsubcritical += received.vertex_subcritical as usize;
-            esubcritical += received.edge_subcritical as usize;
-            stable += received.stable as usize;
-            costable += received.costable as usize;
+            results.push(received);
         }
-
-        println!("===========================================");
-        println!("CRITICAL: {}", critical);
-        println!("COCRITICAL: {}", cocritical);
-        println!("VERTEX SUBCRITICAL: {}", vsubcritical);
-        println!("EDGE SUBCRITICAL: {}", esubcritical);
-        println!("STABLE: {}", stable);
-        println!("COSTABLE: {}", costable);
-
+        let mut index = 0;
+        for result in results {
+            graphs[index]
+                .1
+                .insert("critical".to_string(), format!("{}", result.critical));
+            graphs[index]
+                .1
+                .insert("cocritical".to_string(), format!("{}", result.cocritical));
+            graphs[index].1.insert(
+                "vertex_subcritical".to_string(),
+                format!("{}", result.vertex_subcritical),
+            );
+            graphs[index].1.insert(
+                "edge_subcritical".to_string(),
+                format!("{}", result.edge_subcritical),
+            );
+            graphs[index]
+                .1
+                .insert("stable".to_string(), format!("{}", result.stable));
+            graphs[index]
+                .1
+                .insert("costable".to_string(), format!("{}", result.costable));
+            index += 1;
+        }
         for thread in threads {
             thread.join().unwrap();
         }
         Ok(())
+    }
+
+    fn thread_for_graph<C: Colourizer>(
+        graph: SimpleGraph,
+        index: usize,
+        sender: mpsc::Sender<ChromaticPropertiesResult>,
+        _colourizer: &C
+    ) -> thread::JoinHandle<()> {
+        let handle = thread::spawn(move || {
+            let mut props = StableAndCriticalProperties::of_graph_with_colourizer(&graph, C::new());
+
+            let result = ChromaticPropertiesResult {
+                graph_index: index,
+                critical: props.is_critical(),
+                cocritical: props.is_cocritical(),
+                vertex_subcritical: props.is_vertex_subcritical(),
+                edge_subcritical: props.is_edge_subcritical(),
+                stable: props.is_stable(),
+                costable: props.is_costable(),
+            };
+            sender.send(result);
+        });
+        handle
     }
 
     fn critical_properties_sequential<G: Graph>(

@@ -1,8 +1,9 @@
 use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::procedure::basic_impl::basic_procedure::BasicProcedure;
-use crate::procedure::basic_impl::basic_properties::BasicProperties;
 use crate::procedure::configuration::Configuration;
 use crate::procedure::procedure_chain::ProcedureChain;
+use std::collections::HashMap;
+use std::time::Instant;
 use structopt::StructOpt;
 
 mod error;
@@ -29,11 +30,15 @@ fn parse_yaml_config(source: &String) -> Configuration {
     config
 }
 
+type BasicProperties = HashMap<String, String>;
+
 fn main() {
     let args = Cli::from_args();
 
     match args.command.as_ref() {
         "run" => {
+            let begin = Instant::now();
+
             let config_str =
                 std::fs::read_to_string(&args.config_file_path).expect("could not read file");
             let config = parse_yaml_config(&config_str);
@@ -50,9 +55,32 @@ fn main() {
                 }
                 Ok(()) => {}
             }
+
+            println!("elapsed: {}ms", begin.elapsed().as_millis());
         }
         _ => {
             println!("Unknown command");
         }
     }
 }
+
+// use crate::service::colour::sat;
+// use crate::service::io::reader::Reader;
+// use crate::service::io::reader_ba::BaReader;
+// use std::fs::OpenOptions;
+// use std::time::Instant;
+//
+// fn main() {
+//     let begin = Instant::now();
+//
+//     let file = OpenOptions::new()
+//         .read(true)
+//         .open("../../resources/graphs/PSC6XJ5.118")
+//         .unwrap();
+//     let mut reader = BaReader::<SimpleGraph>::new(&file);
+//     let graph = reader.next().unwrap();
+//
+//     let solution = sat::is_colorable(&graph.unwrap());
+//     println!("solution: {}", solution);
+//     println!("elapsed: {}ms", begin.elapsed().as_millis());
+// }

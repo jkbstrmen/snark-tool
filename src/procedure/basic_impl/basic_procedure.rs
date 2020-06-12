@@ -48,6 +48,7 @@ impl Procedure<BasicProperties> for BasicProcedure {
     where
         G: Debug + Graph + GraphConstructor,
     {
+        println!("Running procedure: {}", self.proc_type);
         match self.proc_type.as_str() {
             "read" => {
                 self.read_graph(graphs)?;
@@ -64,6 +65,9 @@ impl Procedure<BasicProperties> for BasicProcedure {
             "chromatic-properties" => {
                 self.chromatic_properties(graphs)?;
             }
+            "filter" => {
+                self.filter(graphs)?;
+            }
             _ => {
                 self.handle_unknown_type();
             }
@@ -78,7 +82,6 @@ impl BasicProcedure {
     where
         G: Debug + Graph + GraphConstructor,
     {
-        println!("Running procedure: {}", self.proc_type);
         let file_path = self.config.get_file()?;
         let graphs_count = self.config.get_number_of_graphs()?;
         let file = BasicProcedure::open_file_to_read(file_path)?;
@@ -142,7 +145,6 @@ impl BasicProcedure {
     where
         G: Graph + Debug,
     {
-        println!("Running procedure: {}", self.proc_type);
         let file_path = self.config.get_file()?;
         let graph_format = self.config.get_graph_format()?;
 
@@ -170,8 +172,6 @@ impl BasicProcedure {
     where
         G: Debug + Graph,
     {
-        println!("Running procedure: {}", self.proc_type);
-
         let colouriser_type_opt = self.config.get_colouriser_type()?;
         let colouriser_type;
         if colouriser_type_opt.is_none() {
@@ -275,8 +275,6 @@ impl BasicProcedure {
     }
 
     fn chromatic_properties<G: Graph>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
-        println!("Running procedure: {}", self.proc_type);
-
         let parallel = self.config.get_parallel()?;
         let colourizer_type = self.config.get_colouriser_type()?;
         match colourizer_type {
@@ -348,46 +346,34 @@ impl BasicProcedure {
         graphs: &mut Vec<(G, BasicProperties)>,
         colourizer: C,
     ) -> Result<()> {
-        let mut critical = 0;
-        let mut cocritical = 0;
-        let mut vsubcritical = 0;
-        let mut esubcritical = 0;
-        let mut stable = 0;
-        let mut costable = 0;
-
         let mut index = 0;
 
         for graph in graphs {
-            // temp
-            let begin = time::Instant::now();
-
             let mut props =
                 StableAndCriticalProperties::of_graph_with_colourizer(&graph.0, C::new());
-            critical += props.is_critical() as usize;
-            cocritical += props.is_cocritical() as usize;
-            vsubcritical += props.is_vertex_subcritical() as usize;
-            esubcritical += props.is_edge_subcritical() as usize;
-            stable += props.is_stable() as usize;
-            costable += props.is_costable() as usize;
-
-            // temp
-            println!(
-                "graph: {} elapsed: {} ms",
-                index,
-                begin.elapsed().as_millis()
+            graph
+                .1
+                .insert("critical".to_string(), format!("{}", props.is_critical()));
+            graph
+                .1
+                .insert("cocritical".to_string(), format!("{}", props.is_cocritical()));
+            graph.1.insert(
+                "vertex_subcritical".to_string(),
+                format!("{}", props.is_vertex_subcritical()),
             );
+            graph.1.insert(
+                "edge_subcritical".to_string(),
+                format!("{}", props.is_edge_subcritical()),
+            );
+            graph
+                .1
+                .insert("stable".to_string(), format!("{}", props.is_stable()));
+            graph
+                .1
+                .insert("costable".to_string(), format!("{}", props.is_costable()));
 
             index += 1;
         }
-
-        // temp
-        println!("CRITICAL: {}", critical);
-        println!("COCRITICAL: {}", cocritical);
-        println!("VERTEX SUBCRITICAL: {}", vsubcritical);
-        println!("EDGE SUBCRITICAL: {}", esubcritical);
-        println!("STABLE: {}", stable);
-        println!("COSTABLE: {}", costable);
-
         Ok(())
     }
 
@@ -408,7 +394,7 @@ impl BasicProcedure {
             let graph = next_graph.unwrap();
             let graph_local = SimpleGraph::from_graph(&graph.0);
             let tx_cloned = mpsc::Sender::clone(&tx);
-            let handle = Self::thread_for_graph(graph_local, index, tx_cloned, &colourizer);
+            let handle = Self::spawn_thread_for_graph(graph_local, index, tx_cloned, &colourizer);
             threads.push(handle);
             index += 1;
 
@@ -428,7 +414,8 @@ impl BasicProcedure {
                 let graph = next_graph.unwrap();
                 let graph_local = SimpleGraph::from_graph(&graph.0);
                 let tx_cloned = mpsc::Sender::clone(&tx);
-                let handle = Self::thread_for_graph(graph_local, index, tx_cloned, &colourizer);
+                let handle =
+                    Self::spawn_thread_for_graph(graph_local, index, tx_cloned, &colourizer);
                 threads.push(handle);
                 index += 1;
             } else {
@@ -442,29 +429,27 @@ impl BasicProcedure {
         for received in rx {
             results.push(received);
         }
-        let mut index = 0;
         for result in results {
-            graphs[index]
+            graphs[result.graph_index]
                 .1
                 .insert("critical".to_string(), format!("{}", result.critical));
-            graphs[index]
+            graphs[result.graph_index]
                 .1
                 .insert("cocritical".to_string(), format!("{}", result.cocritical));
-            graphs[index].1.insert(
+            graphs[result.graph_index].1.insert(
                 "vertex_subcritical".to_string(),
                 format!("{}", result.vertex_subcritical),
             );
-            graphs[index].1.insert(
+            graphs[result.graph_index].1.insert(
                 "edge_subcritical".to_string(),
                 format!("{}", result.edge_subcritical),
             );
-            graphs[index]
+            graphs[result.graph_index]
                 .1
                 .insert("stable".to_string(), format!("{}", result.stable));
-            graphs[index]
+            graphs[result.graph_index]
                 .1
                 .insert("costable".to_string(), format!("{}", result.costable));
-            index += 1;
         }
         for thread in threads {
             thread.join().unwrap();
@@ -472,11 +457,11 @@ impl BasicProcedure {
         Ok(())
     }
 
-    fn thread_for_graph<C: Colourizer>(
+    fn spawn_thread_for_graph<C: Colourizer>(
         graph: SimpleGraph,
         index: usize,
         sender: mpsc::Sender<ChromaticPropertiesResult>,
-        _colourizer: &C
+        _colourizer: &C,
     ) -> thread::JoinHandle<()> {
         let handle = thread::spawn(move || {
             let mut props = StableAndCriticalProperties::of_graph_with_colourizer(&graph, C::new());
@@ -495,6 +480,7 @@ impl BasicProcedure {
         handle
     }
 
+    // todo - refactor
     fn critical_properties_sequential<G: Graph>(
         &self,
         graphs: &mut Vec<(G, BasicProperties)>,
@@ -521,6 +507,7 @@ impl BasicProcedure {
         Ok(())
     }
 
+    // todo - refactor
     fn critical_properties_in_parallel<G: Graph>(
         &self,
         graphs: &mut Vec<(G, BasicProperties)>,
@@ -577,9 +564,23 @@ impl BasicProcedure {
     }
 
     fn filter<G: Graph>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
-        let mut filtered = vec![];
-        filtered.push((graphs[0].0.clone(), graphs[0].1.clone()));
-        *graphs = filtered;
+        let filter_properties = self.config.get_filter_properties();
+        graphs.retain(|graph| {
+            let mut retain = true;
+            for filter_property in filter_properties {
+                let mut has_property = false;
+                for graph_property in &graph.1 {
+                    if filter_property == graph_property {
+                        has_property = true;
+                    }
+                }
+                if !has_property {
+                    retain = false;
+                    break;
+                }
+            }
+            retain
+        });
         Ok(())
     }
 

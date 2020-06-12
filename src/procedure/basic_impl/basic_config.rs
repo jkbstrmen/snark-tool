@@ -1,5 +1,6 @@
 use crate::error::Error;
 use crate::procedure::procedure::Config;
+use std::collections::HashMap;
 use std::result;
 use std::str::FromStr;
 
@@ -73,5 +74,9 @@ impl BasicConfig {
             }
         }
         Ok(parallel)
+    }
+
+    pub fn get_filter_properties(&self) -> &HashMap<String, String> {
+        &self.config
     }
 }

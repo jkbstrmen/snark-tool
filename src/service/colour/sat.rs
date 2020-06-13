@@ -9,14 +9,6 @@ use varisat::{CnfFormula, ExtendFormula};
 
 pub struct SATColourizer {}
 
-// TODO - adjust for subcubic graphs
-
-// impl SATColourizer {
-//     pub fn new() -> Self {
-//         SATColourizer{}
-//     }
-// }
-
 impl Colourizer for SATColourizer {
     fn is_colorable<G, V, E>(graph: &G) -> bool
     where
@@ -46,53 +38,21 @@ impl Colourizer for SATColourizer {
 
         // improvement - not necessary
         for edge in graph.edges() {
-            // TODO - adjust for subcubic graphs
-
             let edges_from = graph.edges_of_vertex(edge.from());
-            // let edges_from: Vec<&E> = Vec::from_iter(edges_from);
             let edges_to = graph.edges_of_vertex(edge.to());
-            // let edges_to: Vec<&E> = Vec::from_iter(edges_to);
-
-            // // edges of from vertex
-            // let first_edge_lits = edge_lits
-            //     .get(&(edges_from[0].from(), edges_from[0].to()))
-            //     .unwrap();
-            // let second_edge_lits = edge_lits
-            //     .get(&(edges_from[1].from(), edges_from[1].to()))
-            //     .unwrap();
-            // let third_edge_lits = edge_lits
-            //     .get(&(edges_from[2].from(), edges_from[2].to()))
-            //     .unwrap();
-            //
-            // // edges of to vertex
-            // let fourth_edge_lits = edge_lits
-            //     .get(&(edges_to[0].from(), edges_to[0].to()))
-            //     .unwrap();
-            // let fifth_edge_lits = edge_lits
-            //     .get(&(edges_to[1].from(), edges_to[1].to()))
-            //     .unwrap();
-            // let sixth_edge_lits = edge_lits
-            //     .get(&(edges_to[2].from(), edges_to[2].to()))
-            //     .unwrap();
 
             // edges of from vertex
             let mut from_vertex_edges_lits = vec![];
             for edge in edges_from {
-                let lits = edge_lits
-                    .get(&(edge.from(), edge.to()))
-                    .unwrap();
+                let lits = edge_lits.get(&(edge.from(), edge.to())).unwrap();
                 from_vertex_edges_lits.push(lits);
             }
             // edges of to vertex
             let mut to_vertex_edges_lits = vec![];
             for edge in edges_to {
-                let lits = edge_lits
-                    .get(&(edge.from(), edge.to()))
-                    .unwrap();
+                let lits = edge_lits.get(&(edge.from(), edge.to())).unwrap();
                 to_vertex_edges_lits.push(lits);
             }
-
-            // TODO - adjust for subcubic graphs
 
             let mut formula = CnfFormula::new();
 
@@ -133,59 +93,6 @@ impl Colourizer for SATColourizer {
                 formula.add_clause(&clause_col_1);
                 formula.add_clause(&clause_col_2);
             }
-
-
-            // // cannot be all edges colour with the same colour 0
-            // formula.add_clause(&[
-            //     !first_edge_lits.0,
-            //     !second_edge_lits.0,
-            //     !third_edge_lits.0,
-            //     !fourth_edge_lits.0,
-            //     !fifth_edge_lits.0,
-            //     !sixth_edge_lits.0,
-            // ]);
-            // // at least one of edges has to be coloured by color 0
-            // formula.add_clause(&[
-            //     first_edge_lits.0,
-            //     second_edge_lits.0,
-            //     third_edge_lits.0,
-            //     fourth_edge_lits.0,
-            //     fifth_edge_lits.0,
-            //     sixth_edge_lits.0,
-            // ]);
-            // formula.add_clause(&[
-            //     !first_edge_lits.1,
-            //     !second_edge_lits.1,
-            //     !third_edge_lits.1,
-            //     !fourth_edge_lits.1,
-            //     !fifth_edge_lits.1,
-            //     !sixth_edge_lits.1,
-            // ]);
-            // formula.add_clause(&[
-            //     first_edge_lits.1,
-            //     second_edge_lits.1,
-            //     third_edge_lits.1,
-            //     fourth_edge_lits.1,
-            //     fifth_edge_lits.1,
-            //     sixth_edge_lits.1,
-            // ]);
-            // formula.add_clause(&[
-            //     !first_edge_lits.2,
-            //     !second_edge_lits.2,
-            //     !third_edge_lits.2,
-            //     !fourth_edge_lits.2,
-            //     !fifth_edge_lits.2,
-            //     !sixth_edge_lits.2,
-            // ]);
-            // formula.add_clause(&[
-            //     first_edge_lits.2,
-            //     second_edge_lits.2,
-            //     third_edge_lits.2,
-            //     fourth_edge_lits.2,
-            //     fifth_edge_lits.2,
-            //     sixth_edge_lits.2,
-            // ]);
-
             solver.add_formula(&formula);
         }
 
@@ -227,14 +134,6 @@ impl Colourizer for SATColourizer {
     }
 
     fn new() -> Self {
-        SATColourizer{}
-    }
-
-    // todo - temp
-    fn is_colorable_with_counter<G, V, E>(graph: &G, counter: &mut usize) -> bool where
-        G: Graph<V, E>,
-        V: Vertex,
-        E: Edge {
-        unimplemented!()
+        SATColourizer {}
     }
 }

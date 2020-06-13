@@ -151,7 +151,7 @@ impl CVDGraph {
         // let mut neighbors = self.vertices[current];
         let mut neighbors = self.vertices[current].clone();
         for neighbor in neighbors.iter() {
-        // for neighbor in self.vertices[current].iter_mut() {
+            // for neighbor in self.vertices[current].iter_mut() {
             if neighbor.1 == 0 {
                 let color = available.pop().unwrap();
                 // neighbor.1 = color;

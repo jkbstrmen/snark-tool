@@ -354,9 +354,10 @@ impl BasicProcedure {
             graph
                 .1
                 .insert("critical".to_string(), format!("{}", props.is_critical()));
-            graph
-                .1
-                .insert("cocritical".to_string(), format!("{}", props.is_cocritical()));
+            graph.1.insert(
+                "cocritical".to_string(),
+                format!("{}", props.is_cocritical()),
+            );
             graph.1.insert(
                 "vertex_subcritical".to_string(),
                 format!("{}", props.is_vertex_subcritical()),

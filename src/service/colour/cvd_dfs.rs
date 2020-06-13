@@ -17,42 +17,13 @@ impl Colourizer for CvdDfsColourizer {
     {
         let result_cvd = cvd::is_colorable(graph);
         if result_cvd.is_none() {
-            println!("none");
-            return false;
-
-
             let result = BFSColourizer::is_colorable(graph);
-
-            // if result == true {
-            //     println!("here");
-            // }
-
             return result;
         }
         result_cvd.unwrap()
     }
 
     fn new() -> Self {
-        CvdDfsColourizer{}
-    }
-
-
-    // todo - temp
-    fn is_colorable_with_counter<G, V, E>(graph: &G, counter: &mut usize) -> bool where
-        G: Graph<V, E>,
-        V: Vertex,
-        E: Edge {
-        let result_cvd = cvd::is_colorable(graph);
-        if result_cvd.is_none() {
-            let result = BFSColourizer::is_colorable(graph);
-
-            if result == true {
-                *counter += 1;
-                // println!("here");
-            }
-
-            return result;
-        }
-        result_cvd.unwrap()
+        CvdDfsColourizer {}
     }
 }

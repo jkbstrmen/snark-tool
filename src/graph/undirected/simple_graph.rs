@@ -54,7 +54,7 @@ impl Graph for SimpleGraph {
     fn remove_edge(&mut self, from: usize, to: usize) {
         let to_remove = UndirectedEdge::new(from, to);
         self.edges
-            .retain(|edge| edge.from() != to_remove.from() && edge.to() != to_remove.to());
+            .retain(|edge| edge.from() != to_remove.from() || edge.to() != to_remove.to());
     }
 
     fn remove_edges_of_vertex(&mut self, vertex: usize) /*-> Self*/

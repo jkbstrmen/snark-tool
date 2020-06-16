@@ -106,6 +106,21 @@ mod graph_tests {
     }
 
     #[test]
+    fn should_remove_edges_of_vertex() {
+        let mut graph = get_graph();
+        assert_eq!(graph.has_edge(0, 1), true);
+        assert_eq!(graph.has_edge(0, 2), true);
+        assert_eq!(graph.has_edge(1, 2), true);
+        graph.remove_edge(0, 1);
+        assert_eq!(graph.has_edge(0, 1), false);
+        assert_eq!(graph.has_edge(0, 2), true);
+        graph.remove_edges_of_vertex(0);
+        assert_eq!(graph.has_edge(0, 1), false);
+        assert_eq!(graph.has_edge(0, 2), false);
+        assert_eq!(graph.has_edge(1, 2), true);
+    }
+
+    #[test]
     fn simple_sparse_graph() {
         let mut graph = SimpleSparseGraph::with_vertices_capacity(10);
 

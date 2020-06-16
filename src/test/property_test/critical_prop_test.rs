@@ -1,5 +1,5 @@
 #[cfg(test)]
-pub mod properties_tests {
+pub mod critical_prop_tests {
     use crate::graph::undirected::simple_graph::SimpleGraph;
     use crate::service::chromatic_properties::critical_prop::CriticalProperties;
     use crate::service::colour::bfs::BFSColourizer;

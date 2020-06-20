@@ -2,6 +2,7 @@
 pub mod test_data {
     use crate::graph::graph::{Graph, GraphConstructor};
     use crate::graph::undirected::simple_graph::SimpleGraph;
+    use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
 
     pub const SNARK_IN_G6_10_PETERSEN: &str = "I?h]@eOWG";
     pub const SNARK_IN_G6_20: &str = "Ss??GOGA_I?c????GOQAACGO_P?_K@?S?";
@@ -22,6 +23,26 @@ pub mod test_data {
 
     pub fn get_petersen_graph() -> SimpleGraph {
         let mut graph = SimpleGraph::with_capacity(10, 15);
+        graph.add_edge(0, 4);
+        graph.add_edge(0, 6);
+        graph.add_edge(0, 8);
+        graph.add_edge(1, 5);
+        graph.add_edge(1, 6);
+        graph.add_edge(1, 9);
+        graph.add_edge(2, 4);
+        graph.add_edge(2, 7);
+        graph.add_edge(2, 9);
+        graph.add_edge(3, 5);
+        graph.add_edge(3, 7);
+        graph.add_edge(3, 8);
+        graph.add_edge(4, 5);
+        graph.add_edge(6, 7);
+        graph.add_edge(8, 9);
+        graph
+    }
+
+    pub fn get_petersen_graph_sparse() -> SimpleSparseGraph {
+        let mut graph = SimpleSparseGraph::with_capacity(10, 15);
         graph.add_edge(0, 4);
         graph.add_edge(0, 6);
         graph.add_edge(0, 8);

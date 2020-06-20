@@ -10,11 +10,9 @@ use varisat::{CnfFormula, ExtendFormula};
 pub struct SATColourizer {}
 
 impl Colourizer for SATColourizer {
-    fn is_colorable<G, V, E>(graph: &G) -> bool
+    fn is_colorable<G>(graph: &G) -> bool
     where
-        G: Graph<V, E>,
-        V: Vertex,
-        E: Edge,
+        G: Graph,
     {
         let mut solver = Solver::new();
 
@@ -98,7 +96,7 @@ impl Colourizer for SATColourizer {
 
         for vertex in graph.vertices() {
             let edges = graph.edges_of_vertex(vertex.index());
-            let edges: Vec<&E> = Vec::from_iter(edges);
+            let edges: Vec<&G::E> = Vec::from_iter(edges);
 
             if edges.is_empty() || edges.len() == 1 {
                 continue;

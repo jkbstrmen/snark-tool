@@ -5,31 +5,23 @@ use crate::service::colour::bfs::BFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
 use std::marker;
 
-pub struct Resistance<G, V, E, C>
+pub struct Resistance<G, C>
 where
-    G: Graph<V, E>,
-    V: Vertex,
-    E: Edge,
+    G: Graph + Clone,
     C: Colourizer,
 {
     _g: marker::PhantomData<G>,
-    _v: marker::PhantomData<V>,
-    _e: marker::PhantomData<E>,
     colourizer: C,
 }
 
-impl<G, V, E, C> Resistance<G, V, E, C>
+impl<G, C> Resistance<G, C>
 where
-    G: Graph<V, E>,
-    V: Vertex,
-    E: Edge,
+    G: Graph + Clone,
     C: Colourizer,
 {
     pub fn new() -> Self {
         Resistance {
             _g: marker::PhantomData,
-            _v: marker::PhantomData,
-            _e: marker::PhantomData,
             colourizer: C::new(),
         }
     }
@@ -37,8 +29,6 @@ where
     pub fn new_with_colourizer(colourizer: C) -> Self {
         Resistance {
             _g: marker::PhantomData,
-            _v: marker::PhantomData,
-            _e: marker::PhantomData,
             colourizer,
         }
     }
@@ -89,7 +79,7 @@ where
         if max_nesting == 0 {
             let colourable = C::is_colorable(graph);
             if colourable {
-                return Some(0)
+                return Some(0);
             }
             return None;
         }

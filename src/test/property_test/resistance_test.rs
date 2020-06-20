@@ -10,8 +10,7 @@ pub mod resistance_tests {
     #[test]
     fn should_have_resistance_zero() {
         let res_tester = Resistance::new_with_colourizer(BFSColourizer::new());
-        let graph: SimpleGraph =
-            G6Reader::read_graph(test_data::NO_SNARK_IN_G6_18).unwrap();
+        let graph: SimpleGraph = G6Reader::read_graph(test_data::NO_SNARK_IN_G6_18).unwrap();
         let e_resistance = res_tester.edge_resistance(&graph);
         let v_resistance = res_tester.vertex_resistance(&graph);
         assert_eq!(e_resistance.is_some(), true);

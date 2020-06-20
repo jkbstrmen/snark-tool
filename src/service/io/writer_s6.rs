@@ -48,9 +48,9 @@ where
         let mut edges = Vec::from_iter(graph.edges());
         let size = graph.size();
 
-        edges.sort_by(|a, b| edge_max_min_compare(a, b));
+        edges.sort_by(|a, b| Self::edge_max_min_compare(a, b));
+        let mut encoded = Self::encode_edges(size, &edges);
 
-        let mut encoded = encode_edges(size, &edges);
         // complete encoding of six
         S6Writer::complete_to_multiple_of_six(&mut encoded, graph);
 
@@ -85,6 +85,40 @@ where
             }
         }
     }
+
+    pub fn encode_edges(size: usize, edges: &Vec<&G::E>) -> Vec<bool> {
+        let edge_encoding_size = edge_encoding_size(size);
+        let mut v: usize = 0;
+        let mut vec: Vec<bool> = Vec::new();
+        for edge in edges {
+            if edge.to() > (v + 1) {
+                // shift v
+                vec.push(true);
+                vec.append(&mut bitvec_from_u64(edge.to() as u64, edge_encoding_size));
+                v = edge.to();
+            }
+            if edge.to() == v + 1 {
+                vec.push(true);
+                v = v + 1;
+            } else {
+                vec.push(false);
+            }
+            vec.append(&mut bitvec_from_u64(edge.from() as u64, edge_encoding_size));
+        }
+        vec
+    }
+
+    fn edge_max_min_compare(first: &G::E, second: &G::E) -> Ordering {
+        let max_first = cmp::max(first.from(), first.to());
+        let max_second = cmp::max(second.from(), second.to());
+        let compare_max = max_first.cmp(&max_second);
+        if Ordering::Equal.eq(&compare_max) {
+            let min_first = cmp::min(first.from(), first.to());
+            let min_second = cmp::min(second.from(), second.to());
+            return min_first.cmp(&min_second);
+        }
+        compare_max
+    }
 }
 
 fn to_s6_chars(edges_encoding: Vec<bool>) -> String {
@@ -108,31 +142,6 @@ fn to_s6_chars(edges_encoding: Vec<bool>) -> String {
     s6_chars
 }
 
-pub fn encode_edges<E>(size: usize, edges: &Vec<E>) -> Vec<bool>
-where
-    E: Edge,
-{
-    let edge_encoding_size = edge_encoding_size(size);
-    let mut v: usize = 0;
-    let mut vec: Vec<bool> = Vec::new();
-    for edge in edges {
-        if edge.to() > (v + 1) {
-            // shift v
-            vec.push(true);
-            vec.append(&mut bitvec_from_u64(edge.to() as u64, edge_encoding_size));
-            v = edge.to();
-        }
-        if edge.to() == v + 1 {
-            vec.push(true);
-            v = v + 1;
-        } else {
-            vec.push(false);
-        }
-        vec.append(&mut bitvec_from_u64(edge.from() as u64, edge_encoding_size));
-    }
-    vec
-}
-
 pub fn bitvec_from_u64(mut num: u64, bits_count: u8) -> Vec<bool> {
     let mut vec = vec![];
     loop {
@@ -152,19 +161,4 @@ pub fn bitvec_from_u64(mut num: u64, bits_count: u8) -> Vec<bool> {
 
 pub fn edge_encoding_size(graph_size: usize) -> u8 {
     (graph_size as f64).log(2 as f64).ceil() as u8
-}
-
-fn edge_max_min_compare<E>(first: &E, second: &E) -> Ordering
-where
-    E: Edge,
-{
-    let max_first = cmp::max(first.from(), first.to());
-    let max_second = cmp::max(second.from(), second.to());
-    let compare_max = max_first.cmp(&max_second);
-    if Ordering::Equal.eq(&compare_max) {
-        let min_first = cmp::min(first.from(), first.to());
-        let min_second = cmp::min(second.from(), second.to());
-        return min_first.cmp(&min_second);
-    }
-    compare_max
 }

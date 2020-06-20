@@ -1,52 +1,38 @@
 use crate::error::Error;
+use crate::graph::edge::Edge;
 use crate::graph::graph::{Graph, GraphConstructor};
+use crate::graph::vertex::Vertex;
 use crate::procedure::configuration::ProcedureConfig;
-use crate::procedure::procedure::Procedure;
+use crate::procedure::procedure::{BasicProperties, Procedure};
+use crate::procedure::procedure_registry::ProcedureRegistry;
 use std::collections::HashMap;
-use std::fmt::Debug;
 use std::{marker, result};
 
 type Result<T> = result::Result<T, Error>;
 
-pub struct ProcedureChain<Procedure, Prop> {
-    procedures: Vec<Procedure>,
-
-    _ph: marker::PhantomData<Prop>,
+pub struct ProcedureChain<G: Graph> {
+    proc_registry: ProcedureRegistry<G>,
+    procedures: Vec<Box<dyn Procedure<G>>>,
 }
 
-impl<P, Prop> ProcedureChain<P, Prop>
-where
-    P: Procedure<Prop>,
-{
-    pub fn from_procedures_vector(procedures: Vec<P>) -> Self {
+impl<G: Graph + GraphConstructor + 'static> ProcedureChain<G> {
+    pub fn from_procedures_config(
+        registry: ProcedureRegistry<G>,
+        configurations: Vec<ProcedureConfig>,
+    ) -> Self {
+        let mut procedures = vec![];
+        for configuration in configurations {
+            let proc = registry.create_procedure(configuration);
+            procedures.push(proc);
+        }
+
         ProcedureChain {
+            proc_registry: registry,
             procedures,
-            _ph: marker::PhantomData,
         }
     }
 
-    pub fn from_procedures_config(mut proc_configs: Vec<ProcedureConfig>) -> Self {
-        let mut procedures: Vec<P> = vec![];
-        while !proc_configs.is_empty() {
-            if let Some(proc_config) = proc_configs.pop() {
-                let config = match proc_config.config {
-                    Some(map) => map,
-                    None => HashMap::default(),
-                };
-                let proc = P::new_with_config(proc_config.proc_type, config);
-                procedures.push(proc);
-            };
-        }
-        procedures.reverse();
-        let chain: ProcedureChain<P, Prop> = ProcedureChain::from_procedures_vector(procedures);
-
-        chain
-    }
-
-    pub fn run<G>(&self, graphs: &mut Vec<(G, Prop)>) -> Result<()>
-    where
-        G: Debug + Graph + GraphConstructor,
-    {
+    pub fn run(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
         for procedure in self.procedures.iter() {
             procedure.run(graphs)?;
         }

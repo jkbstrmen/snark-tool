@@ -24,11 +24,9 @@ struct KempeChain {
     last_colour_of_chain: u8,
 }
 
-pub fn is_colorable<G, V, E>(graph: &G) -> Option<bool>
+pub fn is_colorable<G>(graph: &G) -> Option<bool>
 where
-    G: Graph<V, E>,
-    V: Vertex,
-    E: Edge,
+    G: Graph,
 {
     let mut graph = create_cvd_graph(graph);
     let l_limit = graph.vertices_to_try.len();
@@ -44,11 +42,9 @@ where
     None
 }
 
-fn create_cvd_graph<G, V, E>(graph: &G) -> CVDGraph
+fn create_cvd_graph<G>(graph: &G) -> CVDGraph
 where
-    G: Graph<V, E>,
-    V: Vertex,
-    E: Edge,
+    G: Graph,
 {
     // let mut vertices: Vec<[(usize, u8); 3]> = Vec::with_capacity(graph.size());
     let mut vertices: Vec<Vec<(usize, u8)>> = Vec::with_capacity(graph.size());

@@ -9,11 +9,9 @@ use crate::service::colour::cvd;
 pub struct CvdDfsColourizer {}
 
 impl Colourizer for CvdDfsColourizer {
-    fn is_colorable<G, V, E>(graph: &G) -> bool
+    fn is_colorable<G>(graph: &G) -> bool
     where
-        G: Graph<V, E>,
-        V: Vertex,
-        E: Edge,
+        G: Graph,
     {
         let result_cvd = cvd::is_colorable(graph);
         if result_cvd.is_none() {

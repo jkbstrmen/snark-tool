@@ -3,6 +3,7 @@ use crate::error::Error;
 use crate::graph::graph::{Graph, GraphConstructor};
 use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::procedure::basic_impl::basic_config::BasicConfig;
+use crate::procedure::configuration::ProcedureConfig;
 use crate::procedure::procedure::{Config, Procedure};
 use crate::service::chromatic_properties::critical_prop::CriticalProperties;
 use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
@@ -36,7 +37,7 @@ pub struct BasicProcedure {
 
 type BasicProperties = HashMap<String, String>;
 
-impl Procedure<BasicProperties> for BasicProcedure {
+impl BasicProcedure {
     fn new_with_config(proc_type: impl AsRef<str>, config: Config) -> Self {
         BasicProcedure {
             proc_type: String::from(proc_type.as_ref()),
@@ -44,9 +45,17 @@ impl Procedure<BasicProperties> for BasicProcedure {
         }
     }
 
+    fn from_config(config: ProcedureConfig) -> Self {
+        unimplemented!()
+    }
+
+    fn create_from_config(&self, config: ProcedureConfig) -> Self {
+        unimplemented!()
+    }
+
     fn run<G>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()>
     where
-        G: Debug + Graph + GraphConstructor,
+        G: Debug + Graph + GraphConstructor + Clone,
     {
         println!("Running procedure: {}", self.proc_type);
         match self.proc_type.as_str() {
@@ -274,7 +283,10 @@ impl BasicProcedure {
         Ok(file_result.unwrap())
     }
 
-    fn chromatic_properties<G: Graph>(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
+    fn chromatic_properties<G: Graph + Clone>(
+        &self,
+        graphs: &mut Vec<(G, BasicProperties)>,
+    ) -> Result<()> {
         let parallel = self.config.get_parallel()?;
         let colourizer_type = self.config.get_colouriser_type()?;
         match colourizer_type {
@@ -324,7 +336,7 @@ impl BasicProcedure {
         Ok(())
     }
 
-    fn critical_and_stable_properties<G: Graph, C: Colourizer>(
+    fn critical_and_stable_properties<G: Graph + Clone, C: Colourizer>(
         &self,
         graphs: &mut Vec<(G, BasicProperties)>,
         colourizer: C,
@@ -341,7 +353,7 @@ impl BasicProcedure {
     }
 
     // todo - refactor
-    fn critical_and_stable_properties_sequential<G: Graph, C: Colourizer>(
+    fn critical_and_stable_properties_sequential<G: Graph + Clone, C: Colourizer>(
         &self,
         graphs: &mut Vec<(G, BasicProperties)>,
         colourizer: C,
@@ -482,7 +494,7 @@ impl BasicProcedure {
     }
 
     // todo - refactor
-    fn critical_properties_sequential<G: Graph>(
+    fn critical_properties_sequential<G: Graph + Clone>(
         &self,
         graphs: &mut Vec<(G, BasicProperties)>,
     ) -> Result<()> {

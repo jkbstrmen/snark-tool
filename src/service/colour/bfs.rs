@@ -16,12 +16,7 @@ struct BFSColourizerGraph {
 }
 
 impl Colourizer for BFSColourizer {
-    fn is_colorable<G, V, E>(graph: &G) -> bool
-    where
-        G: Graph<V, E>,
-        V: Vertex,
-        E: Edge,
-    {
+    fn is_colorable<G: Graph>(graph: &G) -> bool {
         let mut vertices = Vec::with_capacity(graph.size());
         // create local graph
         for vertex in graph.vertices() {

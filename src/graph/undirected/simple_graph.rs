@@ -4,7 +4,7 @@ use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::{Graph, GraphConstructor};
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::vertex::SimpleVertex;
-use crate::graph::vertex::Vertex;
+use crate::graph::vertex::{Vertex, VertexConstructor};
 use std::iter::FromIterator;
 
 #[derive(Debug, Clone)]
@@ -16,6 +16,9 @@ pub struct SimpleGraph {
 
 /// undirected, without loop, without multiple edges
 impl Graph for SimpleGraph {
+    type V = SimpleVertex;
+    type E = UndirectedEdge;
+
     fn size(&self) -> usize {
         self.vertices.len()
     }
@@ -99,7 +102,7 @@ impl GraphConstructor for SimpleGraph {
 }
 
 impl SimpleGraph {
-    pub fn from_graph<G: Graph<V, E>, V: Vertex, E: Edge>(graph: &G) -> Self {
+    pub fn from_graph<G: Graph>(graph: &G) -> Self {
         let mut vertices = vec![];
         for vertex in graph.vertices() {
             vertices.push(SimpleVertex::new(vertex.index()));

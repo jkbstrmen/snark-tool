@@ -4,11 +4,10 @@ use crate::graph::undirected::vertex::SimpleVertex;
 use crate::graph::vertex::Vertex;
 use std::slice;
 
-pub trait Graph<V = SimpleVertex, E = UndirectedEdge>: PartialEq + Clone
-where
-    V: Vertex,
-    E: Edge,
-{
+pub trait Graph {
+    type V: Vertex;
+    type E: Edge;
+
     fn size(&self) -> usize;
     fn has_edge(&self, from: usize, to: usize) -> bool;
     // fn edge(&self, from: usize, to: usize) -> Option<E>;
@@ -25,10 +24,10 @@ where
     // fn remove_vertex(&mut self, index: usize);
 
     // fn vertices(&self) -> Vertices<V>;
-    fn vertices<'a>(&'a self) -> Box<dyn Iterator<Item = &'a V> + 'a>;
+    fn vertices<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::V> + 'a>;
 
-    fn edges<'a>(&'a self) -> Box<dyn Iterator<Item = &'a E> + 'a>;
-    fn edges_of_vertex<'a>(&'a self, vertex: usize) -> Box<dyn Iterator<Item = &'a E> + 'a>;
+    fn edges<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::E> + 'a>;
+    fn edges_of_vertex<'a>(&'a self, vertex: usize) -> Box<dyn Iterator<Item = &'a Self::E> + 'a>;
 
     // fn edges(&self) -> Edges<E>;
     // fn edges_of_vertex(&self, vertex: usize) -> Edges<E>;

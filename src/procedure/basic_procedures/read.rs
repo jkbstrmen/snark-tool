@@ -13,20 +13,19 @@ use std::collections::HashMap;
 use std::str::FromStr;
 use std::{fmt, fs, marker, path, result};
 
-struct ReadProc<G: Graph> {
-    // config: ProcedureConfig,
+struct ReadProcedure<G: Graph> {
     config: ReadProcedureConfig,
     _ph: marker::PhantomData<G>,
 }
 
-impl<G: Graph + GraphConstructor> Procedure<G> for ReadProc<G> {
+impl<G: Graph + GraphConstructor> Procedure<G> for ReadProcedure<G> {
     fn run(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
         println!("running read procedure");
         self.read_graphs(graphs)
     }
 }
 
-impl<G: Graph + GraphConstructor> ReadProc<G> {
+impl<G: Graph + GraphConstructor> ReadProcedure<G> {
     pub fn read_graphs(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
         let file_path = self.config.file_path()?;
         let graphs_count = self.config.number_of_graphs()?;
@@ -149,7 +148,7 @@ pub struct ReadProcedureBuilder {}
 
 impl<G: Graph + GraphConstructor + 'static> ProcedureBuilder<G> for ReadProcedureBuilder {
     fn build(&self, config: Config) -> Box<dyn Procedure<G>> {
-        Box::new(ReadProc {
+        Box::new(ReadProcedure {
             config: ReadProcedureConfig::from_map(config),
             _ph: marker::PhantomData,
         })

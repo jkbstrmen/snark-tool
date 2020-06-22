@@ -1,5 +1,4 @@
 use crate::graph::undirected::simple_graph::SimpleGraph;
-use crate::procedure::basic_impl::basic_procedure::BasicProcedure;
 use crate::procedure::configuration::Configuration;
 use crate::procedure::procedure_chain::ProcedureChain;
 use crate::procedure::procedure_registry::ProcedureRegistry;
@@ -50,21 +49,17 @@ fn main() {
             let config = parse_yaml_config(&config_str);
 
             let mut registry = ProcedureRegistry::new_basic();
+            // add builder of own procedure impl to registry as below
+            // registry.insert("read".to_string(), ReadProcedureBuilder{});
+
             let chain = ProcedureChain::from_procedures_config(registry, config.procedures);
-
-            // let chain = ProcedureChain::<BasicProcedure, BasicProperties>::from_procedures_config(
-            //     config.procedures,
-            // );
-            // let mut graphs: Vec<SimpleGraph> = vec![];
             let mut graphs_with_properties: Vec<(SimpleGraph, BasicProperties)> = vec![];
-
             match chain.run(&mut graphs_with_properties) {
                 Err(error) => {
                     eprintln!("Error: {}", error);
                 }
                 Ok(()) => {}
             }
-
             println!("elapsed: {}ms", begin.elapsed().as_millis());
         }
         _ => {

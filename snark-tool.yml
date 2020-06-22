@@ -6,12 +6,12 @@ options:
 procedures:
   - proc-type: read
     config:
-#      file: resources/graphs/Generated_graphs.30.05.sn.cyc4.g6
+      file: resources/graphs/Generated_graphs.30.05.sn.cyc4.g6
 #      file: resources/graphs/non_snarks.g6
 #      file: resources/graphs/gg.26.05-scocritical-2.g6
 #      file: resources/graphs/gg.26.05-critical-10.g6
 #      file: resources/graphs/graphG6.g6
-      file: resources/graphs/12snarksForTest.g6
+#      file: resources/graphs/12snarksForTest.g6
 #      file: resources/graphs/Generated_100_36vert_snarks.g6
 #      file: resources/graphs/Generated_20_36vert_snarks.g6
 #      file: resources/graphs/temp-measurements-chrom-prop.g6
@@ -29,30 +29,30 @@ procedures:
 ##      colouriser-type: cvd-dfs
 #      colouriser-type: bfs
 
-  - proc-type: chromatic-properties
+#  - proc-type: chromatic-properties
+  - proc-type: critical-and-stable
     config:
       parallel: true
 #      colouriser-type: cvd-sat
       colouriser-type: bfs
+      # properties: critical, cocritical, ...
+
 
   - proc-type: filter
     config:
       # filter by
 #      colourable: false
-#      critical: false
+#      critical: true
+      edge_subcritical: false
       vertex_subcritical: false
-      stable: true
+      stable: false
 
-
-
-#  - proc-type: write
-#    config:
-#      file: output
-#      graph-format: g6
-
-  - proc-type: write-with-properties
+  - proc-type: write
     config:
-      file: output_with_properties
+      file: output
       graph-format: g6
+      # if set to true, file format will be json for g6/s6 graph format
+      with-properties: true # default true
+
 
   - proc-type: last-procedure

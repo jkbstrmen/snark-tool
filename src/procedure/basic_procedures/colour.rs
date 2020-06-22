@@ -1,13 +1,13 @@
 use crate::error::Error;
 use crate::graph::graph::Graph;
-use crate::procedure::procedure::{BasicProperties, Procedure, Result, Config};
+use crate::procedure::procedure::{BasicProperties, Config, Procedure, Result};
+use crate::procedure::procedure_builder::ProcedureBuilder;
 use crate::service::colour::bfs::BFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
 use crate::service::colour::cvd_dfs::CvdDfsColourizer;
 use crate::service::colour::sat::SATColourizer;
-use std::marker;
 use std::collections::HashMap;
-use crate::procedure::procedure_builder::ProcedureBuilder;
+use std::marker;
 
 struct ColourProcedure<G: Graph> {
     config: ColourProcedureConfig,

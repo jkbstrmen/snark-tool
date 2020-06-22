@@ -15,7 +15,7 @@ pub struct ProcedureChain<G: Graph> {
     procedures: Vec<Box<dyn Procedure<G>>>,
 }
 
-impl<G: Graph + GraphConstructor + 'static> ProcedureChain<G> {
+impl<G: Graph + GraphConstructor + Clone + 'static> ProcedureChain<G> {
     pub fn from_procedures_config(
         registry: ProcedureRegistry<G>,
         configurations: Vec<ProcedureConfig>,

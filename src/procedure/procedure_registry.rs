@@ -1,18 +1,20 @@
 use crate::graph::graph::{Graph, GraphConstructor};
+use crate::procedure::basic_procedures::colour::ColourProcedureBuilder;
+use crate::procedure::basic_procedures::critical_and_stable_properties::CriticAndStablePropsProcedureBuilder;
+use crate::procedure::basic_procedures::filter::FilterProcedureBuilder;
 use crate::procedure::basic_procedures::read::ReadProcedureBuilder;
 use crate::procedure::basic_procedures::unknown_procedure::UnknownProcedure;
+use crate::procedure::basic_procedures::write::WriteProcedureBuilder;
 use crate::procedure::configuration::ProcedureConfig;
 use crate::procedure::procedure::Procedure;
 use crate::procedure::procedure_builder::ProcedureBuilder;
 use std::collections::HashMap;
-use crate::procedure::basic_procedures::write::WriteProcedureBuilder;
-use crate::procedure::basic_procedures::colour::ColourProcedureBuilder;
 
 pub struct ProcedureRegistry<G: Graph> {
     registry: HashMap<String, Box<dyn ProcedureBuilder<G>>>,
 }
 
-impl<G: Graph + GraphConstructor + 'static> ProcedureRegistry<G> {
+impl<G: Graph + GraphConstructor + Clone + 'static> ProcedureRegistry<G> {
     pub fn new() -> Self {
         ProcedureRegistry {
             registry: HashMap::new(),
@@ -23,11 +25,15 @@ impl<G: Graph + GraphConstructor + 'static> ProcedureRegistry<G> {
         let mut reg = Self::new();
         reg.insert("read".to_string(), ReadProcedureBuilder {});
         reg.insert("write".to_string(), WriteProcedureBuilder {});
-        reg.insert("colour".to_string(), ColourProcedureBuilder{});
+        reg.insert("colour".to_string(), ColourProcedureBuilder {});
+        reg.insert("filter".to_string(), FilterProcedureBuilder {});
+        reg.insert(
+            "critical-and-stable".to_string(),
+            CriticAndStablePropsProcedureBuilder {},
+        );
         reg
     }
 
-    // ?? static?
     pub fn insert<PB: 'static + ProcedureBuilder<G>>(
         &mut self,
         proc_type: String,

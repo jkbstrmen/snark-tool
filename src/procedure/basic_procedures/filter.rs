@@ -1,6 +1,7 @@
 use crate::graph::graph::Graph;
-use crate::procedure::procedure::{BasicProperties, Config, Procedure, Result};
-use crate::procedure::procedure_builder::ProcedureBuilder;
+use crate::procedure::config_helper;
+use crate::procedure::procedure::{GraphProperties, Procedure, Result};
+use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
 use std::collections::HashMap;
 use std::marker;
 
@@ -10,21 +11,21 @@ struct FilterProcedure<G> {
 }
 
 struct FilterProcedureConfig {
-    config: HashMap<String, String>,
+    filter_by: HashMap<String, String>,
 }
 
 pub struct FilterProcedureBuilder {}
 
 impl<G: Graph> Procedure<G> for FilterProcedure<G> {
-    fn run(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
+    fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         println!("running filter procedure");
         self.filter(graphs)
     }
 }
 
 impl<G: Graph> FilterProcedure<G> {
-    pub fn filter(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
-        let filter_properties = self.config.filter_properties();
+    pub fn filter(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
+        let filter_properties = self.config.filter_by();
         graphs.retain(|graph| {
             let mut retain = true;
             for filter_property in filter_properties {
@@ -46,22 +47,26 @@ impl<G: Graph> FilterProcedure<G> {
 }
 
 impl FilterProcedureConfig {
-    const PROC_TYPE: &'static str = "read";
+    const PROC_TYPE: &'static str = "filter";
 
-    pub fn from_map(config: HashMap<String, String>) -> Self {
-        Self { config }
+    pub fn from_proc_config(config: &HashMap<String, serde_json::Value>) -> Result<Self> {
+        let filter_by = config_helper::resolve_value(&config, "filter-by", Self::PROC_TYPE)?;
+
+        let result = FilterProcedureConfig { filter_by };
+        Ok(result)
     }
 
-    pub fn filter_properties(&self) -> &HashMap<String, String> {
-        &self.config
+    pub fn filter_by(&self) -> &HashMap<String, String> {
+        &self.filter_by
     }
 }
 
 impl<G: Graph + 'static> ProcedureBuilder<G> for FilterProcedureBuilder {
-    fn build(&self, config: Config) -> Box<dyn Procedure<G>> {
-        Box::new(FilterProcedure {
-            config: FilterProcedureConfig::from_map(config),
+    fn build(&self, config: Config) -> Result<Box<dyn Procedure<G>>> {
+        let proc_config = FilterProcedureConfig::from_proc_config(&config)?;
+        Ok(Box::new(FilterProcedure {
+            config: proc_config,
             _ph: marker::PhantomData,
-        })
+        }))
     }
 }

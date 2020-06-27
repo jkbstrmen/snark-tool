@@ -1,7 +1,8 @@
 use crate::error::Error;
 use crate::graph::graph::Graph;
-use crate::procedure::procedure::{BasicProperties, Config, Procedure, Result};
-use crate::procedure::procedure_builder::ProcedureBuilder;
+use crate::procedure::config_helper;
+use crate::procedure::procedure::{GraphProperties, Procedure, Result};
+use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
 use crate::service::colour::bfs::BFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
 use crate::service::colour::cvd_dfs::CvdDfsColourizer;
@@ -15,31 +16,22 @@ struct ColourProcedure<G: Graph> {
 }
 
 struct ColourProcedureConfig {
-    config: HashMap<String, String>,
+    colouriser_type: String,
 }
 
 pub struct ColourProcedureBuilder {}
 
 impl<G: Graph> Procedure<G> for ColourProcedure<G> {
-    fn run(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
+    fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         println!("running colour procedure");
         self.colour_graph(graphs)
     }
 }
 
 impl<G: Graph> ColourProcedure<G> {
-    pub fn colour_graph(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
-        let colouriser_type_opt = self.config.colouriser_type()?;
-        let colouriser_type;
-        if colouriser_type_opt.is_none() {
-            // resolve according to graph size
-
-            colouriser_type = "bfs";
-        } else {
-            colouriser_type = colouriser_type_opt.unwrap();
-        }
-
-        match colouriser_type {
+    pub fn colour_graph(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
+        let colouriser_type = self.config.colouriser_type();
+        match colouriser_type.as_str() {
             "bfs" => {
                 Self::color_by_colourizer::<BFSColourizer>(graphs);
             }
@@ -58,7 +50,7 @@ impl<G: Graph> ColourProcedure<G> {
         Ok(())
     }
 
-    fn color_by_colourizer<C: Colourizer>(graphs: &mut Vec<(G, BasicProperties)>) {
+    fn color_by_colourizer<C: Colourizer>(graphs: &mut Vec<(G, GraphProperties)>) {
         for graph in graphs {
             let result = C::is_colorable(&graph.0);
             graph
@@ -69,29 +61,30 @@ impl<G: Graph> ColourProcedure<G> {
 }
 
 impl ColourProcedureConfig {
-    const PROC_TYPE: &'static str = "read";
+    const PROC_TYPE: &'static str = "colour";
 
-    pub fn from_map(config: HashMap<String, String>) -> Self {
-        ColourProcedureConfig { config }
+    pub fn colouriser_type(&self) -> &String {
+        &self.colouriser_type
     }
 
-    pub fn colouriser_type(&self) -> Result<Option<&String>> {
-        let colouriser_type_opt = self.config.get("colouriser-type");
-        let colouriser_type;
-        if colouriser_type_opt.is_none() {
-            colouriser_type = None;
-        } else {
-            colouriser_type = Option::Some(colouriser_type_opt.unwrap());
-        }
-        Ok(colouriser_type)
+    pub fn from_proc_config(config: &HashMap<String, serde_json::Value>) -> Result<Self> {
+        let colouriser_type = config_helper::resolve_value_or_default(
+            &config,
+            "colouriser-type",
+            "bfs".to_string(),
+            Self::PROC_TYPE,
+        )?;
+        let result = ColourProcedureConfig { colouriser_type };
+        Ok(result)
     }
 }
 
 impl<G: Graph + 'static> ProcedureBuilder<G> for ColourProcedureBuilder {
-    fn build(&self, config: Config) -> Box<dyn Procedure<G>> {
-        Box::new(ColourProcedure {
-            config: ColourProcedureConfig::from_map(config),
+    fn build(&self, config: Config) -> Result<Box<dyn Procedure<G>>> {
+        let proc_config = ColourProcedureConfig::from_proc_config(&config)?;
+        Ok(Box::new(ColourProcedure {
+            config: proc_config,
             _ph: marker::PhantomData,
-        })
+        }))
     }
 }

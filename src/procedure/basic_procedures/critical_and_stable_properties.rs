@@ -1,8 +1,9 @@
 use crate::error::Error;
 use crate::graph::graph::Graph;
 use crate::graph::undirected::simple_graph::SimpleGraph;
-use crate::procedure::procedure::{BasicProperties, Config, Procedure, Result};
-use crate::procedure::procedure_builder::ProcedureBuilder;
+use crate::procedure::config_helper;
+use crate::procedure::procedure::{GraphProperties, Procedure, Result};
+use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
 use crate::service::chromatic_properties::critical_prop::CriticalProperties;
 use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
 use crate::service::colour::bfs::BFSColourizer;
@@ -20,42 +21,35 @@ struct CriticAndStablePropsProcedure<G> {
 }
 
 struct CriticAndStablePropsProcedureConfig {
-    config: HashMap<String, String>,
+    colouriser_type: String,
+    parallel: bool,
 }
 
 pub struct CriticAndStablePropsProcedureBuilder {}
 
 impl<G: Graph + Clone> Procedure<G> for CriticAndStablePropsProcedure<G> {
-    fn run(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
+    fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         println!("running critical and stable properties procedure");
         self.critical_and_stable_properties(graphs)
     }
 }
 
 impl<G: Graph + Clone> CriticAndStablePropsProcedure<G> {
-    fn critical_and_stable_properties(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
-        let parallel = self.config.parallel()?;
-        let colourizer_type = self.config.colouriser_type()?;
-        match colourizer_type {
-            Some(col_type) => match col_type.as_str() {
-                "sat" => {
-                    return self.compute(graphs, SATColourizer::new(), parallel);
-                }
-                "bfs" => {
-                    return self.compute(graphs, BFSColourizer::new(), parallel);
-                }
-                _ => {
-                    return Err(Error::ConfigError(format!(
-                        "unknown colourizer: {} for chromatic properties",
-                        col_type
-                    )));
-                }
-            },
-            None => {
+    fn critical_and_stable_properties(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
+        let parallel = self.config.parallel();
+        let colouriser_type = self.config.colouriser_type();
+        match colouriser_type.as_str() {
+            "sat" => {
+                return self.compute(graphs, SATColourizer::new(), parallel);
+            }
+            "bfs" => {
                 return self.compute(graphs, BFSColourizer::new(), parallel);
             }
             _ => {
-                // return err
+                return Err(Error::ConfigError(format!(
+                    "unknown colourizer: {} for chromatic properties",
+                    colouriser_type
+                )));
             }
         }
         Ok(())
@@ -63,7 +57,7 @@ impl<G: Graph + Clone> CriticAndStablePropsProcedure<G> {
 
     fn compute<C: Colourizer>(
         &self,
-        graphs: &mut Vec<(G, BasicProperties)>,
+        graphs: &mut Vec<(G, GraphProperties)>,
         colourizer: C,
         parallel: bool,
     ) -> Result<()> {
@@ -80,7 +74,7 @@ impl<G: Graph + Clone> CriticAndStablePropsProcedure<G> {
     // todo - refactor
     fn critical_and_stable_properties_sequential<C: Colourizer>(
         &self,
-        graphs: &mut Vec<(G, BasicProperties)>,
+        graphs: &mut Vec<(G, GraphProperties)>,
         colourizer: C,
     ) -> Result<()> {
         let mut index = 0;
@@ -117,7 +111,7 @@ impl<G: Graph + Clone> CriticAndStablePropsProcedure<G> {
 
     fn critical_and_stable_properties_in_parallel<C: Colourizer>(
         &self,
-        graphs: &mut Vec<(G, BasicProperties)>,
+        graphs: &mut Vec<(G, GraphProperties)>,
         colourizer: C,
     ) -> Result<()> {
         let mut threads = vec![];
@@ -221,7 +215,7 @@ impl<G: Graph + Clone> CriticAndStablePropsProcedure<G> {
     // todo - refactor
     fn critical_properties_sequential<C: Colourizer>(
         &self,
-        graphs: &mut Vec<(G, BasicProperties)>,
+        graphs: &mut Vec<(G, GraphProperties)>,
         colourizer: C,
     ) -> Result<()> {
         let mut critical = 0;
@@ -249,7 +243,7 @@ impl<G: Graph + Clone> CriticAndStablePropsProcedure<G> {
     // todo - refactor
     fn critical_properties_in_parallel<C: Colourizer>(
         &self,
-        graphs: &mut Vec<(G, BasicProperties)>,
+        graphs: &mut Vec<(G, GraphProperties)>,
         colourizer: C,
     ) -> Result<()> {
         let mut threads = vec![];
@@ -316,43 +310,39 @@ struct ChromaticPropertiesResult {
 }
 
 impl CriticAndStablePropsProcedureConfig {
-    const PROC_TYPE: &'static str = "read";
+    const PROC_TYPE: &'static str = "critic-and-stable-properties";
 
-    pub fn from_map(config: HashMap<String, String>) -> Self {
-        CriticAndStablePropsProcedureConfig { config }
+    pub fn from_proc_config(config: &HashMap<String, serde_json::Value>) -> Result<Self> {
+        let colouriser_type = config_helper::resolve_value_or_default(
+            &config,
+            "colouriser-type",
+            "bfs".to_string(),
+            Self::PROC_TYPE,
+        )?;
+        let parallel =
+            config_helper::resolve_value_or_default(&config, "parallel", true, Self::PROC_TYPE)?;
+        let result = CriticAndStablePropsProcedureConfig {
+            colouriser_type,
+            parallel,
+        };
+        Ok(result)
     }
 
-    pub fn parallel(&self) -> Result<bool> {
-        let parallel_opt = self.config.get("parallel");
-        let mut parallel = true;
-        if parallel_opt.is_some() {
-            if parallel_opt.unwrap() == "true" {
-                parallel = true;
-            }
-            if parallel_opt.unwrap() == "false" {
-                parallel = false;
-            }
-        }
-        Ok(parallel)
+    pub fn colouriser_type(&self) -> &String {
+        &self.colouriser_type
     }
 
-    pub fn colouriser_type(&self) -> Result<Option<&String>> {
-        let colouriser_type_opt = self.config.get("colouriser-type");
-        let colouriser_type;
-        if colouriser_type_opt.is_none() {
-            colouriser_type = None;
-        } else {
-            colouriser_type = Option::Some(colouriser_type_opt.unwrap());
-        }
-        Ok(colouriser_type)
+    pub fn parallel(&self) -> bool {
+        self.parallel
     }
 }
 
 impl<G: Graph + Clone + 'static> ProcedureBuilder<G> for CriticAndStablePropsProcedureBuilder {
-    fn build(&self, config: Config) -> Box<dyn Procedure<G>> {
-        Box::new(CriticAndStablePropsProcedure {
-            config: CriticAndStablePropsProcedureConfig::from_map(config),
+    fn build(&self, config: Config) -> Result<Box<dyn Procedure<G>>> {
+        let proc_config = CriticAndStablePropsProcedureConfig::from_proc_config(&config)?;
+        Ok(Box::new(CriticAndStablePropsProcedure {
+            config: proc_config,
             _ph: marker::PhantomData,
-        })
+        }))
     }
 }

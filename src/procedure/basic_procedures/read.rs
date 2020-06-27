@@ -1,9 +1,8 @@
 use crate::error::Error;
 use crate::graph::graph::{Graph, GraphConstructor};
-use crate::procedure::configuration::ProcedureConfig;
-use crate::procedure::procedure::Config;
-use crate::procedure::procedure::{BasicProperties, Procedure, Result};
-use crate::procedure::procedure_builder::ProcedureBuilder;
+use crate::procedure::config_helper;
+use crate::procedure::procedure::{GraphProperties, Procedure, Result};
+use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
 use crate::service::io::error::ReadError;
 use crate::service::io::reader::Reader;
 use crate::service::io::reader_ba::BaReader;
@@ -19,18 +18,18 @@ struct ReadProcedure<G: Graph> {
 }
 
 impl<G: Graph + GraphConstructor> Procedure<G> for ReadProcedure<G> {
-    fn run(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
+    fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         println!("running read procedure");
         self.read_graphs(graphs)
     }
 }
 
 impl<G: Graph + GraphConstructor> ReadProcedure<G> {
-    pub fn read_graphs(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
-        let file_path = self.config.file_path()?;
-        let graphs_count = self.config.number_of_graphs()?;
+    pub fn read_graphs(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
+        let file_path = self.config.file_path();
+        let graphs_count = self.config.number_of_graphs();
         let file = Self::open_file_to_read(file_path)?;
-        let graph_format = self.config.graph_format()?;
+        let graph_format = self.config.graph_format();
 
         match graph_format.as_str() {
             "g6" => {
@@ -56,7 +55,7 @@ impl<G: Graph + GraphConstructor> ReadProcedure<G> {
 
     fn read_by_format<'a, R>(
         mut reader: R,
-        graphs: &mut Vec<(G, BasicProperties)>,
+        graphs: &mut Vec<(G, GraphProperties)>,
         graphs_count: Option<usize>,
     ) -> Result<()>
     where
@@ -66,7 +65,7 @@ impl<G: Graph + GraphConstructor> ReadProcedure<G> {
         let mut graph_opt = reader.next();
         while graph_opt.is_some() {
             let graph = graph_opt.unwrap()?;
-            graphs.push((graph, BasicProperties::new()));
+            graphs.push((graph, GraphProperties::new()));
             counter += 1;
 
             if graphs_count.is_some() && graphs_count.unwrap() < counter {
@@ -97,60 +96,62 @@ impl<G: Graph + GraphConstructor> ReadProcedure<G> {
 }
 
 pub struct ReadProcedureConfig {
-    config: HashMap<String, String>,
+    file_path: String,
+    graph_format: String,
+    number_of_graphs: Option<usize>,
 }
 
-// TODO - move to base class
 impl ReadProcedureConfig {
     const PROC_TYPE: &'static str = "read";
 
-    pub fn from_map(config: HashMap<String, String>) -> Self {
-        ReadProcedureConfig { config }
+    pub fn from_proc_config(config: &HashMap<String, serde_json::Value>) -> Result<Self> {
+        let file_path = config_helper::resolve_value_or_default(
+            &config,
+            "file",
+            "write-procedure-output-file".to_string(),
+            Self::PROC_TYPE,
+        )?;
+        let graph_format = config_helper::resolve_value_or_default(
+            &config,
+            "graph-format",
+            "g6".to_string(),
+            Self::PROC_TYPE,
+        )?;
+        let number_of_graphs = config_helper::resolve_value_or_default(
+            &config,
+            "number-of-graphs",
+            None,
+            Self::PROC_TYPE,
+        )?;
+        let result = ReadProcedureConfig {
+            file_path,
+            graph_format,
+            number_of_graphs,
+        };
+        Ok(result)
     }
 
-    pub fn file_path(&self) -> Result<&String> {
-        let file_path_opt = self.config.get("file");
-        if file_path_opt.is_none() {
-            return Err(Error::ConfigError(format!(
-                "file not specified for procedure: {}",
-                Self::PROC_TYPE
-            )));
-        }
-        Ok(file_path_opt.unwrap())
+    pub fn file_path(&self) -> &String {
+        &self.file_path
     }
 
-    pub fn graph_format(&self) -> Result<&String> {
-        let graph_format = self.config.get("graph-format");
-        if graph_format.is_none() {
-            return Err(Error::ConfigError(format!(
-                "missing graph format for procedure: {}",
-                Self::PROC_TYPE
-            )));
-        }
-        Ok(graph_format.unwrap())
+    pub fn graph_format(&self) -> &String {
+        &self.graph_format
     }
 
-    pub fn number_of_graphs(&self) -> Result<Option<usize>> {
-        let graphs_count_opt = self.config.get("number-of-graphs");
-        let graphs_count;
-        if graphs_count_opt.is_none() {
-            graphs_count = None;
-        } else {
-            graphs_count = Option::Some(
-                u64::from_str(graphs_count_opt.unwrap().clone().as_str()).unwrap() as usize,
-            );
-        }
-        Ok(graphs_count)
+    pub fn number_of_graphs(&self) -> Option<usize> {
+        self.number_of_graphs
     }
 }
 
 pub struct ReadProcedureBuilder {}
 
 impl<G: Graph + GraphConstructor + 'static> ProcedureBuilder<G> for ReadProcedureBuilder {
-    fn build(&self, config: Config) -> Box<dyn Procedure<G>> {
-        Box::new(ReadProcedure {
-            config: ReadProcedureConfig::from_map(config),
+    fn build(&self, config: Config) -> Result<Box<dyn Procedure<G>>> {
+        let proc_config = ReadProcedureConfig::from_proc_config(&config)?;
+        Ok(Box::new(ReadProcedure {
+            config: proc_config,
             _ph: marker::PhantomData,
-        })
+        }))
     }
 }

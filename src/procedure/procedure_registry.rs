@@ -6,7 +6,7 @@ use crate::procedure::basic_procedures::read::ReadProcedureBuilder;
 use crate::procedure::basic_procedures::unknown_procedure::UnknownProcedure;
 use crate::procedure::basic_procedures::write::WriteProcedureBuilder;
 use crate::procedure::configuration::ProcedureConfig;
-use crate::procedure::procedure::Procedure;
+use crate::procedure::procedure::{Procedure, Result};
 use crate::procedure::procedure_builder::ProcedureBuilder;
 use std::collections::HashMap;
 
@@ -42,7 +42,7 @@ impl<G: Graph + GraphConstructor + Clone + 'static> ProcedureRegistry<G> {
         self.registry.insert(proc_type, Box::new(proc_builder));
     }
 
-    pub fn create_procedure(&self, config: ProcedureConfig) -> Box<dyn Procedure<G>> {
+    pub fn create_procedure(&self, config: ProcedureConfig) -> Result<Box<dyn Procedure<G>>> {
         let mut conf_map = HashMap::new();
         if config.config.is_some() {
             conf_map = config.config.unwrap();
@@ -56,6 +56,6 @@ impl<G: Graph + GraphConstructor + Clone + 'static> ProcedureRegistry<G> {
         }
 
         // or just println right now
-        Box::new(UnknownProcedure::of_type(config.proc_type))
+        Ok(Box::new(UnknownProcedure::of_type(config.proc_type)))
     }
 }

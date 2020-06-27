@@ -1,8 +1,8 @@
 use crate::error::Error;
 use crate::graph::graph::{Graph, GraphConstructor};
-use crate::procedure::procedure::Config;
-use crate::procedure::procedure::{BasicProperties, Procedure};
-use crate::procedure::procedure_builder::ProcedureBuilder;
+use crate::procedure::config_helper;
+use crate::procedure::procedure::{GraphProperties, Procedure, Result};
+use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
 use crate::service::io::error::{ReadError, WriteError};
 use crate::service::io::writer_ba::BaWriter;
 use crate::service::io::writer_g6::G6Writer;
@@ -13,8 +13,6 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::{fs, marker, path, result};
 
-pub type Result<T> = result::Result<T, Error>;
-
 struct WriteProcedure<G: Graph> {
     config: WriteProcedureConfig,
     _ph: marker::PhantomData<G>,
@@ -23,24 +21,26 @@ struct WriteProcedure<G: Graph> {
 pub struct WriteProcedureBuilder {}
 
 pub struct WriteProcedureConfig {
-    config: HashMap<String, String>,
+    file_path: String,
+    graph_format: String,
+    with_properties: bool,
 }
 
 impl<G: Graph + GraphConstructor> Procedure<G> for WriteProcedure<G> {
-    fn run(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()> {
+    fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         println!("running write procedure");
         self.write_graphs(graphs)
     }
 }
 
 impl<G: Graph + GraphConstructor> WriteProcedure<G> {
-    pub fn write_graphs(&self, graphs: &mut Vec<(G, BasicProperties)>) -> Result<()>
+    pub fn write_graphs(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()>
     where
         G: Graph,
     {
-        let file_path = self.config.file_path()?;
-        let graph_format = self.config.graph_format()?;
-        let with_properties = self.config.with_properties()?;
+        let file_path = self.config.file_path();
+        let graph_format = self.config.graph_format();
+        let with_properties = self.config.with_properties();
 
         if with_properties {
             return self.write_with_properties(graphs, graph_format, file_path);
@@ -50,7 +50,7 @@ impl<G: Graph + GraphConstructor> WriteProcedure<G> {
 
     fn write_without_properties(
         &self,
-        graphs: &mut Vec<(G, BasicProperties)>,
+        graphs: &mut Vec<(G, GraphProperties)>,
         graph_format: &String,
         file_path: &String,
     ) -> Result<()> {
@@ -75,7 +75,7 @@ impl<G: Graph + GraphConstructor> WriteProcedure<G> {
 
     fn write_with_properties(
         &self,
-        graphs: &mut Vec<(G, BasicProperties)>,
+        graphs: &mut Vec<(G, GraphProperties)>,
         graph_format: &String,
         file_path: &String,
     ) -> Result<()> {
@@ -128,55 +128,54 @@ impl<G: Graph + GraphConstructor> WriteProcedure<G> {
 #[derive(Serialize, Deserialize, Debug)]
 struct GraphWithProperties {
     graph: String,
-    properties: BasicProperties,
+    properties: GraphProperties,
 }
 
 impl WriteProcedureConfig {
     const PROC_TYPE: &'static str = "write";
 
-    pub fn from_map(config: HashMap<String, String>) -> Self {
-        WriteProcedureConfig { config }
+    pub fn from_proc_config(config: &HashMap<String, serde_json::Value>) -> Result<Self> {
+        let file_path = config_helper::resolve_value_or_default(
+            &config,
+            "file",
+            "write-procedure-output-file".to_string(),
+            Self::PROC_TYPE,
+        )?;
+        let graph_format = config_helper::resolve_value_or_default(
+            &config,
+            "graph-format",
+            "g6".to_string(),
+            Self::PROC_TYPE,
+        )?;
+        let with_properties =
+            config_helper::resolve_value(&config, "with-properties", Self::PROC_TYPE)?;
+
+        let result = WriteProcedureConfig {
+            file_path,
+            graph_format,
+            with_properties,
+        };
+        Ok(result)
+    }
+    pub fn file_path(&self) -> &String {
+        &self.file_path
     }
 
-    pub fn file_path(&self) -> Result<&String> {
-        let file_path_opt = self.config.get("file");
-        if file_path_opt.is_none() {
-            return Err(Error::ConfigError(format!(
-                "file not specified for procedure: {}",
-                Self::PROC_TYPE
-            )));
-        }
-        Ok(file_path_opt.unwrap())
+    pub fn graph_format(&self) -> &String {
+        &self.graph_format
     }
 
-    pub fn graph_format(&self) -> Result<&String> {
-        let graph_format = self.config.get("graph-format");
-        if graph_format.is_none() {
-            return Err(Error::ConfigError(format!(
-                "missing graph format for procedure: {}",
-                Self::PROC_TYPE
-            )));
-        }
-        Ok(graph_format.unwrap())
-    }
-
-    pub fn with_properties(&self) -> Result<bool> {
-        let with_opt = self.config.get("with-properties");
-        let mut with_properties = true;
-        if with_opt.is_some() {
-            if with_opt.unwrap() == "false" {
-                with_properties = false;
-            }
-        }
-        Ok(with_properties)
+    pub fn with_properties(&self) -> bool {
+        self.with_properties
     }
 }
 
 impl<G: Graph + GraphConstructor + 'static> ProcedureBuilder<G> for WriteProcedureBuilder {
-    fn build(&self, config: Config) -> Box<dyn Procedure<G>> {
-        Box::new(WriteProcedure {
-            config: WriteProcedureConfig::from_map(config),
+    fn build(&self, config: Config) -> Result<Box<dyn Procedure<G>>> {
+        let proc_config = WriteProcedureConfig::from_proc_config(&config)?;
+        Ok(Box::new(WriteProcedure {
+            config: proc_config,
             _ph: marker::PhantomData,
-        })
+        }))
     }
 }

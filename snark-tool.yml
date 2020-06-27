@@ -43,9 +43,10 @@ procedures:
       # filter by
 #      colourable: false
 #      critical: true
-      edge_subcritical: false
-      vertex_subcritical: false
-      stable: false
+      filter-by:
+        edge_subcritical: "true"
+        vertex_subcritical: "true"
+        stable: "false"
 
   - proc-type: write
     config:

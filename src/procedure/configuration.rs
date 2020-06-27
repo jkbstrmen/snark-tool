@@ -16,7 +16,7 @@ pub struct ProcedureConfig {
     #[serde(alias = "proc-type")]
     pub proc_type: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub config: Option<HashMap<String, String>>,
+    pub config: Option<HashMap<String, serde_json::Value>>,
 }
 
 impl Configuration {

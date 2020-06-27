@@ -1,5 +1,7 @@
+use crate::error::Error;
 use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::procedure::configuration::Configuration;
+use crate::procedure::procedure::GraphProperties;
 use crate::procedure::procedure_chain::ProcedureChain;
 use crate::procedure::procedure_registry::ProcedureRegistry;
 use crate::service::chromatic_properties::resistance::Resistance;
@@ -35,8 +37,6 @@ fn parse_yaml_config(source: &String) -> Configuration {
     config
 }
 
-type BasicProperties = HashMap<String, String>;
-
 fn main() {
     let args = Cli::from_args();
 
@@ -53,7 +53,13 @@ fn main() {
             // registry.insert("read".to_string(), ReadProcedureBuilder{});
 
             let chain = ProcedureChain::from_procedures_config(registry, config.procedures);
-            let mut graphs_with_properties: Vec<(SimpleGraph, BasicProperties)> = vec![];
+            if chain.is_err() {
+                eprintln!("Error: {}", chain.err().unwrap());
+                return;
+            }
+
+            let chain = chain.unwrap();
+            let mut graphs_with_properties: Vec<(SimpleGraph, GraphProperties)> = vec![];
             match chain.run(&mut graphs_with_properties) {
                 Err(error) => {
                     eprintln!("Error: {}", error);
@@ -67,24 +73,3 @@ fn main() {
         }
     }
 }
-
-// use crate::service::colour::sat;
-// use crate::service::io::reader::Reader;
-// use crate::service::io::reader_ba::BaReader;
-// use std::fs::OpenOptions;
-// use std::time::Instant;
-//
-// fn main() {
-//     let begin = Instant::now();
-//
-//     let file = OpenOptions::new()
-//         .read(true)
-//         .open("../../resources/graphs/PSC6XJ5.118")
-//         .unwrap();
-//     let mut reader = BaReader::<SimpleGraph>::new(&file);
-//     let graph = reader.next().unwrap();
-//
-//     let solution = sat::is_colorable(&graph.unwrap());
-//     println!("solution: {}", solution);
-//     println!("elapsed: {}ms", begin.elapsed().as_millis());
-// }

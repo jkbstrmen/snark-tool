@@ -2,7 +2,6 @@
 pub mod critical_prop_tests {
     use crate::graph::undirected::simple_graph::SimpleGraph;
     use crate::service::chromatic_properties::critical_prop::CriticalProperties;
-    use crate::service::colour::bfs::BFSColourizer;
     use crate::service::colour::colouriser::Colourizer;
     use crate::service::colour::cvd_dfs::CvdDfsColourizer;
     use crate::service::io::reader_g6::G6Reader;

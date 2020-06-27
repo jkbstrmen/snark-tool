@@ -4,10 +4,7 @@ use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
 use crate::graph::vertex::Vertex;
-use crate::service::colour::bfs::BFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
-use std::borrow::BorrowMut;
-use std::{cell, time};
 
 // TODO - use own graph struct?
 
@@ -17,7 +14,7 @@ where
 {
     untouched_graph: SimpleSparseGraph,
     graph: SimpleSparseGraph,
-    colourizer: C,
+    _colourizer: C,
 
     is_critical: bool,
     is_cocritical: bool,
@@ -40,7 +37,7 @@ where
         StableAndCriticalProperties {
             untouched_graph: local_graph.clone(),
             graph: local_graph,
-            colourizer,
+            _colourizer: colourizer,
             is_critical: false,
             is_cocritical: false,
             is_vertex_subcritical: false,
@@ -132,10 +129,8 @@ where
                 }
 
                 let colourable_opt = self.colourings[first_vertex * graph.size() + second_vertex];
-                let mut colourable = false;
-                if colourable_opt.is_some() {
-                    colourable = colourable_opt.unwrap();
-                } else {
+                let colourable;
+                if colourable_opt.is_none() {
                     graph.remove_edges_of_vertex(second_vertex);
 
                     colourable = C::is_colorable(graph);
@@ -217,48 +212,48 @@ where
         }
     }
 
-    fn check_properties(&mut self, vertex: usize) {
-        let mut vertex_subcritical_flag = false;
+    // fn check_properties(&mut self, vertex: usize) {
+    //     let mut vertex_subcritical_flag = false;
+    //
+    //     for second_vertex in self.untouched_graph.vertices.iter() {
+    //         if vertex == second_vertex.index() {
+    //             continue;
+    //         }
+    //
+    //         if self.untouched_graph.has_edge(vertex, second_vertex.index()) {
+    //             if self.get_colouring_v2(vertex, second_vertex.index()) {
+    //                 self.is_stable = false;
+    //                 vertex_subcritical_flag = true;
+    //             } else {
+    //                 self.is_critical = false;
+    //             }
+    //         } else {
+    //             if self.get_colouring_v2(vertex, second_vertex.index()) {
+    //                 self.is_costable = false;
+    //                 vertex_subcritical_flag = true;
+    //             } else {
+    //                 self.is_critical = false;
+    //             }
+    //         }
+    //     }
+    //
+    //     if !vertex_subcritical_flag {
+    //         self.is_vertex_subcritical = false;
+    //     }
+    //
+    //     if !self.is_vertex_subcritical
+    //         && !self.is_critical
+    //         && !self.is_cocritical
+    //         && !self.is_stable
+    //         && !self.is_costable
+    //     {
+    //         self.results_obtained = true;
+    //     }
+    // }
 
-        for second_vertex in self.untouched_graph.vertices.iter() {
-            if vertex == second_vertex.index() {
-                continue;
-            }
-
-            if self.untouched_graph.has_edge(vertex, second_vertex.index()) {
-                if self.get_colouring_v2(vertex, second_vertex.index()) {
-                    self.is_stable = false;
-                    vertex_subcritical_flag = true;
-                } else {
-                    self.is_critical = false;
-                }
-            } else {
-                if self.get_colouring_v2(vertex, second_vertex.index()) {
-                    self.is_costable = false;
-                    vertex_subcritical_flag = true;
-                } else {
-                    self.is_critical = false;
-                }
-            }
-        }
-
-        if !vertex_subcritical_flag {
-            self.is_vertex_subcritical = false;
-        }
-
-        if !self.is_vertex_subcritical
-            && !self.is_critical
-            && !self.is_cocritical
-            && !self.is_stable
-            && !self.is_costable
-        {
-            self.results_obtained = true;
-        }
-    }
-
-    fn get_colouring_v2(&self, from: usize, to: usize) -> bool {
-        return self.colourings[from * self.graph.size + to].unwrap();
-    }
+    // fn get_colouring_v2(&self, from: usize, to: usize) -> bool {
+    //     return self.colourings[from * self.graph.size + to].unwrap();
+    // }
 
     fn get_colouring(
         colourings: &Vec<Option<bool>>,
@@ -271,7 +266,7 @@ where
 
     // todo - move above - same here, same in critic. props
     fn compute_edge_subcriticality(&mut self) {
-        let mut local_graph = SimpleGraph::from_graph(&self.graph);
+        let local_graph = SimpleGraph::from_graph(&self.graph);
         let mut edge_subcritical = true;
 
         for first_edge in local_graph.edges.iter() {
@@ -326,14 +321,5 @@ where
             }
             changed_graph.add_edge(neighboring_edge.from(), neighboring_edge.to());
         }
-    }
-}
-
-impl StableAndCriticalProperties<BFSColourizer> {
-    pub fn of_graph<G: Graph + Clone>(graph: &G) -> Self {
-        StableAndCriticalProperties::<BFSColourizer>::of_graph_with_colourizer(
-            graph,
-            BFSColourizer::new(),
-        )
     }
 }

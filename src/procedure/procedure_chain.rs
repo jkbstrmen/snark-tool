@@ -1,15 +1,10 @@
-use crate::error::Error;
-use crate::graph::edge::Edge;
 use crate::graph::graph::{Graph, GraphConstructor};
-use crate::graph::vertex::Vertex;
 use crate::procedure::configuration::ProcedureConfig;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
 use crate::procedure::procedure_registry::ProcedureRegistry;
-use std::collections::HashMap;
-use std::{marker, result};
 
 pub struct ProcedureChain<G: Graph> {
-    proc_registry: ProcedureRegistry<G>,
+    _proc_registry: ProcedureRegistry<G>,
     procedures: Vec<Box<dyn Procedure<G>>>,
 }
 
@@ -25,7 +20,7 @@ impl<G: Graph + GraphConstructor + Clone + 'static> ProcedureChain<G> {
         }
 
         Ok(ProcedureChain {
-            proc_registry: registry,
+            _proc_registry: registry,
             procedures,
         })
     }

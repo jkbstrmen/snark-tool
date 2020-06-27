@@ -1,7 +1,6 @@
 use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::vertex::{Vertex, VertexConstructor};
-use std::slice::Iter;
 
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct VertexWithEdges {

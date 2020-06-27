@@ -129,7 +129,7 @@ mod graph_tests {
         graph.add_edge(2, 4);
 
         let mut edges = graph.edges();
-        let edge = edges.next();
+        let _edge = edges.next();
         // assert_eq!(edge, Some(UndirectedEdge::new(0, 1)));
 
         assert_eq!(graph.has_edge(0, 1), true);

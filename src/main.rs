@@ -1,15 +1,8 @@
-use crate::error::Error;
 use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::procedure::configuration::Configuration;
 use crate::procedure::procedure::GraphProperties;
 use crate::procedure::procedure_chain::ProcedureChain;
 use crate::procedure::procedure_registry::ProcedureRegistry;
-use crate::service::chromatic_properties::resistance::Resistance;
-use crate::service::colour::bfs::BFSColourizer;
-use crate::service::colour::colouriser::Colourizer;
-use crate::service::colour::sat::SATColourizer;
-use crate::service::io::reader_g6::G6Reader;
-use std::collections::HashMap;
 use std::time::Instant;
 use structopt::StructOpt;
 
@@ -48,7 +41,7 @@ fn main() {
                 std::fs::read_to_string(&args.config_file_path).expect("could not read file");
             let config = parse_yaml_config(&config_str);
 
-            let mut registry = ProcedureRegistry::new_basic();
+            let registry = ProcedureRegistry::new_basic();
             // add builder of own procedure impl to registry as below
             // registry.insert("read".to_string(), ReadProcedureBuilder{});
 

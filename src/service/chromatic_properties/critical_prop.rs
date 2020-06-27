@@ -3,7 +3,6 @@ use crate::graph::graph::Graph;
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
-use crate::graph::vertex::Vertex;
 use crate::service::colour::bfs::BFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
 
@@ -15,7 +14,7 @@ where
 {
     untouched_graph: SimpleSparseGraph,
     graph: SimpleSparseGraph,
-    colourizer: C,
+    _colourizer: C,
 
     is_critical: bool,
     is_cocritical: bool,
@@ -35,7 +34,7 @@ where
         CriticalProperties {
             untouched_graph: local_graph.clone(),
             graph: local_graph,
-            colourizer,
+            _colourizer: colourizer,
             is_critical: false,
             is_cocritical: false,
             is_vertex_subcritical: false,
@@ -121,7 +120,7 @@ where
                 }
 
                 let colourable_opt = self.colourings[first_vertex * graph.size() + second_vertex];
-                let mut colourable = false;
+                let colourable;
                 if colourable_opt.is_some() {
                     colourable = colourable_opt.unwrap();
                 } else {
@@ -159,7 +158,7 @@ where
     }
 
     fn compute_edge_subcriticality(&mut self) {
-        let mut local_graph = SimpleGraph::from_graph(&self.graph);
+        let local_graph = SimpleGraph::from_graph(&self.graph);
         let mut edge_subcritical = true;
 
         for first_edge in local_graph.edges.iter() {

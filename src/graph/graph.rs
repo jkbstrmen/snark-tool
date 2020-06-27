@@ -1,8 +1,5 @@
 use crate::graph::edge::Edge;
-use crate::graph::undirected::edge::UndirectedEdge;
-use crate::graph::undirected::vertex::SimpleVertex;
 use crate::graph::vertex::Vertex;
-use std::slice;
 
 pub trait Graph {
     type V: Vertex;

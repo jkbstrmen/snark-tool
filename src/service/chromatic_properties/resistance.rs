@@ -1,7 +1,6 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
-use crate::service::colour::bfs::BFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
 use std::marker;
 
@@ -11,7 +10,7 @@ where
     C: Colourizer,
 {
     _g: marker::PhantomData<G>,
-    colourizer: C,
+    _colourizer: C,
 }
 
 impl<G, C> Resistance<G, C>
@@ -19,17 +18,17 @@ where
     G: Graph + Clone,
     C: Colourizer,
 {
-    pub fn new() -> Self {
-        Resistance {
-            _g: marker::PhantomData,
-            colourizer: C::new(),
-        }
-    }
+    // pub fn new() -> Self {
+    //     Resistance {
+    //         _g: marker::PhantomData,
+    //         colourizer: C::new(),
+    //     }
+    // }
 
     pub fn new_with_colourizer(colourizer: C) -> Self {
         Resistance {
             _g: marker::PhantomData,
-            colourizer,
+            _colourizer: colourizer,
         }
     }
 

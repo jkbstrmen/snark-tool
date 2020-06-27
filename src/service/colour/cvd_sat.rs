@@ -1,6 +1,4 @@
-use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
-use crate::graph::vertex::Vertex;
 use crate::service::colour::colouriser::Colourizer;
 use crate::service::colour::cvd;
 use crate::service::colour::sat::SATColourizer;

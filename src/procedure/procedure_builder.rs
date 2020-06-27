@@ -1,5 +1,4 @@
 use crate::graph::graph::Graph;
-use crate::procedure::configuration::ProcedureConfig;
 use crate::procedure::procedure::{Procedure, Result};
 use std::collections::HashMap;
 

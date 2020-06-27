@@ -16,7 +16,7 @@ impl UnknownProcedure {
 }
 
 impl<G: Graph> Procedure<G> for UnknownProcedure {
-    fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
+    fn run(&self, _graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         println!("unknown procedure type: {}", self.proc_type);
         Ok(())
     }

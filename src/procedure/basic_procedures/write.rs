@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::Write;
-use std::{fs, marker, path, result};
+use std::{fs, marker, path};
 
 struct WriteProcedure<G: Graph> {
     config: WriteProcedureConfig,

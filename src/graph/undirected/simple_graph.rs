@@ -1,11 +1,10 @@
-use std::{fmt, marker, slice};
+use std::{fmt, slice};
 
 use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::{Graph, GraphConstructor};
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::vertex::SimpleVertex;
 use crate::graph::vertex::{Vertex, VertexConstructor};
-use std::iter::FromIterator;
 
 #[derive(Debug, Clone)]
 pub struct SimpleGraph {

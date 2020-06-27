@@ -8,7 +8,6 @@ use crate::service::chromatic_properties::critical_prop::CriticalProperties;
 use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
 use crate::service::colour::bfs::BFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
-use crate::service::colour::cvd_dfs::CvdDfsColourizer;
 use crate::service::colour::sat::SATColourizer;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -52,7 +51,6 @@ impl<G: Graph + Clone> CriticAndStablePropsProcedure<G> {
                 )));
             }
         }
-        Ok(())
     }
 
     fn compute<C: Colourizer>(
@@ -63,10 +61,10 @@ impl<G: Graph + Clone> CriticAndStablePropsProcedure<G> {
     ) -> Result<()> {
         if parallel {
             // self.critical_properties_in_parallel(graphs);
-            self.critical_and_stable_properties_in_parallel(graphs, colourizer);
+            self.critical_and_stable_properties_in_parallel(graphs, colourizer)?;
         } else {
             // self.critical_properties_sequential(graphs);
-            self.critical_and_stable_properties_sequential(graphs, colourizer);
+            self.critical_and_stable_properties_sequential(graphs, colourizer)?;
         }
         Ok(())
     }
@@ -75,10 +73,8 @@ impl<G: Graph + Clone> CriticAndStablePropsProcedure<G> {
     fn critical_and_stable_properties_sequential<C: Colourizer>(
         &self,
         graphs: &mut Vec<(G, GraphProperties)>,
-        colourizer: C,
+        _colourizer: C,
     ) -> Result<()> {
-        let mut index = 0;
-
         for graph in graphs {
             let mut props =
                 StableAndCriticalProperties::of_graph_with_colourizer(&graph.0, C::new());
@@ -104,7 +100,6 @@ impl<G: Graph + Clone> CriticAndStablePropsProcedure<G> {
                 .1
                 .insert("costable".to_string(), format!("{}", props.is_costable()));
 
-            index += 1;
         }
         Ok(())
     }
@@ -207,7 +202,14 @@ impl<G: Graph + Clone> CriticAndStablePropsProcedure<G> {
                 stable: props.is_stable(),
                 costable: props.is_costable(),
             };
-            sender.send(result);
+            let result = sender.send(result);
+            if result.is_err() {
+                // TODO - handle somehow?
+                eprintln!(
+                    "error while sending message between threads: {}",
+                    result.err().unwrap()
+                );
+            }
         });
         handle
     }
@@ -216,7 +218,7 @@ impl<G: Graph + Clone> CriticAndStablePropsProcedure<G> {
     fn critical_properties_sequential<C: Colourizer>(
         &self,
         graphs: &mut Vec<(G, GraphProperties)>,
-        colourizer: C,
+        _colourizer: C,
     ) -> Result<()> {
         let mut critical = 0;
         let mut cocritical = 0;
@@ -244,7 +246,7 @@ impl<G: Graph + Clone> CriticAndStablePropsProcedure<G> {
     fn critical_properties_in_parallel<C: Colourizer>(
         &self,
         graphs: &mut Vec<(G, GraphProperties)>,
-        colourizer: C,
+        _colourizer: C,
     ) -> Result<()> {
         let mut threads = vec![];
         let mut index = 0;
@@ -265,7 +267,14 @@ impl<G: Graph + Clone> CriticAndStablePropsProcedure<G> {
                     stable: false,
                     costable: false,
                 };
-                tx_cloned.send(result);
+                let res = tx_cloned.send(result);
+                if res.is_err() {
+                    // TODO - handle somehow?
+                    eprintln!(
+                        "error while sending message between threads: {}",
+                        res.err().unwrap()
+                    );
+                }
             });
             threads.push(handle);
             index += 1;

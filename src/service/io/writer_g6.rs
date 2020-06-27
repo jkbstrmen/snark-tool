@@ -1,4 +1,3 @@
-use crate::graph::graph;
 use crate::graph::graph::Graph;
 use crate::service::io::error::WriteError;
 use crate::service::io::reader_g6::{Position, BIAS};

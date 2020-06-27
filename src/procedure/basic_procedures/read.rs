@@ -9,8 +9,7 @@ use crate::service::io::reader_ba::BaReader;
 use crate::service::io::reader_g6::G6Reader;
 use crate::service::io::reader_s6::S6Reader;
 use std::collections::HashMap;
-use std::str::FromStr;
-use std::{fmt, fs, marker, path, result};
+use std::{fs, marker, path};
 
 struct ReadProcedure<G: Graph> {
     config: ReadProcedureConfig,

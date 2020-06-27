@@ -80,25 +80,25 @@ impl<G: Graph + Clone> CriticAndStablePropsProcedure<G> {
                 StableAndCriticalProperties::of_graph_with_colourizer(&graph.0, C::new());
             graph
                 .1
-                .insert("critical".to_string(), format!("{}", props.is_critical()));
+                .insert("critical".to_string(), serde_json::Value::Bool(props.is_critical()));
             graph.1.insert(
                 "cocritical".to_string(),
-                format!("{}", props.is_cocritical()),
+                serde_json::Value::Bool(props.is_cocritical()),
             );
             graph.1.insert(
                 "vertex_subcritical".to_string(),
-                format!("{}", props.is_vertex_subcritical()),
+                serde_json::Value::Bool(props.is_vertex_subcritical()),
             );
             graph.1.insert(
                 "edge_subcritical".to_string(),
-                format!("{}", props.is_edge_subcritical()),
+                serde_json::Value::Bool(props.is_edge_subcritical()),
             );
             graph
                 .1
-                .insert("stable".to_string(), format!("{}", props.is_stable()));
+                .insert("stable".to_string(), serde_json::Value::Bool(props.is_stable()));
             graph
                 .1
-                .insert("costable".to_string(), format!("{}", props.is_costable()));
+                .insert("costable".to_string(), serde_json::Value::Bool(props.is_costable()));
 
         }
         Ok(())
@@ -159,24 +159,24 @@ impl<G: Graph + Clone> CriticAndStablePropsProcedure<G> {
         for result in results {
             graphs[result.graph_index]
                 .1
-                .insert("critical".to_string(), format!("{}", result.critical));
+                .insert("critical".to_string(), serde_json::Value::Bool(result.critical));
             graphs[result.graph_index]
                 .1
-                .insert("cocritical".to_string(), format!("{}", result.cocritical));
+                .insert("cocritical".to_string(), serde_json::Value::Bool(result.cocritical));
             graphs[result.graph_index].1.insert(
                 "vertex_subcritical".to_string(),
-                format!("{}", result.vertex_subcritical),
+                serde_json::Value::Bool(result.vertex_subcritical),
             );
             graphs[result.graph_index].1.insert(
                 "edge_subcritical".to_string(),
-                format!("{}", result.edge_subcritical),
+                serde_json::Value::Bool(result.edge_subcritical),
             );
             graphs[result.graph_index]
                 .1
-                .insert("stable".to_string(), format!("{}", result.stable));
+                .insert("stable".to_string(), serde_json::Value::Bool(result.stable));
             graphs[result.graph_index]
                 .1
-                .insert("costable".to_string(), format!("{}", result.costable));
+                .insert("costable".to_string(), serde_json::Value::Bool(result.costable));
         }
         for thread in threads {
             thread.join().unwrap();

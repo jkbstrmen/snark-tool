@@ -11,7 +11,7 @@ struct FilterProcedure<G> {
 }
 
 struct FilterProcedureConfig {
-    filter_by: HashMap<String, String>,
+    filter_by: GraphProperties,
 }
 
 pub struct FilterProcedureBuilder {}
@@ -56,7 +56,7 @@ impl FilterProcedureConfig {
         Ok(result)
     }
 
-    pub fn filter_by(&self) -> &HashMap<String, String> {
+    pub fn filter_by(&self) -> &GraphProperties {
         &self.filter_by
     }
 }

@@ -55,7 +55,7 @@ impl<G: Graph> ColourProcedure<G> {
             let result = C::is_colorable(&graph.0);
             graph
                 .1
-                .insert("colourable".to_string(), format!("{}", result));
+                .insert("colourable".to_string(), serde_json::Value::Bool(result));
         }
     }
 }

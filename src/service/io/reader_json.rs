@@ -34,17 +34,18 @@ where
     }
 
     fn next(&mut self) -> Option<Result<G>> {
-        if !self.parsed {
-            self.parse_file();
-        }
-        if self.position < self.graphs.len() {
-            self.position += 1;
 
-            unimplemented!();
-            // read graph by format at position
-            // return graph
-        }
-        None
+        unimplemented!();
+
+        // if !self.parsed {
+        //     self.parse_file();
+        // }
+        // if self.position < self.graphs.len() {
+        //     self.position += 1;
+        //     // read graph by format at position
+        //     // return graph
+        // }
+        // None
     }
 }
 
@@ -60,7 +61,10 @@ impl<'a, G: Graph + GraphConstructor> JsonReader<'a, G> {
 
     pub fn next_with_properties(&mut self) -> Option<Result<(G, GraphProperties)>> {
         if !self.parsed {
-            self.parse_file();
+            let parse_result = self.parse_file();
+            if parse_result.is_err() {
+                return Some(Err(parse_result.err().unwrap()));
+            }
         }
         if self.position < self.graphs.len() {
             let graph_with_properties = &self.graphs[self.position];

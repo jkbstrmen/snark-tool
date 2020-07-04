@@ -45,7 +45,7 @@ impl<G: Graph + GraphConstructor> ReadProcedure<G> {
                 Self::read_by_format(reader, graphs, graphs_count)?;
             }
             "json" => {
-                Self::read_json_format(graphs, graphs_count, &file);
+                Self::read_json_format(graphs, graphs_count, &file)?;
             }
             _ => {
                 return Err(Error::ConfigError(String::from(

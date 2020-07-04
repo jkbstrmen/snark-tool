@@ -101,6 +101,7 @@ impl<G: Graph + GraphConstructor> WriteProcedure<G> {
             let graph_with_properties = GraphWithProperties {
                 graph: graph_string,
                 properties: graph.1.clone(),
+                graph_format: graph_format.clone(),
             };
             vec.push(graph_with_properties);
         }
@@ -126,9 +127,10 @@ impl<G: Graph + GraphConstructor> WriteProcedure<G> {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct GraphWithProperties {
-    graph: String,
-    properties: GraphProperties,
+pub struct GraphWithProperties {
+    pub graph: String,
+    pub properties: GraphProperties,
+    pub graph_format: String,
 }
 
 impl WriteProcedureConfig {

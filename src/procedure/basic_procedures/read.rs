@@ -7,6 +7,7 @@ use crate::service::io::error::ReadError;
 use crate::service::io::reader::Reader;
 use crate::service::io::reader_ba::BaReader;
 use crate::service::io::reader_g6::G6Reader;
+use crate::service::io::reader_json::JsonReader;
 use crate::service::io::reader_s6::S6Reader;
 use std::collections::HashMap;
 use std::{fs, marker, path};
@@ -43,6 +44,9 @@ impl<G: Graph + GraphConstructor> ReadProcedure<G> {
                 let reader = S6Reader::<G>::new(&file);
                 Self::read_by_format(reader, graphs, graphs_count)?;
             }
+            "json" => {
+                Self::read_json_format(graphs, graphs_count, &file);
+            }
             _ => {
                 return Err(Error::ConfigError(String::from(
                     "unknown graph format for read procedure",
@@ -72,6 +76,37 @@ impl<G: Graph + GraphConstructor> ReadProcedure<G> {
             }
 
             graph_opt = reader.next();
+        }
+        if graphs_count.is_some() && graphs_count.unwrap() > counter {
+            println!(
+                "You asked for: {} graphs but given file contains only {}",
+                graphs_count.unwrap(),
+                counter
+            );
+        }
+        Ok(())
+    }
+
+    fn read_json_format(
+        graphs: &mut Vec<(G, GraphProperties)>,
+        graphs_count: Option<usize>,
+        file: &fs::File,
+    ) -> Result<()> {
+        let mut counter = 1;
+
+        let mut reader = JsonReader::<G>::new(file);
+
+        let mut graph_opt = reader.next_with_properties();
+        while graph_opt.is_some() {
+            let graph = graph_opt.unwrap()?;
+            graphs.push(graph);
+            counter += 1;
+
+            if graphs_count.is_some() && graphs_count.unwrap() < counter {
+                break;
+            }
+
+            graph_opt = reader.next_with_properties();
         }
         if graphs_count.is_some() && graphs_count.unwrap() > counter {
             println!(

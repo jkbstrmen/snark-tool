@@ -1,0 +1,27 @@
+version: 0.1
+
+options:
+  - first-option
+
+procedures:
+  - proc-type: read
+    config:
+      file: resources/graphs/12snarksForTest.g6
+      graph-format: g6
+      number-of-graphs: 2
+
+  - proc-type: colour
+    config:
+      colouriser-type: sat
+
+  - proc-type: write
+    config:
+      file: output
+      graph-format: s6
+
+  - proc-type: write-with-properties
+    config:
+      file: output_with_properties
+      graph-format: g6
+
+  - proc-type: last-procedure

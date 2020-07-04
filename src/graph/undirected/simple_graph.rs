@@ -161,9 +161,6 @@ pub struct Edges<'a, E> {
 }
 
 impl<'a, E> Edges<'a, E> {
-    pub fn new(iter: slice::Iter<'a, E>) -> Self {
-        Edges { vertex: None, iter }
-    }
     pub fn of_vertex(iter: slice::Iter<'a, E>, vertex: usize) -> Self {
         Edges {
             vertex: Some(vertex),

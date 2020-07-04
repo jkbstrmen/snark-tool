@@ -40,7 +40,7 @@ where
             is_edge_subcritical: false,
             colourings: vec![None; graph.size() * graph.size()],
             vertex_properties_computed: false,
-            edge_property_computed: false
+            edge_property_computed: false,
         }
     }
 
@@ -160,7 +160,7 @@ where
     }
 
     pub fn compute_edge_subcriticality(graph: &mut SimpleSparseGraph) -> bool {
-        let mut local_graph = SimpleGraph::from_graph(graph);
+        let local_graph = SimpleGraph::from_graph(graph);
         let mut edge_subcritical = true;
 
         for first_edge in local_graph.edges.iter() {
@@ -189,6 +189,7 @@ where
 }
 
 impl CriticalProperties<BFSColourizer> {
+    #[allow(dead_code)]
     pub fn of_graph<G: Graph + Clone>(graph: &G) -> Self {
         CriticalProperties::<BFSColourizer>::of_graph_with_colourizer(graph, BFSColourizer::new())
     }

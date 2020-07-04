@@ -1,12 +1,9 @@
-use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::Graph;
-use crate::graph::undirected::edge::UndirectedEdge;
-use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
 use crate::graph::vertex::Vertex;
-use crate::service::colour::colouriser::Colourizer;
-use crate::service::chromatic_properties::critical_prop::CriticalProperties;
 use crate::service::chromatic_properties::critical_prop;
+use crate::service::chromatic_properties::critical_prop::CriticalProperties;
+use crate::service::colour::colouriser::Colourizer;
 
 pub struct StableAndCriticalProperties<C>
 where
@@ -80,7 +77,8 @@ where
         if self.edge_property_computed {
             return self.is_edge_subcritical;
         }
-        self.is_edge_subcritical = CriticalProperties::<C>::compute_edge_subcriticality(&mut self.graph);
+        self.is_edge_subcritical =
+            CriticalProperties::<C>::compute_edge_subcriticality(&mut self.graph);
         self.edge_property_computed = true;
 
         return self.is_edge_subcritical;

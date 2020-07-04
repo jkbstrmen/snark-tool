@@ -1,5 +1,5 @@
+use crate::error::{Error, ProcedureError};
 use std::fmt;
-use crate::error::{ProcedureError, Error};
 
 #[derive(Debug)]
 pub struct ChromaticPropertiesError {
@@ -8,7 +8,9 @@ pub struct ChromaticPropertiesError {
 
 impl ChromaticPropertiesError {
     pub fn new(message: impl AsRef<str>) -> Self {
-        ChromaticPropertiesError { message: String::from(message.as_ref()) }
+        ChromaticPropertiesError {
+            message: String::from(message.as_ref()),
+        }
     }
 }
 
@@ -22,7 +24,7 @@ impl fmt::Display for ChromaticPropertiesError {
 impl From<ChromaticPropertiesError> for Error {
     fn from(error: ChromaticPropertiesError) -> Self {
         let message = format!("{}", error);
-        Error::ProcedureError(ProcedureError{ message })
+        Error::ProcedureError(ProcedureError { message })
     }
 }
 
@@ -39,4 +41,3 @@ impl From<serde_json::error::Error> for ChromaticPropertiesError {
         ChromaticPropertiesError { message }
     }
 }
-

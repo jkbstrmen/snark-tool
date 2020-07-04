@@ -1,6 +1,6 @@
 use crate::graph::graph::{Graph, GraphConstructor};
-use crate::procedure::basic_procedures::colour::ColourProcedureBuilder;
 use crate::procedure::basic_procedures::chromatic_properties::ChromaticPropsProcedureBuilder;
+use crate::procedure::basic_procedures::colour::ColourProcedureBuilder;
 use crate::procedure::basic_procedures::filter::FilterProcedureBuilder;
 use crate::procedure::basic_procedures::read::ReadProcedureBuilder;
 use crate::procedure::basic_procedures::unknown_procedure::UnknownProcedure;

@@ -18,20 +18,14 @@ where
     G: Graph + Clone,
     C: Colourizer,
 {
-    // pub fn new() -> Self {
-    //     Resistance {
-    //         _g: marker::PhantomData,
-    //         colourizer: C::new(),
-    //     }
-    // }
-
-    pub fn new_with_colourizer(colourizer: C) -> Self {
+    pub fn new_with_colouriser(colourizer: C) -> Self {
         Resistance {
             _g: marker::PhantomData,
             _colourizer: colourizer,
         }
     }
 
+    #[allow(dead_code)]
     pub fn edge_resistance(&self, graph: &G) -> Option<usize> {
         for i in 0..graph.size() {
             let e_res = self.edge_resistance_recursive(graph, i);

@@ -6,8 +6,6 @@ use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
 use crate::service::colour::bfs::BFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
 
-// TODO - use own graph struct?
-
 pub struct CriticalProperties<C>
 where
     C: Colourizer,
@@ -22,7 +20,8 @@ where
     is_edge_subcritical: bool,
 
     colourings: Vec<Option<bool>>,
-    computed: bool,
+    vertex_properties_computed: bool,
+    edge_property_computed: bool,
 }
 
 impl<C> CriticalProperties<C>
@@ -40,12 +39,13 @@ where
             is_vertex_subcritical: false,
             is_edge_subcritical: false,
             colourings: vec![None; graph.size() * graph.size()],
-            computed: false,
+            vertex_properties_computed: false,
+            edge_property_computed: false
         }
     }
 
     pub fn is_critical(&mut self) -> bool {
-        if self.computed {
+        if self.vertex_properties_computed {
             return self.is_critical;
         }
         self.compute_properties();
@@ -53,7 +53,7 @@ where
     }
 
     pub fn is_cocritical(&mut self) -> bool {
-        if self.computed {
+        if self.vertex_properties_computed {
             return self.is_cocritical;
         }
         self.compute_properties();
@@ -61,7 +61,7 @@ where
     }
 
     pub fn is_vertex_subcritical(&mut self) -> bool {
-        if self.computed {
+        if self.vertex_properties_computed {
             return self.is_vertex_subcritical;
         }
         self.compute_properties();
@@ -69,21 +69,23 @@ where
     }
 
     pub fn is_edge_subcritical(&mut self) -> bool {
-        if self.computed {
+        if self.edge_property_computed {
             return self.is_edge_subcritical;
         }
-        self.compute_properties();
+        self.is_edge_subcritical = Self::compute_edge_subcriticality(&mut self.graph);
+        self.edge_property_computed = true;
+
         return self.is_edge_subcritical;
     }
 
     fn compute_properties(&mut self) {
         self.compute_vertex_properties();
 
-        self.is_edge_subcritical = true;
-        if !self.is_critical {
-            self.compute_edge_subcriticality();
+        if self.is_critical {
+            self.is_edge_subcritical = true;
+            self.edge_property_computed = true;
         }
-        self.computed = true;
+        self.vertex_properties_computed = true;
     }
 
     ///
@@ -129,7 +131,7 @@ where
                     colourable = C::is_colorable(graph);
 
                     self.colourings[first_vertex * graph.size() + second_vertex] = Some(colourable);
-                    Self::restore_edges_of_vertex_except_for(
+                    restore_edges_of_vertex_except_for(
                         &self.untouched_graph,
                         graph,
                         second_vertex,
@@ -149,7 +151,7 @@ where
                 }
             }
 
-            Self::restore_edges_of_vertex(&self.untouched_graph, graph, first_vertex);
+            restore_edges_of_vertex(&self.untouched_graph, graph, first_vertex);
 
             if !self.is_vertex_subcritical {
                 return;
@@ -157,65 +159,64 @@ where
         }
     }
 
-    fn compute_edge_subcriticality(&mut self) {
-        let local_graph = SimpleGraph::from_graph(&self.graph);
+    pub fn compute_edge_subcriticality(graph: &mut SimpleSparseGraph) -> bool {
+        let mut local_graph = SimpleGraph::from_graph(graph);
         let mut edge_subcritical = true;
 
         for first_edge in local_graph.edges.iter() {
-            self.graph.remove_edge(first_edge.from(), first_edge.to());
+            graph.remove_edge(first_edge.from(), first_edge.to());
 
             for second_edge in local_graph.edges.iter() {
                 if first_edge.eq(second_edge) {
                     continue;
                 }
-                self.graph.remove_edge(second_edge.from(), second_edge.to());
-                let colourable = C::is_colorable(&self.graph);
-                self.graph.add_edge(second_edge.from(), second_edge.to());
+                graph.remove_edge(second_edge.from(), second_edge.to());
+                let colourable = C::is_colorable(graph);
+                graph.add_edge(second_edge.from(), second_edge.to());
                 if colourable {
                     edge_subcritical = true;
                     break;
                 }
                 edge_subcritical = false;
             }
-            self.graph.add_edge(first_edge.from(), first_edge.to());
+            graph.add_edge(first_edge.from(), first_edge.to());
             if !edge_subcritical {
-                self.is_edge_subcritical = false;
-                return;
+                return false;
             }
         }
-        self.is_edge_subcritical = true;
-    }
-
-    fn restore_edges_of_vertex(
-        original_graph: &SimpleSparseGraph,
-        changed_graph: &mut SimpleSparseGraph,
-        vertex: usize,
-    ) {
-        for neighboring_edge in original_graph.vertices[vertex].edges.iter() {
-            changed_graph.add_edge(neighboring_edge.from(), neighboring_edge.to());
-        }
-    }
-
-    fn restore_edges_of_vertex_except_for(
-        original_graph: &SimpleSparseGraph,
-        changed_graph: &mut SimpleSparseGraph,
-        vertex: usize,
-        except_for: usize,
-    ) {
-        let except_for_edge = UndirectedEdge::new(vertex, except_for);
-        for neighboring_edge in original_graph.vertices[vertex].edges.iter() {
-            if neighboring_edge.from() == except_for_edge.from()
-                && neighboring_edge.to() == except_for_edge.to()
-            {
-                continue;
-            }
-            changed_graph.add_edge(neighboring_edge.from(), neighboring_edge.to());
-        }
+        true
     }
 }
 
 impl CriticalProperties<BFSColourizer> {
     pub fn of_graph<G: Graph + Clone>(graph: &G) -> Self {
         CriticalProperties::<BFSColourizer>::of_graph_with_colourizer(graph, BFSColourizer::new())
+    }
+}
+
+pub fn restore_edges_of_vertex(
+    original_graph: &SimpleSparseGraph,
+    changed_graph: &mut SimpleSparseGraph,
+    vertex: usize,
+) {
+    for neighboring_edge in original_graph.vertices[vertex].edges.iter() {
+        changed_graph.add_edge(neighboring_edge.from(), neighboring_edge.to());
+    }
+}
+
+pub fn restore_edges_of_vertex_except_for(
+    original_graph: &SimpleSparseGraph,
+    changed_graph: &mut SimpleSparseGraph,
+    vertex: usize,
+    except_for: usize,
+) {
+    let except_for_edge = UndirectedEdge::new(vertex, except_for);
+    for neighboring_edge in original_graph.vertices[vertex].edges.iter() {
+        if neighboring_edge.from() == except_for_edge.from()
+            && neighboring_edge.to() == except_for_edge.to()
+        {
+            continue;
+        }
+        changed_graph.add_edge(neighboring_edge.from(), neighboring_edge.to());
     }
 }

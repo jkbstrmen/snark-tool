@@ -29,13 +29,21 @@ procedures:
 ##      colouriser-type: cvd-dfs
 #      colouriser-type: bfs
 
-#  - proc-type: chromatic-properties
-  - proc-type: critical-and-stable
+  - proc-type: chromatic-properties
     config:
       parallel: true
-#      colouriser-type: cvd-sat
       colouriser-type: bfs
-      # properties: critical, cocritical, ...
+      properties:
+#        - stable
+        - critical
+        - cocritical
+        - vertex-subcritical
+        - edge-subcritical
+        - stable
+#        - edge-resistibility # for all edges
+#        - vertex-resistibility # for all vertices
+#        - resistence
+
 
 
   - proc-type: filter
@@ -44,9 +52,9 @@ procedures:
 #      colourable: false
 #      critical: true
       filter-by:
-        edge_subcritical: "true"
-        vertex_subcritical: "true"
-        stable: "false"
+        edge_subcritical: true
+        vertex_subcritical: true
+        stable: false
 
   - proc-type: write
     config:

@@ -1,6 +1,6 @@
 use crate::graph::graph::{Graph, GraphConstructor};
 use crate::procedure::basic_procedures::colour::ColourProcedureBuilder;
-use crate::procedure::basic_procedures::critical_and_stable_properties::CriticAndStablePropsProcedureBuilder;
+use crate::procedure::basic_procedures::chromatic_properties::ChromaticPropsProcedureBuilder;
 use crate::procedure::basic_procedures::filter::FilterProcedureBuilder;
 use crate::procedure::basic_procedures::read::ReadProcedureBuilder;
 use crate::procedure::basic_procedures::unknown_procedure::UnknownProcedure;
@@ -28,8 +28,8 @@ impl<G: Graph + GraphConstructor + Clone + 'static> ProcedureRegistry<G> {
         reg.insert("colour".to_string(), ColourProcedureBuilder {});
         reg.insert("filter".to_string(), FilterProcedureBuilder {});
         reg.insert(
-            "critical-and-stable".to_string(),
-            CriticAndStablePropsProcedureBuilder {},
+            "chromatic-properties".to_string(),
+            ChromaticPropsProcedureBuilder {},
         );
         reg
     }

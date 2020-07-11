@@ -34,7 +34,6 @@ where
     }
 
     fn next(&mut self) -> Option<Result<G>> {
-
         unimplemented!();
 
         // if !self.parsed {

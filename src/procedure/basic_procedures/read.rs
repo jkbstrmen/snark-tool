@@ -1,6 +1,6 @@
 use crate::error::Error;
 use crate::graph::graph::{Graph, GraphConstructor};
-use crate::procedure::config_helper;
+use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
 use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
 use crate::service::io::error::ReadError;

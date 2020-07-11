@@ -13,6 +13,7 @@ pub fn map_to_json_value<K: Serialize, V: Serialize>(
     serde_json::to_value(result)
 }
 
+#[allow(dead_code)]
 pub fn vec_to_json_value<T: Serialize>(vec: Vec<T>) -> serde_json::Result<serde_json::Value> {
     let mut result: Vec<(usize, T)> = Vec::with_capacity(vec.len());
     let mut i = 0;

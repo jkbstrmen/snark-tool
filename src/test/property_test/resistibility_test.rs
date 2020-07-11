@@ -6,8 +6,6 @@ pub mod resistibility_tests {
     use crate::service::colour::colouriser::Colourizer;
     use crate::service::io::reader_g6::G6Reader;
     use crate::test::test_data::test_data;
-    use serde::Serialize;
-    use std::collections::HashMap;
 
     #[test]
     fn should_test_resistibility_indices() {

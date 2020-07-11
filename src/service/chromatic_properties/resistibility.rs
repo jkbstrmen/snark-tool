@@ -3,9 +3,7 @@ use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
 use crate::service::chromatic_properties::resistance::Resistance;
 use crate::service::colour::colouriser::Colourizer;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::marker;
 
 pub struct Resistibility<G, C>
 where
@@ -49,15 +47,10 @@ where
         &self.edges_resistibilities
     }
 
+    #[allow(dead_code)]
     pub fn take_edges_resistibility(&mut self) -> HashMap<(usize, usize), usize> {
         self.edges_resistibility();
         std::mem::replace(&mut self.edges_resistibilities, HashMap::new())
-    }
-
-    pub fn edges_resistibility_parallel(&self, graph: &G) -> HashMap<(usize, usize), usize> {
-        // TODO
-
-        HashMap::new()
     }
 
     pub fn edge_resistibility(&self, graph: &mut G, from: usize, to: usize) -> usize {
@@ -124,6 +117,14 @@ where
         index
     }
 
+    #[allow(dead_code)]
+    pub fn edges_resistibility_parallel(&mut self) -> HashMap<(usize, usize), usize> {
+        // TODO
+
+        HashMap::new()
+    }
+
+    #[allow(dead_code)]
     pub fn vertices_resistibility_parallel(&mut self) -> Vec<usize> {
         // TODO
 

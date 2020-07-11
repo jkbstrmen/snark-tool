@@ -13,12 +13,9 @@ use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCri
 use crate::service::colour::bfs::BFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
 use crate::service::colour::sat::SATColourizer;
-use serde::Serialize;
 use std::collections::HashMap;
-use std::panic::resume_unwind;
 use std::sync::mpsc;
 use std::{marker, result, thread};
-use yaml_rust::yaml::Yaml::Hash;
 
 pub type Result<T> = result::Result<T, ChromaticPropertiesError>;
 
@@ -298,11 +295,11 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         }
         if to_compute.vertex_resistibility {
             // compute vertex resistibility and add result to properties
-            Self::vertex_resistibility(graph, &colouriser, &mut properties);
+            Self::vertex_resistibility(graph, &colouriser, &mut properties)?;
         }
         if to_compute.edge_resistibility {
             // compute edge resistibility and add result to properties
-            Self::edge_resistibility(graph, &colouriser, &mut properties);
+            Self::edge_resistibility(graph, &colouriser, &mut properties)?;
         }
         if to_compute.girth {
             // compute girth and add result to properties

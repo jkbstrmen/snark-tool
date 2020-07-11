@@ -25,7 +25,6 @@ where
         }
     }
 
-    #[allow(dead_code)]
     pub fn edge_resistance(&self, graph: &G) -> Option<usize> {
         for i in 0..graph.size() {
             let e_res = self.edge_resistance_recursive(graph, i);

@@ -1,18 +1,24 @@
 use crate::graph::graph::Graph;
 use crate::graph::undirected::simple_graph::SimpleGraph;
+use crate::procedure::helpers::config_helper;
+use crate::procedure::helpers::serialize_helper;
+use crate::procedure::procedure;
 use crate::procedure::procedure::{GraphProperties, Procedure};
 use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
-use crate::procedure::{config_helper, procedure};
 use crate::service::chromatic_properties::critical_prop::CriticalProperties;
 use crate::service::chromatic_properties::error::ChromaticPropertiesError;
 use crate::service::chromatic_properties::resistance::Resistance;
+use crate::service::chromatic_properties::resistibility::Resistibility;
 use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
 use crate::service::colour::bfs::BFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
 use crate::service::colour::sat::SATColourizer;
+use serde::Serialize;
 use std::collections::HashMap;
+use std::panic::resume_unwind;
 use std::sync::mpsc;
 use std::{marker, result, thread};
+use yaml_rust::yaml::Yaml::Hash;
 
 pub type Result<T> = result::Result<T, ChromaticPropertiesError>;
 
@@ -265,7 +271,10 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
     ) -> Result<GraphProperties> {
         let to_compute = properties_to_compute;
         let mut properties = GraphProperties::new();
-        properties.insert("graph_index".to_string(), serde_json::json!(graph_index));
+        properties.insert(
+            "graph_index".to_string(),
+            serde_json::to_value(graph_index)?,
+        );
 
         if to_compute.stable || to_compute.costable {
             Self::critical_and_stable_properties(
@@ -285,13 +294,15 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
 
         if to_compute.resistance {
             // compute resistence and add result to properties
-            Self::resistance(graph, colouriser, &mut properties)?;
+            Self::resistance(graph, &colouriser, &mut properties)?;
         }
         if to_compute.vertex_resistibility {
             // compute vertex resistibility and add result to properties
+            Self::vertex_resistibility(graph, &colouriser, &mut properties);
         }
         if to_compute.edge_resistibility {
             // compute edge resistibility and add result to properties
+            Self::edge_resistibility(graph, &colouriser, &mut properties);
         }
         if to_compute.girth {
             // compute girth and add result to properties
@@ -385,7 +396,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
 
     fn resistance<Gr: Graph + Clone, C: Colourizer>(
         graph: &Gr,
-        _colouriser: C,
+        _colouriser: &C,
         properties_computed: &mut GraphProperties,
     ) -> Result<()> {
         let resistance = Resistance::new_with_colouriser(C::new());
@@ -393,7 +404,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         if resistance.is_some() {
             properties_computed.insert(
                 "resistance".to_string(),
-                serde_json::json!(resistance.unwrap()),
+                serde_json::to_value(resistance.unwrap())?,
             );
         } else {
             properties_computed.insert(
@@ -401,6 +412,52 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
                 serde_json::Value::String("None".to_string()),
             );
         }
+        Ok(())
+    }
+
+    fn edge_resistibility<Gr: Graph + Clone, C: Colourizer>(
+        graph: &Gr,
+        _colouriser: &C,
+        properties_computed: &mut GraphProperties,
+    ) -> Result<()> {
+        let mut resistibility = Resistibility::of_graph_with_colouriser(graph, C::new());
+        let edge_resistibilities = resistibility.edges_resistibility();
+        let edge_resistibilities_json = serialize_helper::map_to_json_value(edge_resistibilities)?;
+        properties_computed.insert(
+            "edge_resistibilities".to_string(),
+            edge_resistibilities_json,
+        );
+
+        let index_of_edge_resistibility = resistibility.edge_resistibility_index();
+        properties_computed.insert(
+            "edge_resistibility_index".to_string(),
+            serde_json::to_value(index_of_edge_resistibility)?,
+        );
+
+        Ok(())
+    }
+
+    fn vertex_resistibility<Gr: Graph + Clone, C: Colourizer>(
+        graph: &Gr,
+        _colouriser: &C,
+        properties_computed: &mut GraphProperties,
+    ) -> Result<()> {
+        let mut resistibility = Resistibility::of_graph_with_colouriser(graph, C::new());
+        let vertices_resistibility = resistibility.vertices_resistibility();
+        // let vertex_resistibilities_json =
+        //     serialize_helper::vec_to_json_value(vertices_resistibility)?;
+        let vertex_resistibilities_json = serde_json::to_value(vertices_resistibility)?;
+        properties_computed.insert(
+            "vertex_resistibilities".to_string(),
+            vertex_resistibilities_json,
+        );
+
+        let vertex_resistibility_index = resistibility.vertex_resistibility_index();
+        properties_computed.insert(
+            "vertex_resistibility_index".to_string(),
+            serde_json::to_value(vertex_resistibility_index)?,
+        );
+
         Ok(())
     }
 

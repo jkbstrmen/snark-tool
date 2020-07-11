@@ -1,11 +1,9 @@
 use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::{Graph, GraphConstructor};
 use crate::graph::undirected::edge::UndirectedEdge;
-use crate::graph::undirected::vertex::SimpleVertex;
 use crate::graph::undirected_sparse::vertex::VertexWithEdges;
-use crate::graph::vertex::Vertex;
-use std::slice::{Iter, IterMut};
-use std::{fmt, marker, slice};
+use crate::graph::vertex::{Vertex, VertexConstructor};
+use std::fmt;
 
 /// best for sparse graphs
 #[derive(Debug, Clone)]
@@ -14,7 +12,10 @@ pub struct SimpleSparseGraph {
     pub vertices: Vec<VertexWithEdges>,
 }
 
-impl Graph<VertexWithEdges, UndirectedEdge> for SimpleSparseGraph {
+impl Graph for SimpleSparseGraph {
+    type V = VertexWithEdges;
+    type E = UndirectedEdge;
+
     fn size(&self) -> usize {
         self.vertices.len()
     }
@@ -97,7 +98,7 @@ impl GraphConstructor for SimpleSparseGraph {
         Self::with_vertices_capacity(20)
     }
 
-    fn with_capacity(vertices: usize, edges: usize) -> Self {
+    fn with_capacity(vertices: usize, _edges: usize) -> Self {
         Self::with_vertices_capacity(vertices)
     }
 

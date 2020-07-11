@@ -21,6 +21,13 @@ impl From<num::ParseIntError> for ReadError {
     }
 }
 
+impl From<io::Error> for ReadError {
+    fn from(error: io::Error) -> Self {
+        let message = format!("nested io error: {}", error);
+        ReadError { message }
+    }
+}
+
 #[derive(Debug)]
 pub struct WriteError {
     pub message: String,

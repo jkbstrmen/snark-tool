@@ -3,14 +3,11 @@ pub mod colour_tests {
     use crate::graph::undirected::simple_graph::SimpleGraph;
     use crate::service::colour::bfs::BFSColourizer;
     use crate::service::colour::colouriser::Colourizer;
+    use crate::service::colour::cvd;
     use crate::service::colour::cvd_dfs::CvdDfsColourizer;
     use crate::service::colour::sat::SATColourizer;
-    use crate::service::colour::{cvd, sat};
-    use crate::service::io::reader::Reader;
-    use crate::service::io::reader_ba::BaReader;
     use crate::service::io::reader_g6::G6Reader;
     use crate::test::test_data::test_data;
-    use std::fs::OpenOptions;
 
     #[test]
     fn should_be_snark_bfs() {

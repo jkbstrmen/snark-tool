@@ -3,6 +3,5 @@ pub mod colouriser;
 pub mod bfs;
 pub mod cvd;
 pub mod cvd_dfs;
-pub mod sat;
 pub mod cvd_sat;
-// pub mod bfs_first;
+pub mod sat;

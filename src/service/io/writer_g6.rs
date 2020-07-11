@@ -1,4 +1,4 @@
-use crate::graph::graph;
+use crate::graph::graph::Graph;
 use crate::service::io::error::WriteError;
 use crate::service::io::reader_g6::{Position, BIAS};
 use std::{fs, io, marker, path, result};
@@ -11,7 +11,7 @@ pub struct G6Writer<G> {
 
 impl<G> G6Writer<G>
 where
-    G: graph::Graph,
+    G: Graph,
 {
     pub fn write_graphs_to_file<P>(
         graphs: &Vec<(G, P)>,

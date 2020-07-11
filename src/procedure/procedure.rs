@@ -1,15 +1,11 @@
 use crate::error::Error;
-use crate::graph::graph::{Graph, GraphConstructor};
+use crate::graph::graph::Graph;
 use std::collections::HashMap;
-use std::{fmt, result};
+use std::result;
 
-type Result<T> = result::Result<T, Error>;
-pub type Config = HashMap<String, String>;
+pub type Result<T> = result::Result<T, Error>;
+pub type GraphProperties = HashMap<String, serde_json::Value>;
 
-pub trait Procedure<P> {
-    fn new_with_config(proc_type: impl AsRef<str>, config: Config) -> Self;
-
-    fn run<G>(&self, graphs: &mut Vec<(G, P)>) -> Result<()>
-    where
-        G: fmt::Debug + Graph + GraphConstructor;
+pub trait Procedure<G: Graph> {
+    fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()>;
 }

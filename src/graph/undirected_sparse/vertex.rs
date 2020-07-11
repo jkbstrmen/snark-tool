@@ -1,7 +1,6 @@
 use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::undirected::edge::UndirectedEdge;
-use crate::graph::vertex::Vertex;
-use std::slice::Iter;
+use crate::graph::vertex::{Vertex, VertexConstructor};
 
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct VertexWithEdges {
@@ -10,14 +9,17 @@ pub struct VertexWithEdges {
 }
 
 impl Vertex for VertexWithEdges {
+    fn index(&self) -> usize {
+        self.index
+    }
+}
+
+impl VertexConstructor for VertexWithEdges {
     fn new(index: usize) -> Self {
         VertexWithEdges {
             index,
             edges: vec![],
         }
-    }
-    fn index(&self) -> usize {
-        self.index
     }
 }
 

@@ -1,11 +1,10 @@
-use std::{fmt, marker, slice};
+use std::{fmt, slice};
 
 use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::{Graph, GraphConstructor};
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::vertex::SimpleVertex;
-use crate::graph::vertex::Vertex;
-use std::iter::FromIterator;
+use crate::graph::vertex::{Vertex, VertexConstructor};
 
 #[derive(Debug, Clone)]
 pub struct SimpleGraph {
@@ -16,6 +15,9 @@ pub struct SimpleGraph {
 
 /// undirected, without loop, without multiple edges
 impl Graph for SimpleGraph {
+    type V = SimpleVertex;
+    type E = UndirectedEdge;
+
     fn size(&self) -> usize {
         self.vertices.len()
     }
@@ -54,7 +56,7 @@ impl Graph for SimpleGraph {
     fn remove_edge(&mut self, from: usize, to: usize) {
         let to_remove = UndirectedEdge::new(from, to);
         self.edges
-            .retain(|edge| edge.from() != to_remove.from() && edge.to() != to_remove.to());
+            .retain(|edge| edge.from() != to_remove.from() || edge.to() != to_remove.to());
     }
 
     fn remove_edges_of_vertex(&mut self, vertex: usize) /*-> Self*/
@@ -99,7 +101,7 @@ impl GraphConstructor for SimpleGraph {
 }
 
 impl SimpleGraph {
-    pub fn from_graph<G: Graph<V, E>, V: Vertex, E: Edge>(graph: &G) -> Self {
+    pub fn from_graph<G: Graph>(graph: &G) -> Self {
         let mut vertices = vec![];
         for vertex in graph.vertices() {
             vertices.push(SimpleVertex::new(vertex.index()));
@@ -159,9 +161,6 @@ pub struct Edges<'a, E> {
 }
 
 impl<'a, E> Edges<'a, E> {
-    pub fn new(iter: slice::Iter<'a, E>) -> Self {
-        Edges { vertex: None, iter }
-    }
     pub fn of_vertex(iter: slice::Iter<'a, E>, vertex: usize) -> Self {
         Edges {
             vertex: Some(vertex),

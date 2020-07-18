@@ -13,7 +13,9 @@ use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCri
 use crate::service::colour::bfs::BFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
 use crate::service::colour::sat::SATColourizer;
+use std::borrow::Borrow;
 use std::collections::HashMap;
+use std::ops::Index;
 use std::sync::mpsc;
 use std::{marker, result, thread};
 
@@ -93,7 +95,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         graphs: &mut Vec<(G, GraphProperties)>,
         colouriser_type: &String,
     ) -> Result<()> {
-        let mut threads = vec![];
+        let mut threads = HashMap::new();
         let mut index = 0;
         let (tx, rx) = mpsc::channel();
         let cpus_count = num_cpus::get();
@@ -107,25 +109,33 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
             let graph = next_graph.unwrap();
             let graph_local = SimpleGraph::from_graph(&graph.0);
             let tx_cloned = mpsc::Sender::clone(&tx);
-            let handle = Self::spawn_thread_for_graph_2(
+            let handle = Self::spawn_thread_for_graph(
                 graph_local,
                 index,
                 colouriser_type.clone(),
                 (*to_compute).clone(),
                 tx_cloned,
             );
-            threads.push(handle);
+            threads.insert(index, handle);
             index += 1;
-
             if index >= cpus_count {
                 break;
             }
             next_graph = graphs_iter.next();
         }
-
         let mut results = Vec::with_capacity(graphs.len());
+
         // receive results and create new threads while next graphs exists
         for received in &rx {
+            let received_result = received.borrow().as_ref();
+            let index_value = received_result.unwrap().get("graph_index").unwrap();
+            let received_index: usize = serde_json::from_value(index_value.clone())?;
+
+            // end/join thread which sent received results
+            let thread_opt = threads.remove(&received_index);
+            if thread_opt.is_some() {
+                let result = thread_opt.unwrap().join();
+            }
             results.push(received);
 
             next_graph = graphs_iter.next();
@@ -133,14 +143,14 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
                 let graph = next_graph.unwrap();
                 let graph_local = SimpleGraph::from_graph(&graph.0);
                 let tx_cloned = mpsc::Sender::clone(&tx);
-                let handle = Self::spawn_thread_for_graph_2(
+                let handle = Self::spawn_thread_for_graph(
                     graph_local,
                     index,
                     colouriser_type.clone(),
                     (*to_compute).clone(),
                     tx_cloned,
                 );
-                threads.push(handle);
+                threads.insert(index, handle);
                 index += 1;
             } else {
                 break;
@@ -156,8 +166,9 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         for result in results {
             self.handle_parallel_result(graphs, result)?;
         }
+        // end/join remaining threads
         for thread in threads {
-            thread.join().unwrap();
+            thread.1.join().unwrap();
         }
         Ok(())
     }
@@ -180,7 +191,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         ))
     }
 
-    fn spawn_thread_for_graph_2(
+    fn spawn_thread_for_graph(
         graph: SimpleGraph,
         index: usize,
         colouriser_type: String,

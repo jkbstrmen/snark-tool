@@ -4,6 +4,7 @@ pub mod resistance_tests {
     use crate::service::chromatic_properties::resistance::Resistance;
     use crate::service::colour::bfs::BFSColourizer;
     use crate::service::colour::colouriser::Colourizer;
+    use crate::service::colour::sat::SATColourizer;
     use crate::service::io::reader_g6::G6Reader;
     use crate::test::test_data::test_data;
 
@@ -42,4 +43,14 @@ pub mod resistance_tests {
     //     assert_eq!(v_resistance.is_some(), true);
     //     assert_eq!(v_resistance.unwrap(), 3);
     // }
+
+    #[test]
+    fn should_have_resistance_three() {
+        let res_tester = Resistance::new_with_colouriser(BFSColourizer::new());
+        let graph: SimpleGraph =
+            G6Reader::read_graph(test_data::SNARK_IN_G6_36_STABLE_RES_3).unwrap();
+        let v_resistance = res_tester.vertex_resistance(&graph);
+        assert_eq!(v_resistance.is_some(), true);
+        assert_eq!(v_resistance.unwrap(), 3);
+    }
 }

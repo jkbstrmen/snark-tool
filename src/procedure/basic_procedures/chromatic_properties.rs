@@ -15,7 +15,6 @@ use crate::service::colour::colouriser::Colourizer;
 use crate::service::colour::sat::SATColourizer;
 use std::borrow::Borrow;
 use std::collections::HashMap;
-use std::ops::Index;
 use std::sync::mpsc;
 use std::{marker, result, thread};
 
@@ -134,7 +133,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
             // end/join thread which sent received results
             let thread_opt = threads.remove(&received_index);
             if thread_opt.is_some() {
-                let result = thread_opt.unwrap().join();
+                let _result = thread_opt.unwrap().join();
             }
             results.push(received);
 

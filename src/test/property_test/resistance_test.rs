@@ -4,7 +4,6 @@ pub mod resistance_tests {
     use crate::service::chromatic_properties::resistance::Resistance;
     use crate::service::colour::bfs::BFSColourizer;
     use crate::service::colour::colouriser::Colourizer;
-    use crate::service::colour::sat::SATColourizer;
     use crate::service::io::reader_g6::G6Reader;
     use crate::test::test_data::test_data;
 

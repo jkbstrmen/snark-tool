@@ -23,6 +23,8 @@ pub trait Graph {
     // fn vertices(&self) -> Vertices<V>;
     fn vertices<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::V> + 'a>;
 
+    // neighbors_of_vertex
+
     fn edges<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::E> + 'a>;
     fn edges_of_vertex<'a>(&'a self, vertex: usize) -> Box<dyn Iterator<Item = &'a Self::E> + 'a>;
 

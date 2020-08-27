@@ -145,6 +145,7 @@ impl MatchingGraph {
         false
     }
 
+    // TODO - optimize
     pub fn perfect_matchings(&self) -> Vec<Matching> {
         if self.vertices.is_empty() {
             let mut matchings = vec![];
@@ -177,17 +178,12 @@ impl MatchingGraph {
 
 pub struct BfsGraph<'a> {
     graph: &'a MatchingGraph,
-
-    // using Vec<bool> to indicate visited vertex seems to have  better performance
     visited: Vec<bool>,
-    // visited: HashMap<usize, bool>,
-
     to_visit: VecDeque<usize>,
 }
 
 impl<'a> BfsGraph<'a> {
     pub fn new(graph: &'a MatchingGraph, start: usize) -> Self {
-        // let mut visited: HashMap<usize, bool> = HashMap::new();
         let mut visited = vec![false; graph.size()];
         let mut to_visit = VecDeque::new();
         to_visit.push_back(start);
@@ -205,16 +201,9 @@ impl<'a> BfsGraph<'a> {
     /// if true, visited for the first time
     ///
     fn visit(&mut self, vertex: usize) -> bool {
-
         let old_val = self.visited[vertex];
         self.visited[vertex] = true;
         !old_val
-
-        // let old_val = self.visited.insert(vertex, true);
-        // if old_val.is_some() {
-        //     return false;
-        // }
-        // true
     }
 
     pub fn bfs_next(&mut self) -> Option<usize> {

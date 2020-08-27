@@ -118,11 +118,11 @@ mod io_tests {
         assert_eq!(graph_s6.unwrap(), graph_g6.unwrap());
     }
 
-    #[test]
-    fn should_read_json() {
-        let file = OpenOptions::new().read(true).open("output").unwrap();
-
-        let mut reader = JsonReader::<SimpleGraph>::new(&file);
-        reader.next();
-    }
+    // #[test]
+    // fn should_read_json() {
+    //     let file = OpenOptions::new().read(true).open("output").unwrap();
+    //
+    //     let mut reader = JsonReader::<SimpleGraph>::new(&file);
+    //     reader.next();
+    // }
 }

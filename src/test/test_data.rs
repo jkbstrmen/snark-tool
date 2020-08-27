@@ -4,6 +4,7 @@ pub mod test_data {
     use crate::graph::graph::{Graph, GraphConstructor};
     use crate::graph::undirected::edge::UndirectedEdge;
     use crate::graph::undirected::simple_graph::SimpleGraph;
+    use crate::service::matching::perfect_matchings::Matching;
 
     pub const SNARK_IN_G6_10_PETERSEN: &str = "I?h]@eOWG";
     pub const SNARK_IN_G6_20: &str = "Ss??GOGA_I?c????GOQAACGO_P?_K@?S?";
@@ -169,5 +170,62 @@ pub mod test_data {
         edges.push(UndirectedEdge::new(24, 25));
         edges.push(UndirectedEdge::new(26, 27));
         edges
+    }
+
+    pub fn petersens_matchings() -> Vec<Matching> {
+        let mut matchings = vec![];
+        let mut first_matching = Matching::new();
+        first_matching.edges.push(UndirectedEdge::new(0, 6));
+        first_matching.edges.push(UndirectedEdge::new(8, 9));
+        first_matching.edges.push(UndirectedEdge::new(3, 7));
+        first_matching.edges.push(UndirectedEdge::new(1, 5));
+        first_matching.edges.push(UndirectedEdge::new(2, 4));
+
+        let mut second_matching = Matching::new();
+        second_matching.edges.push(UndirectedEdge::new(0, 4));
+        second_matching.edges.push(UndirectedEdge::new(3, 8));
+        second_matching.edges.push(UndirectedEdge::new(1, 5));
+        second_matching.edges.push(UndirectedEdge::new(2, 9));
+        second_matching.edges.push(UndirectedEdge::new(6, 7));
+
+        let mut third_matching = Matching::new();
+        third_matching.edges.push(UndirectedEdge::new(2, 4));
+        third_matching.edges.push(UndirectedEdge::new(0, 8));
+        third_matching.edges.push(UndirectedEdge::new(3, 5));
+        third_matching.edges.push(UndirectedEdge::new(6, 7));
+        third_matching.edges.push(UndirectedEdge::new(1, 9));
+
+        let mut fourth_matching = Matching::new();
+        fourth_matching.edges.push(UndirectedEdge::new(0, 4));
+        fourth_matching.edges.push(UndirectedEdge::new(3, 5));
+        fourth_matching.edges.push(UndirectedEdge::new(1, 6));
+        fourth_matching.edges.push(UndirectedEdge::new(2, 7));
+        fourth_matching.edges.push(UndirectedEdge::new(8, 9));
+
+        let mut fifth_matching = Matching::new();
+        fifth_matching.edges.push(UndirectedEdge::new(0, 8));
+        fifth_matching.edges.push(UndirectedEdge::new(4, 5));
+        fifth_matching.edges.push(UndirectedEdge::new(1, 6));
+        fifth_matching.edges.push(UndirectedEdge::new(2, 9));
+        fifth_matching.edges.push(UndirectedEdge::new(3, 7));
+
+        let mut sixth_matching = Matching::new();
+        sixth_matching.edges.push(UndirectedEdge::new(0, 6));
+        sixth_matching.edges.push(UndirectedEdge::new(4, 5));
+        sixth_matching.edges.push(UndirectedEdge::new(3, 8));
+        sixth_matching.edges.push(UndirectedEdge::new(1, 9));
+        sixth_matching.edges.push(UndirectedEdge::new(2, 7));
+
+        matchings.push(first_matching);
+        matchings.push(second_matching);
+        matchings.push(third_matching);
+        matchings.push(fourth_matching);
+        matchings.push(fifth_matching);
+        matchings.push(sixth_matching);
+        for matching in matchings.iter_mut() {
+            matching.edges.sort();
+        }
+        matchings.sort();
+        matchings
     }
 }

@@ -8,7 +8,9 @@ pub mod matching_tests {
     use crate::service::colour::colouriser::Colourizer;
     use crate::service::colour::matching::{CycleDiscovery, MatchingColouriser};
     use crate::service::io::reader_g6::G6Reader;
-    use crate::service::matching::perfect_matchings::{BfsGraph, MatchingGraph};
+    use crate::service::matching::perfect_matchings::{
+        BfsGraph, MatchingGraph
+    };
     use crate::test::test_data::test_data;
 
     #[test]
@@ -89,10 +91,10 @@ pub mod matching_tests {
         assert_eq!(has, true);
 
         let mut match_graph = MatchingGraph::new();
-        match_graph.add_vertex(0);
+        match_graph.create_vertex_if_not_exists(0);
         let has = match_graph.has_odd_size_component();
         assert_eq!(has, true);
-        match_graph.add_vertex(1);
+        match_graph.create_vertex_if_not_exists(1);
         let has = match_graph.has_odd_size_component();
         assert_eq!(has, true);
     }
@@ -101,14 +103,6 @@ pub mod matching_tests {
         for edge in edges {
             graph.add_edge(edge.from(), edge.to());
         }
-    }
-
-    fn graph_to_matching_graph(graph: &SimpleGraph) -> MatchingGraph {
-        let mut match_graph = MatchingGraph::new();
-        for edge in graph.edges() {
-            match_graph.add_edge(edge.from(), edge.to());
-        }
-        match_graph
     }
 
     #[test]
@@ -125,7 +119,8 @@ pub mod matching_tests {
 
     #[test]
     fn should_find_all_perfect_matchings() {
-        let graph = graph_to_matching_graph(&test_data::get_petersen_graph());
+        // let mut graph = MatchingGraph::from_graph(&test_data::get_petersen_graph());
+        let mut graph = MatchingGraph::from_graph(&test_data::get_petersen_graph());
         let mut matchings = graph.perfect_matchings();
         let petersens_matchings = test_data::petersens_matchings();
 

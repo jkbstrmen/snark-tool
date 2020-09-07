@@ -284,4 +284,25 @@ mod graph_tests {
             assert_eq!(len_before, neighbors.len());
         }
     }
+
+    #[test]
+    fn should_add_and_remove_edges_mg() {
+        let s_graph = test_data::get_petersen_graph();
+        let mut m_graph = MatchingGraph::from_graph(&s_graph);
+
+        assert_edges_petersen(&m_graph);
+
+        m_graph.remove_edge(0, 4);
+        assert_eq!(m_graph.has_edge(0, 4), false);
+        m_graph.add_edge(0, 4);
+        assert_eq!(m_graph.has_edge(0, 4), true);
+
+        m_graph.remove_edge(1, 6);
+        assert_eq!(m_graph.has_edge(1, 6), false);
+        m_graph.add_edge(1, 6);
+        assert_eq!(m_graph.has_edge(1, 6), true);
+
+        m_graph.add_edge(1, 6);
+        asser_graph_simpleness(&m_graph);
+    }
 }

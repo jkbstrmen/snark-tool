@@ -136,4 +136,41 @@ pub mod critical_prop_tests {
         assert_eq!(props.is_vertex_subcritical(), true);
         assert_eq!(props.is_edge_subcritical(), true);
     }
+
+    #[test]
+    fn should_be_acritical_matching() {
+        let colourizer = MatchingColouriser::new();
+        let graph: SimpleGraph = G6Reader::read_graph(test_data::SNARK_IN_G6_34_STABLE_1).unwrap();
+        let mut props = CriticalProperties::of_graph_with_colourizer(&graph, colourizer);
+        assert_eq!(props.is_critical(), false);
+        assert_eq!(props.is_cocritical(), false);
+        assert_eq!(props.is_vertex_subcritical(), false);
+        assert_eq!(props.is_edge_subcritical(), false);
+
+        let colourizer = MatchingColouriser::new();
+        let graph: SimpleGraph = G6Reader::read_graph(test_data::SNARK_IN_G6_34_STABLE_2).unwrap();
+        let mut props = CriticalProperties::of_graph_with_colourizer(&graph, colourizer);
+        assert_eq!(props.is_critical(), false);
+        assert_eq!(props.is_cocritical(), false);
+        assert_eq!(props.is_vertex_subcritical(), false);
+        assert_eq!(props.is_edge_subcritical(), false);
+
+        let colourizer = MatchingColouriser::new();
+        let graph: SimpleGraph =
+            G6Reader::read_graph(test_data::SNARK_IN_G6_30_ACRITICAL_1).unwrap();
+        let mut props = CriticalProperties::of_graph_with_colourizer(&graph, colourizer);
+        assert_eq!(props.is_critical(), false);
+        assert_eq!(props.is_cocritical(), false);
+        assert_eq!(props.is_vertex_subcritical(), false);
+        assert_eq!(props.is_edge_subcritical(), false);
+
+        let colourizer = MatchingColouriser::new();
+        let graph: SimpleGraph =
+            G6Reader::read_graph(test_data::SNARK_IN_G6_30_ACRITICAL_2).unwrap();
+        let mut props = CriticalProperties::of_graph_with_colourizer(&graph, colourizer);
+        assert_eq!(props.is_critical(), false);
+        assert_eq!(props.is_cocritical(), false);
+        assert_eq!(props.is_vertex_subcritical(), false);
+        assert_eq!(props.is_edge_subcritical(), false);
+    }
 }

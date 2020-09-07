@@ -1,7 +1,6 @@
 use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::Graph;
 use crate::graph::undirected::edge::UndirectedEdge;
-use crate::service::colour::matching::{ELAPSED_2, ELAPSED_3, HAS_COUNTER, HAS_NOT_COUNTER};
 use std::collections::hash_map;
 use std::collections::{HashMap, VecDeque};
 use std::{iter, slice, time};
@@ -115,8 +114,23 @@ impl MatchingGraph {
     pub fn add_edge(&mut self, from: usize, to: usize) {
         self.create_vertex_if_not_exists(from);
         self.create_vertex_if_not_exists(to);
+        self.vertices[from]
+            .neighbors
+            .retain(|neighbor| neighbor != &to);
         self.vertices[from].neighbors.push(to);
+        self.vertices[to]
+            .neighbors
+            .retain(|neighbor| neighbor != &from);
         self.vertices[to].neighbors.push(from);
+    }
+
+    pub fn remove_edge(&mut self, from: usize, to: usize) {
+        self.vertices[from]
+            .neighbors
+            .retain(|neighbor| neighbor != &to);
+        self.vertices[to]
+            .neighbors
+            .retain(|neighbor| neighbor != &from);
     }
 
     ///
@@ -169,8 +183,8 @@ impl MatchingGraph {
     }
 
     pub fn vertices(&self) -> MatchingGraphVerticesIter {
-        MatchingGraphVerticesIter{
-            vertices: self.vertices.iter()
+        MatchingGraphVerticesIter {
+            vertices: self.vertices.iter(),
         }
     }
 
@@ -268,10 +282,10 @@ impl MatchingGraph {
 }
 
 pub struct MatchingGraphVerticesIter<'a> {
-    vertices: slice::Iter<'a, Vertex>
+    vertices: slice::Iter<'a, Vertex>,
 }
 
-impl <'a> Iterator for MatchingGraphVerticesIter<'a> {
+impl<'a> Iterator for MatchingGraphVerticesIter<'a> {
     type Item = &'a Vertex;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -283,7 +297,6 @@ impl <'a> Iterator for MatchingGraphVerticesIter<'a> {
         None
     }
 }
-
 
 pub struct BfsGraph<'a> {
     graph: &'a MatchingGraph,
@@ -327,53 +340,3 @@ impl<'a> BfsGraph<'a> {
         None
     }
 }
-
-// pub struct BfsGraph<'a> {
-//     graph: &'a MatchingGraph,
-//     visited: Vec<bool>,
-//     to_visit: VecDeque<usize>,
-// }
-//
-// impl<'a> BfsGraph<'a> {
-//     pub fn new(graph: &'a MatchingGraph, start: usize) -> Self {
-//         let mut visited = vec![false; graph.size()];
-//         let mut to_visit = VecDeque::new();
-//         to_visit.push_back(start);
-//
-//         let mut bfs = BfsGraph {
-//             graph,
-//             visited,
-//             to_visit,
-//         };
-//         bfs.visit(start);
-//         bfs
-//     }
-//
-//     ///
-//     /// if true, visited for the first time
-//     ///
-//     fn visit(&mut self, vertex: usize) -> bool {
-//         let old_val = self.visited[vertex];
-//         self.visited[vertex] = true;
-//         !old_val
-//     }
-//
-//     pub fn bfs_next(&mut self) -> Option<usize> {
-//         if let Some(vertex) = self.to_visit.pop_front() {
-//             // if let Some(neighbors) = self.graph.neighbors(vertex) {
-//             //     for neighbor in neighbors {
-//             //         if self.visit(*neighbor) {
-//             //             self.to_visit.push_back(*neighbor);
-//             //         }
-//             //     }
-//             // }
-//             for neighbor in self.graph.neighbors(vertex) {
-//                 if self.visit(*neighbor) {
-//                     self.to_visit.push_back(*neighbor);
-//                 }
-//             }
-//             return Some(vertex);
-//         }
-//         None
-//     }
-// }

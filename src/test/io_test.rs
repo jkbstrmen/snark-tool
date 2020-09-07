@@ -8,6 +8,9 @@ mod io_tests {
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::io::reader_s6::S6Reader;
     //use crate::service::io::writer_adj::AdjWriter;
+    use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
+    use crate::procedure::procedure::GraphProperties;
+    use crate::service::io::reader_json::JsonReader;
     use crate::service::io::writer_ba::BaWriter;
     use crate::service::io::writer_g6::G6Writer;
     use crate::service::io::writer_s6::S6Writer;
@@ -114,4 +117,12 @@ mod io_tests {
         let graph_g6 = G6Reader::<SimpleGraph>::read_graph(test_data::NO_SNARK_IN_G6_112);
         assert_eq!(graph_s6.unwrap(), graph_g6.unwrap());
     }
+
+    // #[test]
+    // fn should_read_json() {
+    //     let file = OpenOptions::new().read(true).open("output").unwrap();
+    //
+    //     let mut reader = JsonReader::<SimpleGraph>::new(&file);
+    //     reader.next();
+    // }
 }

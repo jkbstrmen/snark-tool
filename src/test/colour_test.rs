@@ -5,6 +5,7 @@ pub mod colour_tests {
     use crate::service::colour::colouriser::Colourizer;
     use crate::service::colour::cvd;
     use crate::service::colour::cvd_dfs::CvdDfsColourizer;
+    use crate::service::colour::matching::MatchingColouriser;
     use crate::service::colour::sat::SATColourizer;
     use crate::service::io::reader_g6::G6Reader;
     use crate::test::test_data::test_data;
@@ -129,5 +130,35 @@ pub mod colour_tests {
         let graph = G6Reader::<SimpleGraph>::read_graph(test_data::SNARK_IN_G6_40).unwrap();
         let result = CvdDfsColourizer::is_colorable(&graph);
         assert_eq!(result, false);
+    }
+
+    #[test]
+    fn should_be_snark_matching() {
+        let graph = test_data::get_petersen_graph();
+        let result = MatchingColouriser::is_colorable(&graph);
+        assert_eq!(result, false);
+
+        let graph = G6Reader::<SimpleGraph>::read_graph(test_data::SNARK_IN_G6_20);
+        let result = MatchingColouriser::is_colorable(&graph.unwrap());
+        assert_eq!(result, false);
+
+        let graph = G6Reader::<SimpleGraph>::read_graph(test_data::SNARK_IN_G6_36);
+        let result = MatchingColouriser::is_colorable(&graph.unwrap());
+        assert_eq!(result, false);
+
+        let graph = G6Reader::<SimpleGraph>::read_graph(test_data::SNARK_IN_G6_40);
+        let result = MatchingColouriser::is_colorable(&graph.unwrap());
+        assert_eq!(result, false);
+    }
+
+    #[test]
+    fn should_be_colourable_matching() {
+        let graph = G6Reader::<SimpleGraph>::read_graph(test_data::NO_SNARK_IN_G6_18);
+        let result = MatchingColouriser::is_colorable(&graph.unwrap());
+        assert_eq!(result, true);
+
+        // let graph = G6Reader::<SimpleGraph>::read_graph(test_data::NO_SNARK_IN_G6_112);
+        // let result = MatchingColouriser::is_colorable(&graph.unwrap());
+        // assert_eq!(result, true);
     }
 }

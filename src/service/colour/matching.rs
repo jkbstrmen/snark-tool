@@ -63,7 +63,6 @@ pub struct CycleDiscovery<'a> {
     graph: &'a MatchingGraph,
     visited: Vec<bool>,
     to_visit: Vec<usize>,
-    cycle: Vec<usize>,
     vert_iter: MatchingGraphVerticesIter<'a>,
 }
 
@@ -74,7 +73,6 @@ impl<'a> CycleDiscovery<'a> {
             graph,
             visited,
             to_visit: vec![],
-            cycle: vec![],
             vert_iter: graph.vertices(),
         };
         discovery
@@ -107,23 +105,33 @@ impl<'a> CycleDiscovery<'a> {
     /// Works only if self.graph is graph of order 2
     ///
     pub fn has_odd_cycle(&mut self) -> bool {
+        // clear internal data
+        self.visited = vec![false; self.graph.max_vertex_index()];
         while let Some(component) = self.next_component() {
             if component.len() % 2 == 1 {
                 // is odd component
-
-                // check if same number of edges and vertices - if so - it is cycle
-                let mut edges_count = 0;
-                for vertex in component.iter() {
-                    let neighbors = self.graph.neighbors(*vertex);
-                    edges_count += neighbors.len();
-                }
-                edges_count = edges_count / 2;
-
-                if edges_count == component.len() {
-                    // we have cycle and it is of odd size
+                if self.is_cycle(&component) {
                     return true;
                 }
             }
+        }
+        false
+    }
+
+    ///
+    /// Works only if self.graph is graph of order 2
+    ///
+    fn is_cycle(&self, component: &Vec<usize>) -> bool {
+        // check if same number of edges and vertices - if so - it is cycle
+        let mut edges_count = 0;
+        for vertex in component.iter() {
+            let neighbors = self.graph.neighbors(*vertex);
+            edges_count += neighbors.len();
+        }
+        edges_count = edges_count / 2;
+
+        if edges_count == component.len() {
+            return true;
         }
         false
     }
@@ -152,5 +160,17 @@ impl<'a> CycleDiscovery<'a> {
             }
         }
         None
+    }
+
+    pub fn cycles(&mut self) -> Vec<Vec<usize>> {
+        // clear internal data
+        self.visited = vec![false; self.graph.max_vertex_index()];
+        let mut cycles = vec![];
+        while let Some(component) = self.next_component() {
+            if self.is_cycle(&component) {
+                cycles.push(component);
+            }
+        }
+        cycles
     }
 }

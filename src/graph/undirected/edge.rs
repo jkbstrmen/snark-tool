@@ -1,6 +1,6 @@
-use crate::graph::edge::Edge;
+use crate::graph::edge::{Edge, EdgeConstructor};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct UndirectedEdge {
     from: usize,
     to: usize,
@@ -25,8 +25,8 @@ impl Edge for UndirectedEdge {
     }
 }
 
-impl UndirectedEdge {
-    pub fn new(from: usize, to: usize) -> Self {
+impl EdgeConstructor for UndirectedEdge {
+    fn new(from: usize, to: usize) -> Self {
         if from > to {
             return UndirectedEdge {
                 from: to,
@@ -35,6 +35,12 @@ impl UndirectedEdge {
             };
         }
         UndirectedEdge { from, to, color: 0 }
+    }
+
+    fn new_with_colour(from: usize, to: usize, colour: u8) -> Self {
+        let mut edge = UndirectedEdge::new(from, to);
+        edge.set_color(colour);
+        edge
     }
 }
 

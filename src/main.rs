@@ -1,8 +1,9 @@
 use crate::graph::undirected::simple_graph::SimpleGraph;
-use crate::procedure::basic_impl::basic_procedure::BasicProcedure;
-use crate::procedure::basic_impl::basic_properties::BasicProperties;
 use crate::procedure::configuration::Configuration;
+use crate::procedure::procedure::GraphProperties;
 use crate::procedure::procedure_chain::ProcedureChain;
+use crate::procedure::procedure_registry::ProcedureRegistry;
+use std::time::Instant;
 use structopt::StructOpt;
 
 mod error;
@@ -34,22 +35,31 @@ fn main() {
 
     match args.command.as_ref() {
         "run" => {
+            let begin = Instant::now();
+
             let config_str =
                 std::fs::read_to_string(&args.config_file_path).expect("could not read file");
             let config = parse_yaml_config(&config_str);
 
-            let chain = ProcedureChain::<BasicProcedure, BasicProperties>::from_procedures_config(
-                config.procedures,
-            );
-            // let mut graphs: Vec<SimpleGraph> = vec![];
-            let mut graphs_with_properties: Vec<(SimpleGraph, BasicProperties)> = vec![];
+            let registry = ProcedureRegistry::new_basic();
+            // add builder of own procedure impl to registry as below
+            // registry.insert("read".to_string(), ReadProcedureBuilder{});
 
+            let chain = ProcedureChain::from_procedures_config(registry, config.procedures);
+            if chain.is_err() {
+                eprintln!("Error: {}", chain.err().unwrap());
+                return;
+            }
+
+            let chain = chain.unwrap();
+            let mut graphs_with_properties: Vec<(SimpleGraph, GraphProperties)> = vec![];
             match chain.run(&mut graphs_with_properties) {
                 Err(error) => {
                     eprintln!("Error: {}", error);
                 }
                 Ok(()) => {}
             }
+            println!("elapsed: {}ms", begin.elapsed().as_millis());
         }
         _ => {
             println!("Unknown command");

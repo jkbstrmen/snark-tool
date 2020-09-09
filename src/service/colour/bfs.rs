@@ -1,28 +1,29 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
+use crate::service::colour::colouriser::Colourizer;
 
 // Colorizer for (sub)cubic graphs only
-pub struct BFSColourizer {
+pub struct BFSColourizer {}
+
+struct BFSColourizerGraph {
     // pair - (neighbor, color)
     vertices: Vec<[(usize, usize); 3]>,
+    // vertices: Vec<Vec<(usize, usize)>>,
     one_edge_vert: Vec<usize>,
     non_colored_edges: Vec<usize>,
     non_colored_edges_of_graph: usize,
 }
 
-impl BFSColourizer {
-    pub fn is_colorable<G, V, E>(graph: &G) -> bool
-    where
-        G: Graph<V, E>,
-        V: Vertex,
-        E: Edge,
-    {
+impl Colourizer for BFSColourizer {
+    fn is_colorable<G: Graph>(graph: &G) -> bool {
         let mut vertices = Vec::with_capacity(graph.size());
+        // create local graph
         for vertex in graph.vertices() {
-            let mut neighbors = [(0, 1); 3];
+            let mut neighbors = [(0, 0); 3];
             let mut i = 0;
             for edge in graph.edges_of_vertex(vertex.index()) {
+                neighbors[i].1 = 1;
                 if edge.from() == vertex.index() {
                     neighbors[i].0 = edge.to();
                 } else {
@@ -30,17 +31,9 @@ impl BFSColourizer {
                 }
                 i += 1;
             }
-            // if vertex has less than 3 edges - where is checked later?
-            if i < 3 {
-                neighbors[i].0 = vertex.index();
-            }
-            i += 1;
-            if i < 3 {
-                neighbors[i].0 = vertex.index();
-            }
             vertices.push(neighbors);
         }
-        let mut color_graph = BFSColourizer {
+        let mut color_graph = BFSColourizerGraph {
             vertices,
             one_edge_vert: vec![],
             non_colored_edges: vec![],
@@ -52,6 +45,11 @@ impl BFSColourizer {
         let mut first_vertex = 0;
         let mut index = 0;
         for vertex in color_graph.vertices.clone() {
+            if vertex[2].1 == 0 {
+                index += 1;
+                continue;
+            }
+
             let mut i = 0;
             for neighbor in vertex.iter() {
                 if neighbor.1 == 1 {
@@ -65,7 +63,6 @@ impl BFSColourizer {
                 break;
             }
         }
-
         let mut non_colored_edges_of_graph = 0;
         let mut non_colored_edges_of_vertex_count = vec![0; graph.size()];
         let mut one_edge_vert = vec![];
@@ -90,6 +87,12 @@ impl BFSColourizer {
         color_graph.color(first_vertex)
     }
 
+    fn new() -> Self {
+        BFSColourizer {}
+    }
+}
+
+impl BFSColourizerGraph {
     fn color(&mut self, vertex: usize) -> bool {
         let color_vars = [(4, 5), (3, 5), (3, 4)];
 
@@ -108,8 +111,6 @@ impl BFSColourizer {
 
         match self.non_colored_edges[vertex] {
             0 => {
-                // println!("zero uncolored edges of vertex {}", vertex);
-
                 if self.non_colored_edges_of_graph == 0 {
                     return true;
                 } else {
@@ -130,7 +131,7 @@ impl BFSColourizer {
                 if self.non_colored_edges[neighbor1 as usize] == 1 && !self.one_edge_vert.is_empty()
                 {
                     change = true;
-                    next_vertex = self.one_edge_vert.pop().unwrap(); // preco sa ale sem potom do jenodhrannych neprida kde1, ked aj kde1 uz bude jednohran?
+                    next_vertex = self.one_edge_vert.pop().unwrap();
                 } else {
                     next_vertex = neighbor1;
                 }
@@ -192,8 +193,6 @@ impl BFSColourizer {
                 self.non_colored_edges[neighbor1 as usize] += 1;
                 self.set_edge_color(vertex, neighbor1, 1);
                 return false;
-
-                // println!("one uncolored edge of vertex {}", vertex);
             }
             2 => {
                 self.non_colored_edges_of_graph -= 2;
@@ -221,7 +220,6 @@ impl BFSColourizer {
 
                 match colored_sum {
                     0 => {
-                        // possible if pre-colored first vertex?
                         for num in 3..6 {
                             self.set_edge_color(vertex, neighbor1, color_vars[num - 3].0);
                             self.set_edge_color(vertex, neighbor2, color_vars[num - 3].1);
@@ -258,7 +256,6 @@ impl BFSColourizer {
                         }
                     }
                 }
-
                 // revert changes
                 if one_edge_neighbors == 2 {
                     self.one_edge_vert.pop();
@@ -272,9 +269,7 @@ impl BFSColourizer {
                 self.non_colored_edges[neighbor2 as usize] += 1;
                 self.set_edge_color(vertex, neighbor1, 1);
                 self.set_edge_color(vertex, neighbor2, 1);
-                return false; // dead end - konflikt
-
-                // println!("two uncolored edges of vertex {}", vertex);
+                return false;
             }
             _ => {
                 panic!("More than 2 uncolored edges");
@@ -282,24 +277,17 @@ impl BFSColourizer {
         }
     }
 
-    // fn get_edge_color(&self, from: usize, to: usize) -> usize {
-    //     for neighbor in self.vertices[from].iter() {
-    //         if neighbor.0 == to {
-    //             return neighbor.1;
-    //         }
-    //     }
-    //     panic!("there is no edge from {} to {}", from, to);
-    // }
-
     fn set_edge_color(&mut self, from: usize, to: usize, color: usize) {
         for neighbor in self.vertices[from].iter_mut() {
             if neighbor.0 == to {
                 neighbor.1 = color;
+                break;
             }
         }
         for neighbor in self.vertices[to].iter_mut() {
             if neighbor.0 == from {
                 neighbor.1 = color;
+                break;
             }
         }
     }

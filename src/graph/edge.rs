@@ -5,6 +5,7 @@ pub trait Edge {
     fn set_color(&mut self, color: u8);
 }
 
-// pub trait EdgeConstructor {
-//     fn new(from: usize, to: usize) -> Self;
-// }
+pub trait EdgeConstructor {
+    fn new(from: usize, to: usize) -> Self;
+    fn new_with_colour(from: usize, to: usize, colour: u8) -> Self;
+}

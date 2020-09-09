@@ -5,7 +5,7 @@ use std::fmt;
 pub enum Error {
     ReadError(ReadError),
     WriteError(WriteError),
-    // ColourError,
+    ProcedureError(ProcedureError),
     ConfigError(String),
 }
 
@@ -14,8 +14,8 @@ impl fmt::Display for Error {
         match self {
             Error::ReadError(error) => write!(f, "read error: {:?}", error)?,
             Error::WriteError(error) => write!(f, "write error: {:?}", error)?,
-            // Error::ColourError => write!(f, "Colour error")?,
-            Error::ConfigError(msg) => write!(f, "Config error: {}", msg)?,
+            Error::ConfigError(msg) => write!(f, "config error: {}", msg)?,
+            Error::ProcedureError(error) => write!(f, "procedure error: {}", error)?,
         };
         Ok(())
     }
@@ -30,5 +30,23 @@ impl From<ReadError> for Error {
 impl From<WriteError> for Error {
     fn from(error: WriteError) -> Self {
         Error::WriteError(error)
+    }
+}
+
+impl From<ProcedureError> for Error {
+    fn from(error: ProcedureError) -> Self {
+        Error::ProcedureError(error)
+    }
+}
+
+#[derive(Debug)]
+pub struct ProcedureError {
+    pub message: String,
+}
+
+impl fmt::Display for ProcedureError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "procedure error: {}", self.message)?;
+        Ok(())
     }
 }

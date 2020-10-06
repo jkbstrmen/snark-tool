@@ -6,3 +6,5 @@ pub mod cvd_dfs;
 pub mod cvd_sat;
 pub mod matching;
 pub mod sat;
+
+pub mod bfs2;

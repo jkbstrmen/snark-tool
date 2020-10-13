@@ -3,7 +3,7 @@ use crate::graph::graph::Graph;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
 use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
-use crate::service::colour::bfs::BFSColourizer;
+use crate::service::colour::dfs_improved::DFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
 use crate::service::colour::cvd_dfs::CvdDfsColourizer;
 use crate::service::colour::sat::SATColourizer;
@@ -33,7 +33,7 @@ impl<G: Graph> ColourProcedure<G> {
         let colouriser_type = self.config.colouriser_type();
         match colouriser_type.as_str() {
             "bfs" => {
-                Self::color_by_colourizer::<BFSColourizer>(graphs);
+                Self::color_by_colourizer::<DFSColourizer>(graphs);
             }
             "sat" => {
                 Self::color_by_colourizer::<SATColourizer>(graphs);

@@ -3,7 +3,7 @@ use crate::graph::graph::Graph;
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
-use crate::service::colour::bfs::BFSColourizer;
+use crate::service::colour::dfs_improved::DFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
 
 pub struct CriticalProperties<C>
@@ -188,10 +188,10 @@ where
     }
 }
 
-impl CriticalProperties<BFSColourizer> {
+impl CriticalProperties<DFSColourizer> {
     #[allow(dead_code)]
     pub fn of_graph<G: Graph + Clone>(graph: &G) -> Self {
-        CriticalProperties::<BFSColourizer>::of_graph_with_colourizer(graph, BFSColourizer::new())
+        CriticalProperties::<DFSColourizer>::of_graph_with_colourizer(graph, DFSColourizer::new())
     }
 }
 

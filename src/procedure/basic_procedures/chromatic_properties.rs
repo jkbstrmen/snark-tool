@@ -10,7 +10,7 @@ use crate::service::chromatic_properties::error::ChromaticPropertiesError;
 use crate::service::chromatic_properties::resistance::Resistance;
 use crate::service::chromatic_properties::resistibility::Resistibility;
 use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
-use crate::service::colour::bfs::BFSColourizer;
+use crate::service::colour::dfs_improved::DFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
 use crate::service::colour::sat::SATColourizer;
 use std::borrow::Borrow;
@@ -254,7 +254,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
             "bfs" => {
                 return Self::compute_properties(
                     graph,
-                    BFSColourizer::new(),
+                    DFSColourizer::new(),
                     graph_index,
                     &properties_to_compute,
                 );

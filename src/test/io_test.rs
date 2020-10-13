@@ -8,9 +8,6 @@ mod io_tests {
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::io::reader_s6::S6Reader;
     //use crate::service::io::writer_adj::AdjWriter;
-    use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
-    use crate::procedure::procedure::GraphProperties;
-    use crate::service::io::reader_json::JsonReader;
     use crate::service::io::writer_ba::BaWriter;
     use crate::service::io::writer_g6::G6Writer;
     use crate::service::io::writer_s6::S6Writer;

@@ -1,6 +1,5 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
-use crate::graph::vertex::Vertex;
 use crate::service::colour::colouriser::Colourizer;
 
 pub struct DFSColourizerOriginal {}
@@ -18,7 +17,7 @@ struct BFSColourizerGraph2 {
 impl Colourizer for DFSColourizerOriginal {
     fn is_colorable<G: Graph>(graph: &G) -> bool {
         // create local graph
-        let mut graph_matrix = vec![0; graph.size() * graph.size()];
+        let graph_matrix = vec![0; graph.size() * graph.size()];
         let mut colour_graph = BFSColourizerGraph2 {
             graph: graph_matrix,
             neighbors: vec![[0, 0, 0]; graph.size()],
@@ -64,11 +63,11 @@ impl Colourizer for DFSColourizerOriginal {
                     }
                 }
             }
-            if (neighbor_position < 3) {
+            if neighbor_position < 3 {
                 colour_graph.neighbors[vertex][neighbor_position] = vertex;
             }
             neighbor_position += 1;
-            if (neighbor_position < 3) {
+            if neighbor_position < 3 {
                 colour_graph.neighbors[vertex][neighbor_position] = vertex;
             }
         }

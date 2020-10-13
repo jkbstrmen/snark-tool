@@ -1,9 +1,8 @@
 use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::Graph;
 use crate::graph::undirected::edge::UndirectedEdge;
-use std::collections::hash_map;
-use std::collections::{HashMap, VecDeque};
-use std::{iter, slice, time};
+use std::collections::VecDeque;
+use std::slice;
 
 // TODO - rename MatchingGraph, impl Graph for MatchingGraph
 
@@ -48,23 +47,25 @@ impl Vertex {
         }
     }
 
-    pub fn with_neighbors(index: usize, neighbors: Vec<usize>) -> Self {
-        Vertex {
-            index,
-            active: true,
-            neighbors,
-        }
-    }
+    // pub fn with_neighbors(index: usize, neighbors: Vec<usize>) -> Self {
+    //     Vertex {
+    //         index,
+    //         active: true,
+    //         neighbors,
+    //     }
+    // }
 
     pub fn index(&self) -> &usize {
         &self.index
     }
 
+    #[allow(dead_code)]
     pub fn neighbors(&self) -> &Vec<usize> {
         &self.neighbors
     }
 }
 
+#[allow(dead_code)]
 impl MatchingGraph {
     pub fn new() -> Self {
         Self::with_capacity(0)
@@ -265,7 +266,7 @@ impl MatchingGraph {
                 self.remove_vertex(vertex.index);
                 self.remove_vertex(*neighbor);
                 let mut matchings_local = self.perfect_matchings();
-                for mut matching in matchings_local.iter_mut() {
+                for matching in matchings_local.iter_mut() {
                     matching
                         .edges
                         .push(UndirectedEdge::new(vertex.index, *neighbor));
@@ -306,7 +307,7 @@ pub struct BfsGraph<'a> {
 
 impl<'a> BfsGraph<'a> {
     pub fn new(graph: &'a MatchingGraph, start: usize) -> Self {
-        let mut visited = vec![false; graph.vertices.len()];
+        let visited = vec![false; graph.vertices.len()];
         let mut to_visit = VecDeque::new();
         to_visit.push_back(start);
 

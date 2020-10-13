@@ -1,13 +1,11 @@
-use std::collections::hash_map;
-
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
-use crate::graph::undirected::edge::UndirectedEdge;
-use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::service::colour::colouriser::Colourizer;
 use crate::service::matching::perfect_matchings::{
-    Matching, MatchingGraph, MatchingGraphVerticesIter, Vertex,
+    Matching, MatchingGraph, MatchingGraphVerticesIter
 };
+
+// TODO - add to procedures
 
 pub struct MatchingColouriser {}
 
@@ -65,8 +63,8 @@ pub struct CycleDiscovery<'a> {
 
 impl<'a> CycleDiscovery<'a> {
     pub fn new(graph: &'a MatchingGraph) -> Self {
-        let mut visited = vec![false; graph.max_vertex_index()];
-        let mut discovery = CycleDiscovery {
+        let visited = vec![false; graph.max_vertex_index()];
+        let discovery = CycleDiscovery {
             graph,
             visited,
             to_visit: vec![],

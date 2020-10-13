@@ -1,13 +1,8 @@
 #[cfg(test)]
 pub mod matching_tests {
-    use crate::graph::edge::{Edge, EdgeConstructor};
-    use crate::graph::graph::{Graph, GraphConstructor};
+    use crate::graph::edge::Edge;
+    use crate::graph::graph::Graph;
     use crate::graph::undirected::edge::UndirectedEdge;
-    use crate::graph::undirected::simple_graph::SimpleGraph;
-    use crate::graph::vertex::Vertex;
-    use crate::service::colour::colouriser::Colourizer;
-    use crate::service::colour::matching::{CycleDiscovery, MatchingColouriser};
-    use crate::service::io::reader_g6::G6Reader;
     use crate::service::matching::perfect_matchings::{BfsGraph, MatchingGraph};
     use crate::test::test_data::test_data;
 
@@ -122,7 +117,7 @@ pub mod matching_tests {
         let mut matchings = graph.perfect_matchings();
         let petersens_matchings = test_data::petersens_matchings();
 
-        for mut matching in matchings.iter_mut() {
+        for matching in matchings.iter_mut() {
             matching.edges.sort();
         }
         matchings.sort();

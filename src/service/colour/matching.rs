@@ -1,7 +1,4 @@
-use std::cmp::Ordering;
-use std::collections::{hash_map, VecDeque};
-use std::ops::Deref;
-use std::{cmp, collections, slice, time};
+use std::collections::hash_map;
 
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
@@ -153,14 +150,14 @@ impl<'a> CycleDiscovery<'a> {
         None
     }
 
-    fn next_non_visited_vertex(&mut self) -> Option<usize> {
-        while let Some(vertex) = self.vert_iter.next() {
-            if !self.visited[*vertex.index()] {
-                return Some(*vertex.index());
-            }
-        }
-        None
-    }
+    // fn next_non_visited_vertex(&mut self) -> Option<usize> {
+    //     while let Some(vertex) = self.vert_iter.next() {
+    //         if !self.visited[*vertex.index()] {
+    //             return Some(*vertex.index());
+    //         }
+    //     }
+    //     None
+    // }
 
     pub fn cycles(&mut self) -> Vec<Vec<usize>> {
         // clear internal data

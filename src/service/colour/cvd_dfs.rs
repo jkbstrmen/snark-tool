@@ -1,5 +1,5 @@
 use crate::graph::graph::Graph;
-use crate::service::colour::bfs::BFSColourizer;
+use crate::service::colour::dfs_improved::DFSColourizer;
 use crate::service::colour::colouriser::Colourizer;
 use crate::service::colour::cvd;
 
@@ -13,7 +13,7 @@ impl Colourizer for CvdDfsColourizer {
     {
         let result_cvd = cvd::is_colorable(graph);
         if result_cvd.is_none() {
-            let result = BFSColourizer::is_colorable(graph);
+            let result = DFSColourizer::is_colorable(graph);
             return result;
         }
         result_cvd.unwrap()

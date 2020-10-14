@@ -210,14 +210,13 @@ impl BFSColourizerGraph {
                 let next_vertex;
 
                 if self.non_colored_edges[neighbor1 as usize] == 1 {
-                    if self.vertices[neighbor1 as usize][2].1 != 0  {
+                    if self.vertices[neighbor1 as usize][2].1 != 0 {
                         one_edge_neighbors += 1;
                         self.one_edge_vert.push(neighbor1);
-
                     }
                 }
                 if self.non_colored_edges[neighbor2 as usize] == 1 {
-                    if self.vertices[neighbor2 as usize][2].1 != 0  {
+                    if self.vertices[neighbor2 as usize][2].1 != 0 {
                         one_edge_neighbors += 1;
                         self.one_edge_vert.push(neighbor2);
                     }

@@ -82,7 +82,7 @@ impl Colourizer for DFSColourizerOriginal {
     }
 
     fn new() -> Self {
-        Self{}
+        Self {}
     }
 }
 

@@ -82,7 +82,9 @@ impl<'a> CycleDiscovery<'a> {
         !old_val
     }
 
+    ///
     /// (bfs has the same perfomance)
+    ///
     fn dfs_next(&mut self) -> Option<usize> {
         if let Some(vertex) = self.to_visit.pop() {
             for neighbor in self.graph.neighbors(vertex) {

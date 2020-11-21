@@ -3,9 +3,8 @@ use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
 
 use rand::seq::SliceRandom;
-use rand::Rng;
 use std::collections::VecDeque;
-use std::{cmp, time};
+use std::cmp;
 
 pub static NON_COLOURED_EDGE: u8 = 0;
 
@@ -14,7 +13,6 @@ struct CVDGraph {
     // Vec of vertices, where vertex is Vec of neighbors, where neighbor is (usize, u8) as (index, colour)
     // TODO - try with fixed size array [(usize, u8), 3]
     vertices: Vec<Vec<(usize, u8)>>,
-    size: usize,
     vertices_to_try: Vec<usize>,
     kempe_chain: KempeChain,
     conflicting_vertices: Vec<Vec<usize>>,
@@ -91,7 +89,6 @@ where
 
     CVDGraph {
         vertices,
-        size: graph.size(),
         vertices_to_try,
         kempe_chain: KempeChain {
             vertices: vec![],
@@ -144,6 +141,7 @@ impl CVDGraph {
     ///
     /// faster for smaller graphs
     ///
+    #[allow(dead_code)]
     fn highest_conflicting_vertex(&self) -> usize {
         if self.conflicting_vertices[2].is_empty() {
             return self.conflicting_vertices[1][0];
@@ -165,7 +163,7 @@ impl CVDGraph {
         }
     }
 
-    unsafe fn bfs_pre_colour(&mut self, mut first_vertex: usize) {
+    unsafe fn bfs_pre_colour(&mut self, first_vertex: usize) {
         let self_ref = self as *const CVDGraph;
         let mut bfs_graph = BfsGraph::new_from_raw_ptr(self_ref, first_vertex);
 
@@ -316,7 +314,7 @@ impl CVDGraph {
                 resolving_colour = step_result.old_colour;
 
                 // check if current_vertex not already in chain
-                if let Some(vertex) = self
+                if let Some(_vertex) = self
                     .kempe_chain
                     .vertices
                     .iter()

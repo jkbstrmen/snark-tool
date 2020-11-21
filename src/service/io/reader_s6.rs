@@ -11,6 +11,9 @@ use std::{fs, io, marker, result};
 
 type Result<T> = result::Result<T, ReadError>;
 
+///
+/// Ideally use with `SimpleSparseGraph`
+///
 pub struct S6Reader<'a, G> {
     lines: io::Lines<io::BufReader<&'a fs::File>>,
 

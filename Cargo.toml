@@ -9,6 +9,9 @@ edition = "2018"
 [profile.test]
 opt-level = 3
 
+[profile.dev]
+opt-level = 3
+
 [dependencies]
 structopt = "0.2.10"
 yaml-rust = "0.4.3"

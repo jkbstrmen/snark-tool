@@ -2,15 +2,16 @@ use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
 use crate::service::colour::colouriser::Colourizer;
-use crate::service::colour::cvd::DFS_CALLS;
 
-// Colorizer for (sub)cubic graphs only
+///
+/// Colorizer for (sub)cubic graphs only
+/// version 2.2
+///
 pub struct DFSColourizer {}
 
-struct BFSColourizerGraph {
+struct DFSColourizerGraph {
     // pair - (neighbor, color)
     vertices: Vec<[(usize, usize); 3]>,
-    // vertices: Vec<Vec<(usize, usize)>>,
     one_edge_vert: Vec<usize>,
     non_colored_edges: Vec<usize>,
     non_colored_edges_of_graph: usize,
@@ -18,10 +19,6 @@ struct BFSColourizerGraph {
 
 impl Colourizer for DFSColourizer {
     fn is_colorable<G: Graph>(graph: &G) -> bool {
-        // unsafe {
-        //     DFS_CALLS += 1;
-        // }
-
         let mut vertices = Vec::with_capacity(graph.size());
         // create local graph
         for vertex in graph.vertices() {
@@ -38,7 +35,7 @@ impl Colourizer for DFSColourizer {
             }
             vertices.push(neighbors);
         }
-        let mut color_graph = BFSColourizerGraph {
+        let mut color_graph = DFSColourizerGraph {
             vertices,
             one_edge_vert: vec![],
             non_colored_edges: vec![],
@@ -92,7 +89,6 @@ impl Colourizer for DFSColourizer {
         color_graph.one_edge_vert = one_edge_vert;
         color_graph.non_colored_edges = non_colored_edges_of_vertex_count;
         color_graph.non_colored_edges_of_graph = non_colored_edges_of_graph;
-        // println!("first vertex: {}", first_vertex);
         color_graph.color(first_vertex)
     }
 
@@ -101,7 +97,7 @@ impl Colourizer for DFSColourizer {
     }
 }
 
-impl BFSColourizerGraph {
+impl DFSColourizerGraph {
     fn color(&mut self, vertex: usize) -> bool {
         let color_vars = [(4, 5), (3, 5), (3, 4)];
 

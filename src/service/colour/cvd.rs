@@ -5,20 +5,11 @@ use crate::graph::vertex::Vertex;
 use rand::seq::SliceRandom;
 use rand::Rng;
 use std::collections::VecDeque;
-use std::time;
+use std::{cmp, time};
 
 pub static NON_COLOURED_EDGE: u8 = 0;
 
-pub static mut ELAPSED: u128 = 0;
-pub static mut ELAPSED_0: u128 = 0;
-pub static mut ELAPSED_2: u128 = 0;
-pub static mut ELAPSED_3: u128 = 0;
-pub static mut ALL_CALLS: u128 = 0;
-pub static mut DFS_AFTER_CVD_WHEN_TRUE: u128 = 0;
-pub static mut DFS_CALLS: u128 = 0;
-pub static mut COUNTER_3: u128 = 0;
-
-#[derive(Clone)]
+// #[derive(Clone)]
 struct CVDGraph {
     // Vec of vertices, where vertex is Vec of neighbors, where neighbor is (usize, u8) as (index, colour)
     // TODO - try with fixed size array [(usize, u8), 3]
@@ -26,58 +17,48 @@ struct CVDGraph {
     size: usize,
     vertices_to_try: Vec<usize>,
     kempe_chain: KempeChain,
+    conflicting_vertices: Vec<Vec<usize>>,
 }
 
-#[derive(Clone)]
+// #[derive(Clone)]
 struct KempeChain {
     vertices: Vec<usize>,
     conflicting_colour: u8,
     resolving_colour: u8,
-    last_colour_of_chain: u8,
 }
 
-const L_LIMIT: usize = 10;
-const R_LIMIT: usize = 15;
+struct KempeStepResult {
+    next_vertex: usize,
+    old_colour: u8,
+    chain_enclosed: bool,
+}
 
+const L_LIMIT: usize = 50;
+const R_LIMIT: usize = 50;
+
+///
+///
+///
 pub fn is_colorable<G>(graph: &G) -> Option<bool>
 where
     G: Graph,
 {
-    // let begin = time::Instant::now();
-
     let mut graph = create_cvd_graph(graph);
 
-    // unsafe {
-    //     ELAPSED_2 += begin.elapsed().as_nanos();
-    // }
-
-    let l_limit = graph.vertices_to_try.len() / 2;
-    // let l_limit = L_LIMIT;
+    let mut l_limit = graph.vertices_to_try.len() / 2;
+    l_limit = cmp::min(l_limit, L_LIMIT);
+    let mut r_limit = graph.vertices_to_try.len() / 4;
+    r_limit = cmp::min(r_limit, R_LIMIT);
 
     for _i in 0..l_limit {
-        let begin = time::Instant::now();
-
         graph.next_pre_colour();
 
-        unsafe {
-            ELAPSED_2 += begin.elapsed().as_nanos();
-        }
-
-        let colorable = graph.is_colorable();
+        let colorable = graph.is_colorable(r_limit);
 
         if colorable {
-            // unsafe {
-            //     ELAPSED_2 += begin.elapsed().as_nanos();
-            // }
-
-            println!("iterations: {}", _i + 1);
             return Some(true);
         }
     }
-
-    // unsafe {
-    //     ELAPSED_2 += begin.elapsed().as_nanos();
-    // }
     None
 }
 
@@ -101,11 +82,6 @@ where
         }
         vertices.push(vertex_new);
     }
-    // let colors = vec![3, 4, 5];
-    // let mut available = Vec::<Vec<u8>>::with_capacity(graph.size());
-    // for _i in 0..graph.size() {
-    //     available.push(colors.clone());
-    // }
     let mut vertices_to_try = Vec::with_capacity(graph.size());
     for i in 0..graph.size() {
         if graph.edges_of_vertex(i).next().is_some() {
@@ -115,177 +91,107 @@ where
 
     CVDGraph {
         vertices,
-        // available_colors: available,
         size: graph.size(),
         vertices_to_try,
         kempe_chain: KempeChain {
             vertices: vec![],
             conflicting_colour: 0,
             resolving_colour: 0,
-            last_colour_of_chain: 0,
         },
+        conflicting_vertices: vec![vec![]; 3],
     }
 }
 
 impl CVDGraph {
-    fn is_colorable(&mut self) -> bool {
-        // todo - how to choose r_limit?
-        let r_limit = self.vertices_to_try.len() / 4;
-        // let r_limit = R_LIMIT;
+    fn is_colorable(&mut self, r_limit: usize) -> bool {
+        let mut repetition_counter = 0;
+        self.conflicting_vertices = self.conflicting_vertices();
+        let mut total_number_of_conflicts = self.total_number_of_conflicts();
 
-        let mut i = 0;
-        let mut number_of_unsuccessful = 0;
-        while number_of_unsuccessful < r_limit {
-            let cvs = self.conflicting_vertices();
-            if cvs.is_empty() {
-                return true;
-            }
+        while total_number_of_conflicts > 0 {
+            let previous = total_number_of_conflicts;
 
-            // do not choose randomly twice the same cv
-            // let next = cvs.choose(&mut rand::thread_rng()).unwrap();
+            // faster for smaller graphs
+            // let next_vertex = self.highest_conflicting_vertex();
+            let next_vertex = self.random_highest_conflicting_vertex();
 
-            if i > cvs.len() - 1 {
-                i = 0;
-            }
-            let next = cvs[i];
+            self.kempe_chain_swap(next_vertex);
 
-            // let begin = time::Instant::now();
-
-            // TODO - update conflicting vertices along the way - so we wouldnt need to compute conflicting vertices for whole graph again
-
-            self.kempe_chain_swap(next.clone());
-
-            // unsafe {
-            //     ELAPSED_3 += begin.elapsed().as_nanos();
-            // }
-
-            let cvs_after = self.conflicting_vertices();
-            if cvs.len() == cvs_after.len() {
-                number_of_unsuccessful += 1;
-                i += 1;
+            total_number_of_conflicts = self.total_number_of_conflicts();
+            if total_number_of_conflicts >= previous {
+                repetition_counter += 1;
             } else {
-                i = 0;
+                repetition_counter = 0;
+            }
+            if repetition_counter > r_limit {
+                return false;
             }
         }
-        false
+        true
+    }
+
+    fn random_highest_conflicting_vertex(&self) -> usize {
+        if self.conflicting_vertices[2].is_empty() {
+            return *self.conflicting_vertices[1]
+                .choose(&mut rand::thread_rng())
+                .unwrap();
+        }
+        *self.conflicting_vertices[2]
+            .choose(&mut rand::thread_rng())
+            .unwrap()
+    }
+
+    ///
+    /// faster for smaller graphs
+    ///
+    fn highest_conflicting_vertex(&self) -> usize {
+        if self.conflicting_vertices[2].is_empty() {
+            return self.conflicting_vertices[1][0];
+        }
+        self.conflicting_vertices[2][0]
     }
 
     fn next_pre_colour(&mut self) {
         // clean graph colors
         for vertex in self.vertices.iter_mut() {
             for neighbor in vertex.iter_mut() {
-                // if neighbor.1 != 0 {
-                //     neighbor.1 = 1;
-                // }
                 neighbor.1 = NON_COLOURED_EDGE;
             }
         }
-        let mut to_visit = Vec::with_capacity(self.size);
         let first_vertex = self.next_random_vertex();
-        to_visit.push(first_vertex);
+        // let first_vertex = 0;
         unsafe {
-            self.bfs_pre_colour(to_visit);
+            self.bfs_pre_colour(first_vertex);
         }
     }
 
-    unsafe fn bfs_pre_colour(&mut self, mut to_visit: Vec<usize>) {
-        // if to_visit.is_empty() {
-        //     return;
-        // }
-        let current = to_visit.pop().unwrap();
-
-        // let self_copy = self.clone();
-        // let mut bfs_graph = BfsGraph::new(&self_copy, current);
-
-        // let mut bfs_graph = BfsGraph::new(self, current);
-
+    unsafe fn bfs_pre_colour(&mut self, mut first_vertex: usize) {
         let self_ref = self as *const CVDGraph;
-        // let self_ref_mut = self as *mut CVDGraph;
-        let mut bfs_graph = BfsGraph::new_from_raw_ptr(self_ref, current);
+        let mut bfs_graph = BfsGraph::new_from_raw_ptr(self_ref, first_vertex);
 
         while let Some(vertex) = bfs_graph.bfs_next() {
             let mut available = self.available_colors_of_vertex(vertex);
-
-            // TODO
-            // let neighbors = self.vertices[vertex].clone();
-            // for neighbor in neighbors.iter() {
             for neighbor in (*self_ref).vertices[vertex].iter() {
-                // for neighbor in self.vertices[current].iter_mut() {
                 if neighbor.1 == NON_COLOURED_EDGE {
                     let color = available.pop().unwrap();
-                    // neighbor.1 = color;
-
                     self.set_edge_color(vertex, neighbor.0, color);
                 }
             }
         }
-
-        // let begin = time::Instant::now();
-
-        // let mut available = self.available_colors_of_vertex(current);
-        //
-        // // unsafe {
-        // //     ELAPSED_3 += begin.elapsed().as_nanos();
-        // // }
-        //
-        // let uncolored_neighbors_of_vertex = self.uncolored_edges_of_vertex(current);
-        // if uncolored_neighbors_of_vertex.is_empty() {
-        //     self.bfs_pre_colour(to_visit);
-        //     return;
-        // }
-        // // let mut neighbors = self.vertices[current];
-        // let neighbors = self.vertices[current].clone();
-        // for neighbor in neighbors.iter() {
-        //     // for neighbor in self.vertices[current].iter_mut() {
-        //     if neighbor.1 == 0 {
-        //         let color = available.pop().unwrap();
-        //         // neighbor.1 = color;
-        //         self.set_edge_color(current, neighbor.0, color);
-        //         // do not push duplicates?
-        //         to_visit.push(neighbor.0);
-        //     }
-        // }
-        // self.bfs_pre_colour(to_visit);
     }
 
-    // fn bfs_pre_colour(&mut self, mut to_visit: Vec<usize>) {
-    //
-    //     // TODO - try to use bfs from matchings
-    //
-    //
-    //
-    //     if to_visit.is_empty() {
-    //         return;
-    //     }
-    //     let current = to_visit.pop().unwrap();
-    //
-    //     // let begin = time::Instant::now();
-    //
-    //     let mut available = self.available_colors_of_vertex(current);
-    //
-    //     // unsafe {
-    //     //     ELAPSED_3 += begin.elapsed().as_nanos();
-    //     // }
-    //
-    //     let uncolored_neighbors_of_vertex = self.uncolored_edges_of_vertex(current);
-    //     if uncolored_neighbors_of_vertex.is_empty() {
-    //         self.bfs_pre_colour(to_visit);
-    //         return;
-    //     }
-    //     // let mut neighbors = self.vertices[current];
-    //     let neighbors = self.vertices[current].clone();
-    //     for neighbor in neighbors.iter() {
-    //         // for neighbor in self.vertices[current].iter_mut() {
-    //         if neighbor.1 == 0 {
-    //             let color = available.pop().unwrap();
-    //             // neighbor.1 = color;
-    //             self.set_edge_color(current, neighbor.0, color);
-    //             // do not push duplicates?
-    //             to_visit.push(neighbor.0);
-    //         }
-    //     }
-    //     self.bfs_pre_colour(to_visit);
-    // }
+    fn colour_edge_and_update_conflicting_vertices(
+        &mut self,
+        from: usize,
+        to: usize,
+        color: u8,
+    ) -> bool {
+        let old_conflict_level_from = self.conflict_level(&self.vertices[from]);
+        let old_conflict_level_to = self.conflict_level(&self.vertices[to]);
+        self.set_edge_color(from, to, color);
+        self.update_conflict_vertices(from, old_conflict_level_from);
+        self.update_conflict_vertices(to, old_conflict_level_to)
+    }
 
     fn set_edge_color(&mut self, from: usize, to: usize, color: u8) {
         for neighbor in self.vertices[from].iter_mut() {
@@ -300,22 +206,41 @@ impl CVDGraph {
         }
     }
 
+    fn edge_color(&self, from: usize, to: usize) -> u8 {
+        for neighbor in self.vertices[from].iter() {
+            if neighbor.0 == to {
+                return neighbor.1;
+            }
+        }
+        0
+    }
+
+    ///
+    /// if returns true, conflict level of vertex decreased
+    ///
+    fn update_conflict_vertices(&mut self, vertex: usize, old_conflict_level: usize) -> bool {
+        let conflict_level = self.conflict_level(&self.vertices[vertex]);
+        // remove vertex from old conflict level
+        if old_conflict_level > 0 {
+            self.conflicting_vertices[old_conflict_level].retain(|item| item != &vertex);
+        }
+        // add vertex to new conflict level
+        if conflict_level > 0 {
+            self.conflicting_vertices[conflict_level].push(vertex);
+        }
+        // to later use
+        if (conflict_level as isize - old_conflict_level as isize) < 0 {
+            return true;
+        }
+        false
+    }
+
     fn available_colors_of_vertex(&self, vertex: usize) -> Vec<u8> {
         let mut colors = vec![3, 4, 5];
         for neighbor in self.vertices[vertex].iter() {
             colors.retain(|&item| item != neighbor.1)
         }
         colors
-    }
-
-    fn uncolored_edges_of_vertex(&self, vertex: usize) -> Vec<usize> {
-        let mut uncolored_neighbors = vec![];
-        for neighbor in self.vertices[vertex].iter() {
-            if neighbor.1 == 0 {
-                uncolored_neighbors.push(neighbor.0);
-            }
-        }
-        uncolored_neighbors
     }
 
     fn conflicting_color_of_vertex(&self, vertex: usize) -> Option<u8> {
@@ -336,44 +261,35 @@ impl CVDGraph {
             .vertices_to_try
             .choose(&mut rand::thread_rng())
             .unwrap();
-
-        // let next = self.vertices_to_try[self.vertices_to_try.len() -1 ];
-        // self.vertices_to_try.pop().unwrap()
-
         let to_return = next.clone();
         self.vertices_to_try.retain(|&x| x != to_return);
         to_return
     }
 
-    fn conflicting_vertices(&self) -> Vec<usize> {
-        // let begin = time::Instant::now();
-
-        let mut cvs = vec![];
+    fn conflicting_vertices(&self) -> Vec<Vec<usize>> {
+        let mut cvs = vec![vec![]; 3];
         let mut index = 0;
         for vertex in self.vertices.iter() {
-            if self.is_conflicting_vertex(vertex) {
-                cvs.push(index);
+            let conflict_level = self.conflict_level(vertex);
+            if conflict_level > 0 {
+                cvs[conflict_level].push(index);
             }
             index += 1;
         }
-
-        // unsafe {
-        //     ELAPSED_3 += begin.elapsed().as_nanos();
-        // }
-
         cvs
+    }
+
+    fn total_number_of_conflicts(&self) -> usize {
+        return self.conflicting_vertices[1].len() + self.conflicting_vertices[2].len();
     }
 
     fn kempe_chain_swap(&mut self, start_vertex: usize) {
         self.kempe_chain.vertices = vec![];
         self.kempe_chain.resolving_colour = 0;
         self.kempe_chain.conflicting_colour = 0;
-        self.kempe_chain.last_colour_of_chain = 0;
-
-        self.kempe_chain.vertices.push(start_vertex);
 
         let conflicting_colour = self.conflicting_color_of_vertex(start_vertex).unwrap();
-        let resolving_colour = self.available_colors_of_vertex(start_vertex)[0];
+        let mut resolving_colour = self.available_colors_of_vertex(start_vertex)[0];
         self.kempe_chain.conflicting_colour = conflicting_colour;
         self.kempe_chain.resolving_colour = resolving_colour;
 
@@ -381,150 +297,145 @@ impl CVDGraph {
         for neighbors in self.vertices[start_vertex].iter() {
             if neighbors.1 == self.kempe_chain.conflicting_colour {
                 next = Some(neighbors.0);
+                break;
             }
         }
 
-        self.kempe_step(next.unwrap(), resolving_colour);
-    }
+        if next != None {
+            let mut current_vertex = start_vertex;
+            let mut next_vertex = next.unwrap();
 
-    fn next_vertex_of_chain(&self) -> Option<(usize, u8)> {
-        let mut next = None;
-        let next_color;
-        let last_vertex_of_chain = self.kempe_chain.vertices[self.kempe_chain.vertices.len() - 1];
-        let second_last_vertex_of_chain =
-            self.kempe_chain.vertices[self.kempe_chain.vertices.len() - 2];
-        for neighbor in self.vertices[last_vertex_of_chain].iter() {
-            if neighbor.1 == self.kempe_chain.last_colour_of_chain
-                && neighbor.0 != second_last_vertex_of_chain
-            {
-                next = Some(neighbor.0);
+            loop {
+                self.kempe_chain.vertices.push(current_vertex);
+                let step_result = self.kempe_step(current_vertex, next_vertex, resolving_colour);
+                if step_result.chain_enclosed {
+                    return;
+                }
+                current_vertex = next_vertex;
+                next_vertex = step_result.next_vertex;
+                resolving_colour = step_result.old_colour;
+
+                // check if current_vertex not already in chain
+                if let Some(vertex) = self
+                    .kempe_chain
+                    .vertices
+                    .iter()
+                    .find(|vertex| vertex == &&current_vertex)
+                {
+                    return;
+                }
             }
         }
-        // for subcubic graphs
-        if next.is_none() {
-            return None;
-        }
-        if self.kempe_chain.last_colour_of_chain == self.kempe_chain.conflicting_colour {
-            next_color = self.kempe_chain.resolving_colour;
-        } else {
-            next_color = self.kempe_chain.conflicting_colour;
-        }
-        Some((next.unwrap(), next_color))
     }
 
-    // TODO - try to do it not recursively
+    ///
+    /// new_colour is colour for edge between current_vertex and last vertex of chain
+    /// if returns true - we enclosed kempe chain
+    ///
     fn kempe_step(
         &mut self,
-        next_vertex: usize,
-        next_colour: u8, /*, previous: usize, current: usize, new_color: u8*/
-    ) {
-        if self.kempe_chain.vertices.len() > self.size {
-            return;
-        }
+        previous_vertex: usize,
+        current_vertex: usize,
+        new_colour: u8,
+    ) -> KempeStepResult {
+        let mut result = KempeStepResult {
+            next_vertex: 0,
+            old_colour: 0,
+            chain_enclosed: true,
+        };
 
-        let current = self.kempe_chain.vertices[self.kempe_chain.vertices.len() - 1];
+        let available_for_next =
+            self.available_for_next_vertex(previous_vertex, current_vertex, new_colour);
 
-        if self.is_conflicting_vertex(&self.vertices[next_vertex]) {
-            self.set_edge_color(current, next_vertex, next_colour);
-            return;
+        result.old_colour = self.edge_color(previous_vertex, current_vertex);
+        let decreased_conflict_level = self.colour_edge_and_update_conflicting_vertices(
+            previous_vertex,
+            current_vertex,
+            new_colour,
+        );
+        if decreased_conflict_level {
+            return result;
         }
-        self.kempe_chain.vertices.push(next_vertex);
-        self.kempe_chain.last_colour_of_chain = next_colour;
-        self.set_edge_color(current, next_vertex, next_colour);
-
-        // get next
-        let next = self.next_vertex_of_chain();
-        // adjustment for subcubic graphs - if none - conflict is cancelled out
-        if next.is_none() {
-            return;
+        if available_for_next.is_empty() {
+            return result;
         }
-        let next = next.unwrap();
-        self.kempe_step(next.0, next.1);
+        result.next_vertex = available_for_next[0];
+        result.chain_enclosed = false;
+        result
     }
 
-    // fn is_conflicting_vertex(&self, vertex: &[(usize, u8); 3]) -> bool {
+    fn available_for_next_vertex(
+        &self,
+        previous: usize,
+        current: usize,
+        new_colour: u8,
+    ) -> Vec<usize> {
+        let mut available = vec![];
+        for vertex in self.vertices[current].iter() {
+            if vertex.0 != previous && vertex.1 == new_colour {
+                available.push(vertex.0);
+            }
+        }
+        available
+    }
 
-    // TODO - change to conflict_level
-    fn is_conflicting_vertex(&self, vertex: &Vec<(usize, u8)>) -> bool {
+    fn conflict_level(&self, vertex: &Vec<(usize, u8)>) -> usize {
         match vertex.len() {
             0 => {
-                return false;
+                return 0;
             }
             1 => {
-                return false;
+                return 0;
             }
             2 => {
                 if vertex[0].1 == vertex[1].1 {
-                    return true;
+                    return 1;
                 }
-                return false;
+                return 0;
             }
             3 => {
+                let mut conflict_level = 0;
                 if vertex[0].1 == vertex[1].1 {
-                    return true;
+                    conflict_level += 1;
                 }
                 if vertex[0].1 == vertex[2].1 {
-                    return true;
+                    conflict_level += 1;
                 }
                 if vertex[1].1 == vertex[2].1 {
-                    return true;
+                    conflict_level += 1;
                 }
-                return false;
+                if conflict_level > 2 {
+                    return 2;
+                }
+                return conflict_level;
             }
-            _ => {
-                return true;
-            }
+            _ => panic!("vertex has more than 3 neighbors"),
         }
-        false
-        // let mut colours = vec![];
-        // for neighbor in vertex.iter() {
-        //     colours.push(neighbor.1);
-        // }
-        // colours.sort();
-        // let size_before = colours.len();
-        // colours.dedup();
-        // if size_before > colours.len() {
-        //     return true;
-        // }
-        // false
     }
-
-    // temp
-    // fn print(&self) {
-    //     let mut i = 0;
-    //     for vertex in self.vertices.iter() {
-    //         print!("{}: ", i);
-    //         println!("{:?}", vertex);
-    //         i += 1;
-    //     }
-    //     println!("\n");
-    // }
 }
 
 // TODO - deduplicate with BfsGraph from perfect_matchings
 
 struct BfsGraph<'a> {
     vertices: &'a Vec<Vec<(usize, u8)>>,
-    // vertices: Vec<Vec<(usize, u8)>>,
     visited: Vec<bool>,
     to_visit: VecDeque<usize>,
 }
 
 impl<'a> BfsGraph<'a> {
-    pub fn new(graph: &'a CVDGraph, start: usize) -> Self {
-        let visited = vec![false; graph.vertices.len()];
-        let mut to_visit = VecDeque::new();
-        to_visit.push_back(start);
-
-        let mut bfs = Self {
-            vertices: &graph.vertices,
-            // vertices: graph.vertices.clone(),
-            visited,
-            to_visit,
-        };
-        bfs.visit(start);
-        bfs
-    }
+    // pub fn new(graph: &'a CVDGraph, start: usize) -> Self {
+    //     let visited = vec![false; graph.vertices.len()];
+    //     let mut to_visit = VecDeque::new();
+    //     to_visit.push_back(start);
+    //
+    //     let mut bfs = Self {
+    //         vertices: &graph.vertices,
+    //         visited,
+    //         to_visit,
+    //     };
+    //     bfs.visit(start);
+    //     bfs
+    // }
 
     pub unsafe fn new_from_raw_ptr(graph: *const CVDGraph, start: usize) -> Self {
         let visited = vec![false; (*graph).vertices.len()];
@@ -533,7 +444,6 @@ impl<'a> BfsGraph<'a> {
 
         let mut bfs = Self {
             vertices: &(*graph).vertices,
-            // vertices: graph.vertices.clone(),
             visited,
             to_visit,
         };

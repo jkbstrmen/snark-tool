@@ -16,7 +16,6 @@ pub mod measurement_tests {
     use std::{fs, time};
     use std::io::Write;
     use crate::service::colour::dfs_orig::DFSColourizerOriginal;
-    use crate::perform_measurements;
 
     // pub static mut FIRST_VERTEX: u128 = 0;
 
@@ -343,7 +342,8 @@ pub mod cvd_measurement_tests {
     }
 
     fn big_sizes() -> Vec<usize> {
-        let mut size = 0;
+        // let mut size = 0;
+        let mut size = 20000;
         let mut sizes = vec![];
         while size < 100000 {
             size += 5000;
@@ -353,16 +353,16 @@ pub mod cvd_measurement_tests {
     }
 
     fn perform_measurements() {
-        let number_of_iterations = 1;
-        let sizes = smallest_sizes();
+        let number_of_iterations = 10;
+        // let sizes = smallest_sizes();
         // let sizes = small_sizes();
-        // let sizes = big_sizes();
+        let sizes = big_sizes();
 
         // let dir = "resources/measurement_samples/python-smallest-1st";
-        let dir = "resources/measurement_samples/python-smallest-2nd";
+        // let dir = "resources/measurement_samples/python-smallest-2nd";
         // let dir = "resources/measurement_samples/python-small-1st";
         // let dir = "resources/measurement_samples/python-small-2nd";
-        // let dir = "resources/measurement_samples/python-big-1st";
+        let dir = "resources/measurement_samples/python-big-1st";
         let mut measurement_string: String = "".to_string();
 
         for size in sizes.iter() {
@@ -374,7 +374,8 @@ pub mod cvd_measurement_tests {
             let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
 
             // let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
-            let mut reader = S6Reader::<SimpleGraph>::new(&file_result);
+            // let mut reader = S6Reader::<SimpleGraph>::new(&file_result);
+            let mut reader = S6Reader::<SimpleSparseGraph>::new(&file_result);
 
             let begin = time::Instant::now();
 
@@ -384,9 +385,9 @@ pub mod cvd_measurement_tests {
                 let mut graph = graph_result.unwrap();
 
                 for number_of_iteration in 0..number_of_iterations {
-                    // let colourable = CvdDfsColourizer::is_colorable(&graph);
+                    let colourable = CvdDfsColourizer::is_colorable(&graph);
                     // let colourable = DFSColourizer::is_colorable(&graph);
-                    let colourable = SATColourizer::is_colorable(&graph);
+                    // let colourable = SATColourizer::is_colorable(&graph);
                     if colourable {
                         all_true = false;
                     }
@@ -395,9 +396,16 @@ pub mod cvd_measurement_tests {
                 counter +=1;
             }
 
-            // let elapsed: f64 = (begin.elapsed().as_millis() as f64) / counter as f64 / number_of_iterations as f64 / 1000 as f64;
-            let elapsed: f64 = (begin.elapsed().as_micros() as f64) / counter as f64 / number_of_iterations as f64 / 1000 as f64;
+            let elapsed: f64 = (begin.elapsed().as_millis() as f64) / counter as f64 / number_of_iterations as f64 / 1000 as f64;
+            // let elapsed: f64 = (begin.elapsed().as_micros() as f64) / counter as f64 / number_of_iterations as f64 / 1000 as f64;
             measurement_string = measurement_string.add(format!("({}, {:.3})", size, elapsed).as_str());
+
+
+            let received = format!("({}, {:.4})", size, elapsed);
+            let path = format!("{}/measurements_rust.txt", dir);
+            let mut measurement_file = fs::OpenOptions::new().create(true).append(true).open(&path).unwrap();
+            // writeln!(measurement_file);
+            write!(measurement_file, "{}", received);
         }
 
         // let path = format!("{}/{}", dir, size);
@@ -415,6 +423,7 @@ pub mod cvd_measurement_tests {
     use std::ops::Add;
     use std::sync::mpsc;
     use crate::service::colour::cvd;
+    use crate::service::colour::cvd_dfs::CvdDfsColourizer;
 
     fn perform_measurements_parallel() {
 

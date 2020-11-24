@@ -1,10 +1,12 @@
+use std::time::Instant;
+
+use structopt::StructOpt;
+
 use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::procedure::configuration::Configuration;
 use crate::procedure::procedure::GraphProperties;
 use crate::procedure::procedure_chain::ProcedureChain;
 use crate::procedure::procedure_registry::ProcedureRegistry;
-use std::time::Instant;
-use structopt::StructOpt;
 
 mod error;
 mod graph;

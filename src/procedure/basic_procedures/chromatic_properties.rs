@@ -17,8 +17,37 @@ use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::sync::mpsc;
 use std::{marker, result, thread};
+use crate::service::property::oddness::Oddness;
 
 pub type Result<T> = result::Result<T, ChromaticPropertiesError>;
+const DFS_COLOURISER: &str = "dfs";
+const SAT_COLOURISER: &str = "sat";
+
+// property
+const CRITICAL: &str = "critical";
+const COCRITICAL: &str = "cocritical";
+const VERTEX_SUBCRITICAL: &str = "vertex-subcritical";
+const EDGE_SUBCRITICAL: &str = "edge-subcritical";
+const ACRITICAL: &str = "acritical";
+const STABLE: &str = "stable";
+const COSTABLE: &str = "costable";
+const RESISTANCE: &str = "resistance";
+const GIRTH: &str = "girth";
+const CYCLIC_CONNECTIVITY: &str = "cyclic-connectivity";
+const EDGE_RESISTIBILITY: &str = "edge-resistibility";
+const VERTEX_RESISTIBILITY: &str = "vertex-resistibility";
+const ODDNESS: &str = "oddness";
+
+const VERTEX_RESISTIBILITIES: &str = "vertex-resistibilities";
+const VERTEX_RESISTIBILITY_INDEX: &str = "vertex-resistibility-index";
+const EDGE_RESISTIBILITIES: &str = "edge-resistibilities";
+const EDGE_RESISTIBILITY_INDEX: &str = "edge-resistibility-index";
+
+// property name
+const COLOURISER_TYPE: &str = "colouriser-type";
+const PARALLEL: &str = "parallel";
+const PROPERTIES: &str = "properties";
+
 
 struct ChromaticPropsProcedure<G> {
     config: ChromaticPropsProcedureConfig,
@@ -48,6 +77,7 @@ struct ChromaticPropertiesToCompute {
     vertex_resistibility: bool,
     girth: bool,
     cyclic_connectivity: bool,
+    oddness: bool
 }
 
 impl ChromaticPropertiesToCompute {
@@ -65,6 +95,7 @@ impl ChromaticPropertiesToCompute {
             vertex_resistibility: false,
             girth: false,
             cyclic_connectivity: false,
+            oddness: false
         }
     }
 }
@@ -106,6 +137,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         let mut next_graph = graphs_iter.next();
         while next_graph.is_some() {
             let graph = next_graph.unwrap();
+            // TODO - if graph will be bigger could cause performance issues
             let graph_local = SimpleGraph::from_graph(&graph.0);
             let tx_cloned = mpsc::Sender::clone(&tx);
             let handle = Self::spawn_thread_for_graph(
@@ -243,7 +275,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
     ) -> Result<GraphProperties> {
         // to do - change colouriser type according to graph size ...
         match colouriser_type.as_str() {
-            "sat" => {
+            SAT_COLOURISER => {
                 return Self::compute_properties(
                     graph,
                     SATColourizer::new(),
@@ -251,7 +283,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
                     &properties_to_compute,
                 );
             }
-            "bfs" => {
+            DFS_COLOURISER => {
                 return Self::compute_properties(
                     graph,
                     DFSColourizer::new(),
@@ -262,8 +294,8 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
             _ => {
                 return Err(ChromaticPropertiesError {
                     message: format!(
-                        "unknown colourizer: {} for chromatic properties",
-                        colouriser_type
+                        "unknown colourizer: {} to compute chromatic properties, did you mean {} or {}?",
+                        colouriser_type, DFS_COLOURISER, SAT_COLOURISER
                     ),
                 });
             }
@@ -317,6 +349,14 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         if to_compute.cyclic_connectivity {
             // compute cyclic connectivity and add result to properties
         }
+        if to_compute.oddness {
+            // compute cyclic connectivity and add result to properties
+            let oddness = Oddness::of_graph(graph);
+            properties.insert(
+                ODDNESS.to_string(),
+                serde_json::to_value(oddness)?,
+            );
+        }
 
         Ok(properties)
     }
@@ -330,37 +370,37 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         let mut props = StableAndCriticalProperties::of_graph_with_colourizer(graph, C::new());
         if properties_to_compute.critical {
             properties_computed.insert(
-                "critical".to_string(),
+                CRITICAL.to_string(),
                 serde_json::Value::Bool(props.is_critical()),
             );
         }
         if properties_to_compute.cocritical {
             properties_computed.insert(
-                "cocritical".to_string(),
+                COCRITICAL.to_string(),
                 serde_json::Value::Bool(props.is_cocritical()),
             );
         }
         if properties_to_compute.vertex_subcritical {
             properties_computed.insert(
-                "vertex_subcritical".to_string(),
+                VERTEX_SUBCRITICAL.to_string(),
                 serde_json::Value::Bool(props.is_vertex_subcritical()),
             );
         }
         if properties_to_compute.edge_subcritical {
             properties_computed.insert(
-                "edge_subcritical".to_string(),
+                EDGE_SUBCRITICAL.to_string(),
                 serde_json::Value::Bool(props.is_edge_subcritical()),
             );
         }
         if properties_to_compute.stable {
             properties_computed.insert(
-                "stable".to_string(),
+                STABLE.to_string(),
                 serde_json::Value::Bool(props.is_stable()),
             );
         }
         if properties_to_compute.costable {
             properties_computed.insert(
-                "costable".to_string(),
+                COSTABLE.to_string(),
                 serde_json::Value::Bool(props.is_costable()),
             );
         }
@@ -376,25 +416,25 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         let mut props = CriticalProperties::of_graph_with_colourizer(graph, C::new());
         if properties_to_compute.critical {
             properties_computed.insert(
-                "critical".to_string(),
+                CRITICAL.to_string(),
                 serde_json::Value::Bool(props.is_critical()),
             );
         }
         if properties_to_compute.cocritical {
             properties_computed.insert(
-                "cocritical".to_string(),
+                COCRITICAL.to_string(),
                 serde_json::Value::Bool(props.is_cocritical()),
             );
         }
         if properties_to_compute.vertex_subcritical {
             properties_computed.insert(
-                "vertex_subcritical".to_string(),
+                VERTEX_SUBCRITICAL.to_string(),
                 serde_json::Value::Bool(props.is_vertex_subcritical()),
             );
         }
         if properties_to_compute.edge_subcritical {
             properties_computed.insert(
-                "edge_subcritical".to_string(),
+                EDGE_SUBCRITICAL.to_string(),
                 serde_json::Value::Bool(props.is_edge_subcritical()),
             );
         }
@@ -410,12 +450,12 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         let resistance = resistance.vertex_resistance(graph);
         if resistance.is_some() {
             properties_computed.insert(
-                "resistance".to_string(),
+                RESISTANCE.to_string(),
                 serde_json::to_value(resistance.unwrap())?,
             );
         } else {
             properties_computed.insert(
-                "resistance".to_string(),
+                RESISTANCE.to_string(),
                 serde_json::Value::String("None".to_string()),
             );
         }
@@ -431,13 +471,13 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         let edge_resistibilities = resistibility.edges_resistibility();
         let edge_resistibilities_json = serialize_helper::map_to_json_value(edge_resistibilities)?;
         properties_computed.insert(
-            "edge_resistibilities".to_string(),
+            EDGE_RESISTIBILITIES.to_string(),
             edge_resistibilities_json,
         );
 
         let index_of_edge_resistibility = resistibility.edge_resistibility_index();
         properties_computed.insert(
-            "edge_resistibility_index".to_string(),
+            EDGE_RESISTIBILITY_INDEX.to_string(),
             serde_json::to_value(index_of_edge_resistibility)?,
         );
 
@@ -455,13 +495,13 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         //     serialize_helper::vec_to_json_value(vertices_resistibility)?;
         let vertex_resistibilities_json = serde_json::to_value(vertices_resistibility)?;
         properties_computed.insert(
-            "vertex_resistibilities".to_string(),
+            VERTEX_RESISTIBILITIES.to_string(),
             vertex_resistibilities_json,
         );
 
         let vertex_resistibility_index = resistibility.vertex_resistibility_index();
         properties_computed.insert(
-            "vertex_resistibility_index".to_string(),
+            VERTEX_RESISTIBILITY_INDEX.to_string(),
             serde_json::to_value(vertex_resistibility_index)?,
         );
 
@@ -484,13 +524,13 @@ impl ChromaticPropsProcedureConfig {
     pub fn from_proc_config(config: &HashMap<String, serde_json::Value>) -> Result<Self> {
         let colouriser_type = config_helper::resolve_value_or_default(
             &config,
-            "colouriser-type",
-            "bfs".to_string(),
+            COLOURISER_TYPE,
+            DFS_COLOURISER.to_string(),
             Self::PROC_TYPE,
         )?;
         let parallel =
-            config_helper::resolve_value_or_default(&config, "parallel", true, Self::PROC_TYPE)?;
-        let properties = config_helper::resolve_value(&config, "properties", Self::PROC_TYPE)?;
+            config_helper::resolve_value_or_default(&config, PARALLEL, true, Self::PROC_TYPE)?;
+        let properties = config_helper::resolve_value(&config, PROPERTIES, Self::PROC_TYPE)?;
         let properties_to_compute = ChromaticPropertiesToCompute::new();
         let mut result = ChromaticPropsProcedureConfig {
             colouriser_type,
@@ -504,41 +544,44 @@ impl ChromaticPropsProcedureConfig {
     fn resolve_properties_to_compute(&mut self, properties: Vec<String>) {
         for property in properties.iter() {
             match property.as_str() {
-                "critical" => {
+                CRITICAL => {
                     self.properties_to_compute.critical = true;
                 }
-                "cocritical" => {
+                COCRITICAL => {
                     self.properties_to_compute.cocritical = true;
                 }
-                "vertex-subcritical" => {
+                VERTEX_SUBCRITICAL => {
                     self.properties_to_compute.vertex_subcritical = true;
                 }
-                "edge-subcritical" => {
+                EDGE_SUBCRITICAL => {
                     self.properties_to_compute.edge_subcritical = true;
                 }
-                "acritical" => {
+                ACRITICAL => {
                     self.properties_to_compute.acritical = true;
                 }
-                "stable" => {
+                STABLE => {
                     self.properties_to_compute.stable = true;
                 }
-                "costable" => {
+                COSTABLE => {
                     self.properties_to_compute.costable = true;
                 }
-                "girth" => {
+                GIRTH => {
                     self.properties_to_compute.girth = true;
                 }
-                "cyclic-connectivity" => {
+                CYCLIC_CONNECTIVITY => {
                     self.properties_to_compute.cyclic_connectivity = true;
                 }
-                "resistance" => {
+                RESISTANCE => {
                     self.properties_to_compute.resistance = true;
                 }
-                "edge-resistibility" => {
+                EDGE_RESISTIBILITY => {
                     self.properties_to_compute.edge_resistibility = true;
                 }
-                "vertex-resistibility" => {
+                VERTEX_RESISTIBILITY => {
                     self.properties_to_compute.vertex_resistibility = true;
+                }
+                ODDNESS => {
+                    self.properties_to_compute.oddness = true;
                 }
                 _ => {}
             }

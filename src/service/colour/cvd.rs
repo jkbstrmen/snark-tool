@@ -3,8 +3,8 @@ use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
 
 use rand::seq::SliceRandom;
-use std::collections::VecDeque;
 use std::cmp;
+use std::collections::VecDeque;
 
 pub static NON_COLOURED_EDGE: u8 = 0;
 

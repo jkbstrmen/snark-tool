@@ -13,11 +13,11 @@ use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCri
 use crate::service::colour::colouriser::Colourizer;
 use crate::service::colour::dfs_improved::DFSColourizer;
 use crate::service::colour::sat::SATColourizer;
+use crate::service::property::oddness::Oddness;
 use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::sync::mpsc;
 use std::{marker, result, thread};
-use crate::service::property::oddness::Oddness;
 
 pub type Result<T> = result::Result<T, ChromaticPropertiesError>;
 const DFS_COLOURISER: &str = "dfs";
@@ -48,7 +48,6 @@ const COLOURISER_TYPE: &str = "colouriser-type";
 const PARALLEL: &str = "parallel";
 const PROPERTIES: &str = "properties";
 
-
 struct ChromaticPropsProcedure<G> {
     config: ChromaticPropsProcedureConfig,
     _ph: marker::PhantomData<G>,
@@ -77,7 +76,7 @@ struct ChromaticPropertiesToCompute {
     vertex_resistibility: bool,
     girth: bool,
     cyclic_connectivity: bool,
-    oddness: bool
+    oddness: bool,
 }
 
 impl ChromaticPropertiesToCompute {
@@ -95,7 +94,7 @@ impl ChromaticPropertiesToCompute {
             vertex_resistibility: false,
             girth: false,
             cyclic_connectivity: false,
-            oddness: false
+            oddness: false,
         }
     }
 }
@@ -352,10 +351,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         if to_compute.oddness {
             // compute cyclic connectivity and add result to properties
             let oddness = Oddness::of_graph(graph);
-            properties.insert(
-                ODDNESS.to_string(),
-                serde_json::to_value(oddness)?,
-            );
+            properties.insert(ODDNESS.to_string(), serde_json::to_value(oddness)?);
         }
 
         Ok(properties)
@@ -470,10 +466,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         let mut resistibility = Resistibility::of_graph_with_colouriser(graph, C::new());
         let edge_resistibilities = resistibility.edges_resistibility();
         let edge_resistibilities_json = serialize_helper::map_to_json_value(edge_resistibilities)?;
-        properties_computed.insert(
-            EDGE_RESISTIBILITIES.to_string(),
-            edge_resistibilities_json,
-        );
+        properties_computed.insert(EDGE_RESISTIBILITIES.to_string(), edge_resistibilities_json);
 
         let index_of_edge_resistibility = resistibility.edge_resistibility_index();
         properties_computed.insert(

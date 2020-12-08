@@ -1,12 +1,12 @@
 use crate::graph::graph::Graph;
-use crate::service::colour::colouriser::Colourizer;
+use crate::service::colour::colouriser::Colouriser;
 use crate::service::colour::cvd;
 use crate::service::colour::dfs_improved::DFSColourizer;
 
 // Colorizer for (sub)cubic graphs only
 pub struct CvdDfsColourizer {}
 
-impl Colourizer for CvdDfsColourizer {
+impl Colouriser for CvdDfsColourizer {
     fn is_colorable<G>(graph: &G) -> bool
     where
         G: Graph,

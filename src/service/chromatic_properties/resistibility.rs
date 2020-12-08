@@ -2,13 +2,13 @@ use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
 use crate::service::chromatic_properties::resistance::Resistance;
-use crate::service::colour::colouriser::Colourizer;
+use crate::service::colour::colouriser::Colouriser;
 use std::collections::HashMap;
 
 pub struct Resistibility<G, C>
 where
     G: Graph + Clone,
-    C: Colourizer,
+    C: Colouriser,
 {
     graph: G,
     _colourizer: C,
@@ -19,7 +19,7 @@ where
 impl<G, C> Resistibility<G, C>
 where
     G: Graph + Clone,
-    C: Colourizer,
+    C: Colouriser,
 {
     pub fn of_graph_with_colouriser(graph: &G, colourizer: C) -> Self {
         Resistibility {

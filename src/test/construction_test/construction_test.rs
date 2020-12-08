@@ -8,7 +8,7 @@ pub mod constructions_tests {
     use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
     use crate::graph::undirected_sparse::vertex::VertexWithEdges;
     use crate::graph::vertex::Vertex;
-    use crate::service::colour::colouriser::Colourizer;
+    use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::dfs_improved::DFSColourizer;
     use crate::service::colour::sat::SATColourizer;
     use crate::service::component_analysis::removable_edge::{

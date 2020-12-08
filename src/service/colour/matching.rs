@@ -1,6 +1,6 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
-use crate::service::colour::colouriser::Colourizer;
+use crate::service::colour::colouriser::Colouriser;
 use crate::service::matching::perfect_matchings::{
     Matching, MatchingGraph, MatchingGraphVerticesIter,
 };
@@ -9,7 +9,7 @@ use crate::service::matching::perfect_matchings::{
 
 pub struct MatchingColouriser {}
 
-impl Colourizer for MatchingColouriser {
+impl Colouriser for MatchingColouriser {
     fn is_colorable<G: Graph>(graph: &G) -> bool {
         let mut match_graph = MatchingGraph::from_graph(graph);
         let matchings = match_graph.perfect_matchings();

@@ -3,12 +3,12 @@ use crate::graph::graph::Graph;
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
-use crate::service::colour::colouriser::Colourizer;
+use crate::service::colour::colouriser::Colouriser;
 use crate::service::colour::dfs_improved::DFSColourizer;
 
 pub struct CriticalProperties<C>
 where
-    C: Colourizer,
+    C: Colouriser,
 {
     untouched_graph: SimpleSparseGraph,
     graph: SimpleSparseGraph,
@@ -26,7 +26,7 @@ where
 
 impl<C> CriticalProperties<C>
 where
-    C: Colourizer,
+    C: Colouriser,
 {
     pub fn of_graph_with_colourizer<G: Graph + Clone>(graph: &G, colourizer: C) -> Self {
         let local_graph = SimpleSparseGraph::from_graph(graph);

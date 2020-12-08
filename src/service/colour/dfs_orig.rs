@@ -1,6 +1,6 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
-use crate::service::colour::colouriser::Colourizer;
+use crate::service::colour::colouriser::Colouriser;
 
 ///
 /// Should be true copy of C++ implementation
@@ -17,7 +17,7 @@ struct DFSColourizerOriginalGraph {
     graph_size: usize,
 }
 
-impl Colourizer for DFSColourizerOriginal {
+impl Colouriser for DFSColourizerOriginal {
     fn is_colorable<G: Graph>(graph: &G) -> bool {
         // create local graph
         let graph_matrix = vec![0; graph.size() * graph.size()];

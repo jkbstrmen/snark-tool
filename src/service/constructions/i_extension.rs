@@ -3,7 +3,7 @@ use crate::graph::graph::Graph;
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::simple_graph::SimpleGraph;
 use crate::graph::undirected_sparse::graph::Edges;
-use crate::service::colour::colouriser::Colourizer;
+use crate::service::colour::colouriser::Colouriser;
 use crate::service::component_analysis::removable_edge::RemovablePairsOfEdges;
 use serde::export::Option::Some;
 
@@ -26,13 +26,13 @@ pub fn i_extension<G: Graph + Clone, E: Edge>(graph: &G, first_edge: &E, second_
     result_graph
 }
 
-pub struct IExtensions<'a, G: Graph + Clone, C: Colourizer> {
+pub struct IExtensions<'a, G: Graph + Clone, C: Colouriser> {
     graph: &'a G,
     colouriser: &'a C,
     removable_edge_pairs: RemovablePairsOfEdges<'a, G::E, G, C>,
 }
 
-impl<'a, G: Graph + Clone, C: Colourizer> Iterator for IExtensions<'a, G, C> {
+impl<'a, G: Graph + Clone, C: Colouriser> Iterator for IExtensions<'a, G, C> {
     type Item = G;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -44,7 +44,7 @@ impl<'a, G: Graph + Clone, C: Colourizer> Iterator for IExtensions<'a, G, C> {
     }
 }
 
-impl<'a, G: Graph + Clone, C: Colourizer> IExtensions<'a, G, C> {
+impl<'a, G: Graph + Clone, C: Colouriser> IExtensions<'a, G, C> {
     pub fn new(graph: &'a G, colouriser: &'a C) -> Self {
         IExtensions {
             graph,

@@ -1,11 +1,16 @@
-use crate::graph::graph::Graph;
 use crate::graph::edge::Edge;
+use crate::graph::graph::Graph;
 
 ///
 /// if graph is snark and first, second and third edge are non adjacent?? and removable
 /// -> output graph will be snark as well
 ///
-pub fn y_extension<G: Graph+Clone, E: Edge>(graph: &G, first_edge: &E, second_edge: &E, third_edge: &E) -> G {
+pub fn y_extension<G: Graph + Clone, E: Edge>(
+    graph: &G,
+    first_edge: &E,
+    second_edge: &E,
+    third_edge: &E,
+) -> G {
     let mut result_graph = (*graph).clone();
     result_graph.remove_edge(first_edge.from(), first_edge.to());
     result_graph.remove_edge(second_edge.from(), second_edge.to());
@@ -28,8 +33,7 @@ pub fn y_extension<G: Graph+Clone, E: Edge>(graph: &G, first_edge: &E, second_ed
     result_graph
 }
 
-pub fn y_extension_arbitrary<G: Graph+Clone, E: Edge>(graph: &G) -> G {
-
+pub fn y_extension_arbitrary<G: Graph + Clone, E: Edge>(graph: &G) -> G {
     // resolve edges to apply y_extension to
 
     // apply y extension

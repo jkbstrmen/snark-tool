@@ -1,13 +1,13 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
-use crate::service::colour::colouriser::Colourizer;
+use crate::service::colour::colouriser::Colouriser;
 use std::marker;
 
 pub struct Resistance<G, C>
 where
     G: Graph + Clone,
-    C: Colourizer,
+    C: Colouriser,
 {
     _g: marker::PhantomData<G>,
     _colourizer: C,
@@ -16,7 +16,7 @@ where
 impl<G, C> Resistance<G, C>
 where
     G: Graph + Clone,
-    C: Colourizer,
+    C: Colouriser,
 {
     pub fn new_with_colouriser(colourizer: C) -> Self {
         Resistance {

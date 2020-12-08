@@ -3,7 +3,7 @@ use crate::graph::graph::Graph;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
 use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
-use crate::service::colour::colouriser::Colourizer;
+use crate::service::colour::colouriser::Colouriser;
 use crate::service::colour::cvd_dfs::CvdDfsColourizer;
 use crate::service::colour::dfs_improved::DFSColourizer;
 use crate::service::colour::sat::SATColourizer;
@@ -50,7 +50,7 @@ impl<G: Graph> ColourProcedure<G> {
         Ok(())
     }
 
-    fn color_by_colourizer<C: Colourizer>(graphs: &mut Vec<(G, GraphProperties)>) {
+    fn color_by_colourizer<C: Colouriser>(graphs: &mut Vec<(G, GraphProperties)>) {
         for graph in graphs {
             let result = C::is_colorable(&graph.0);
             graph

@@ -1,9 +1,9 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 use crate::graph::undirected::edge::UndirectedEdge;
-use crate::service::colour::colouriser::Colourizer;
+use crate::service::colour::colouriser::Colouriser;
 
-pub struct RemovablePairsOfEdges<'a, E: Edge, G: Graph + Clone, C: Colourizer> {
+pub struct RemovablePairsOfEdges<'a, E: Edge, G: Graph + Clone, C: Colouriser> {
     first_edge_iterator: Box<dyn Iterator<Item = &'a E> + 'a>,
     second_edge_iterator: Box<dyn Iterator<Item = &'a E> + 'a>,
     first_edge: Option<&'a E>,
@@ -12,7 +12,7 @@ pub struct RemovablePairsOfEdges<'a, E: Edge, G: Graph + Clone, C: Colourizer> {
     colouriser: &'a C,
 }
 
-impl<'a, E: Edge, G: Graph<E = E> + Clone, C: Colourizer> Iterator
+impl<'a, E: Edge, G: Graph<E = E> + Clone, C: Colouriser> Iterator
     for RemovablePairsOfEdges<'a, E, G, C>
 {
     type Item = (&'a E, &'a E);
@@ -52,7 +52,7 @@ impl<'a, E: Edge, G: Graph<E = E> + Clone, C: Colourizer> Iterator
     }
 }
 
-impl<'a, E: Edge, G: Graph<E = E> + Clone, C: Colourizer> RemovablePairsOfEdges<'a, E, G, C> {
+impl<'a, E: Edge, G: Graph<E = E> + Clone, C: Colouriser> RemovablePairsOfEdges<'a, E, G, C> {
     pub fn new(graph: &'a G, colouriser: &'a C) -> Self {
         RemovablePairsOfEdges {
             first_edge_iterator: graph.edges(),

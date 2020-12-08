@@ -10,7 +10,7 @@ use crate::service::chromatic_properties::error::ChromaticPropertiesError;
 use crate::service::chromatic_properties::resistance::Resistance;
 use crate::service::chromatic_properties::resistibility::Resistibility;
 use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
-use crate::service::colour::colouriser::Colourizer;
+use crate::service::colour::colouriser::Colouriser;
 use crate::service::colour::dfs_improved::DFSColourizer;
 use crate::service::colour::sat::SATColourizer;
 use crate::service::property::oddness::Oddness;
@@ -301,7 +301,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         }
     }
 
-    fn compute_properties<Gr: Graph + Clone, C: Colourizer>(
+    fn compute_properties<Gr: Graph + Clone, C: Colouriser>(
         graph: &Gr,
         colouriser: C,
         graph_index: usize,
@@ -357,7 +357,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         Ok(properties)
     }
 
-    fn critical_and_stable_properties<Gr: Graph + Clone, C: Colourizer>(
+    fn critical_and_stable_properties<Gr: Graph + Clone, C: Colouriser>(
         graph: &Gr,
         _colouriser: &C,
         properties_to_compute: &ChromaticPropertiesToCompute,
@@ -403,7 +403,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         Ok(())
     }
 
-    fn critical_properties<Gr: Graph + Clone, C: Colourizer>(
+    fn critical_properties<Gr: Graph + Clone, C: Colouriser>(
         graph: &Gr,
         _colouriser: &C,
         properties_to_compute: &ChromaticPropertiesToCompute,
@@ -437,7 +437,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         Ok(())
     }
 
-    fn resistance<Gr: Graph + Clone, C: Colourizer>(
+    fn resistance<Gr: Graph + Clone, C: Colouriser>(
         graph: &Gr,
         _colouriser: &C,
         properties_computed: &mut GraphProperties,
@@ -458,7 +458,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         Ok(())
     }
 
-    fn edge_resistibility<Gr: Graph + Clone, C: Colourizer>(
+    fn edge_resistibility<Gr: Graph + Clone, C: Colouriser>(
         graph: &Gr,
         _colouriser: &C,
         properties_computed: &mut GraphProperties,
@@ -477,7 +477,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         Ok(())
     }
 
-    fn vertex_resistibility<Gr: Graph + Clone, C: Colourizer>(
+    fn vertex_resistibility<Gr: Graph + Clone, C: Colouriser>(
         graph: &Gr,
         _colouriser: &C,
         properties_computed: &mut GraphProperties,

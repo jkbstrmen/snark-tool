@@ -2,7 +2,7 @@
 pub mod resistance_tests {
     use crate::graph::undirected::simple_graph::SimpleGraph;
     use crate::service::chromatic_properties::resistance::Resistance;
-    use crate::service::colour::colouriser::Colourizer;
+    use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::dfs_improved::DFSColourizer;
     use crate::service::io::reader_g6::G6Reader;
     use crate::test::test_data::test_data;

@@ -1,7 +1,7 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
-use crate::service::colour::colouriser::Colourizer;
+use crate::service::colour::colouriser::Colouriser;
 
 ///
 /// Colorizer for (sub)cubic graphs only
@@ -17,7 +17,7 @@ struct DFSColourizerGraph {
     non_colored_edges_of_graph: usize,
 }
 
-impl Colourizer for DFSColourizer {
+impl Colouriser for DFSColourizer {
     fn is_colorable<G: Graph>(graph: &G) -> bool {
         let mut vertices = Vec::with_capacity(graph.size());
         // create local graph

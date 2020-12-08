@@ -1,12 +1,17 @@
-use crate::graph::edge::Edge;
+use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::Graph;
+use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::simple_graph::SimpleGraph;
+use crate::graph::undirected_sparse::graph::Edges;
+use crate::service::colour::colouriser::Colourizer;
+use crate::service::component_analysis::removable_edge::RemovablePairsOfEdges;
+use serde::export::Option::Some;
 
 ///
 /// if graph is snark and first_edge and second_edge are non adjacent and removable
 /// -> output graph will be snark as well
 ///
-pub fn i_extension<G: Graph+Clone, E: Edge>(graph: &G, first_edge: &E, second_edge: &E) -> G {
+pub fn i_extension<G: Graph + Clone, E: Edge>(graph: &G, first_edge: &E, second_edge: &E) -> G {
     let mut result_graph = (*graph).clone();
     result_graph.remove_edge(first_edge.from(), first_edge.to());
     result_graph.remove_edge(second_edge.from(), second_edge.to());
@@ -21,11 +26,30 @@ pub fn i_extension<G: Graph+Clone, E: Edge>(graph: &G, first_edge: &E, second_ed
     result_graph
 }
 
-pub fn i_extension_arbitrary<G: Graph+Clone, E: Edge>(graph: &G, first_edge: &E, second_edge: &E) -> G {
+pub struct IExtensions<'a, G: Graph + Clone, C: Colourizer> {
+    graph: &'a G,
+    colouriser: &'a C,
+    removable_edge_pairs: RemovablePairsOfEdges<'a, G::E, G, C>,
+}
 
-    // resolve edges to apply i_extension to
+impl<'a, G: Graph + Clone, C: Colourizer> Iterator for IExtensions<'a, G, C> {
+    type Item = G;
 
-    // apply i extension
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(pair) = self.removable_edge_pairs.next() {
+            let graph = i_extension(self.graph, pair.0, pair.1);
+            return Some(graph);
+        }
+        None
+    }
+}
 
-    unimplemented!()
+impl<'a, G: Graph + Clone, C: Colourizer> IExtensions<'a, G, C> {
+    pub fn new(graph: &'a G, colouriser: &'a C) -> Self {
+        IExtensions {
+            graph,
+            colouriser,
+            removable_edge_pairs: RemovablePairsOfEdges::new(&graph, &colouriser),
+        }
+    }
 }

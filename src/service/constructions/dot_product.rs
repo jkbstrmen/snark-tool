@@ -29,7 +29,6 @@ fn dot_product_arbitrary(
     unimplemented!()
 }
 
-
 // TODO - refactor and use with Graph trait
 pub fn dot_product_first(
     graph_g: &SimpleSparseGraph,

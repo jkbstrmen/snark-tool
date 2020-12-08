@@ -9,16 +9,17 @@ pub mod constructions_tests {
     use crate::graph::undirected_sparse::vertex::VertexWithEdges;
     use crate::graph::vertex::Vertex;
     use crate::service::colour::colouriser::Colourizer;
+    use crate::service::colour::dfs_improved::DFSColourizer;
     use crate::service::colour::sat::SATColourizer;
-    use crate::service::constructions::dot_product::{
-        dot_product_first
+    use crate::service::component_analysis::removable_edge::{
+        removable_edges, RemovablePairsOfEdges,
     };
+    use crate::service::constructions::dot_product::dot_product_first;
+    use crate::service::constructions::i_extension::{i_extension, IExtensions};
+    use crate::service::constructions::y_extension::y_extension;
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::io::writer_g6::G6Writer;
     use crate::test::test_data::test_data;
-    use crate::service::constructions::i_extension::i_extension;
-    use crate::service::constructions::y_extension::y_extension;
-    use crate::service::component_analysis::removable_edge::removable_edges;
 
     #[test]
     fn dot_product_test() {
@@ -64,6 +65,23 @@ pub mod constructions_tests {
     }
 
     #[test]
+    fn i_extension_iterator_test() {
+        let graph_g =
+            G6Reader::<SimpleSparseGraph>::read_graph(test_data::SNARK_IN_G6_10_PETERSEN).unwrap();
+
+        let colouriser = DFSColourizer::new();
+        let i_extensions = IExtensions::new(&graph_g, &colouriser);
+
+        for i_extension in i_extensions {
+            let colourable = DFSColourizer::is_colorable(&i_extension);
+            println!("{}", colourable);
+
+            // let final_g6 = G6Writer::graph_to_g6_string(&extended);
+            // println!("{}", final_g6);
+        }
+    }
+
+    #[test]
     fn y_extension_test() {
         let graph_g =
             G6Reader::<SimpleSparseGraph>::read_graph(test_data::SNARK_IN_G6_10_PETERSEN).unwrap();
@@ -85,13 +103,17 @@ pub mod constructions_tests {
         // petgraph?
     }
 
-
     #[test]
     fn removable_edges_test() {
-        let graph =
-            G6Reader::<SimpleSparseGraph>::read_graph(test_data::SNARK_IN_G6_30_ACRITICAL_1).unwrap();
+        let graph = G6Reader::<SimpleSparseGraph>::read_graph(test_data::SNARK_IN_G6_10_PETERSEN) // SNARK_IN_G6_30_ACRITICAL_1
+            .unwrap();
 
-        let edges = removable_edges(&graph);
+        // let edges = removable_edges(&graph);
 
+        let colouriser = DFSColourizer::new();
+        let pairs = RemovablePairsOfEdges::new(&graph, &colouriser);
+        for pair in pairs {
+            println!("{:?}", pair);
+        }
     }
 }

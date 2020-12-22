@@ -94,6 +94,19 @@ impl Graph for SimpleSparseGraph {
     ) -> Box<dyn Iterator<Item = &'a UndirectedEdge> + 'a> {
         Box::new(self.vertices[vertex].edges.iter())
     }
+
+    fn neighbors_of_vertex(&self, vertex: usize) -> Vec<usize> {
+        let mut neighbors = vec![];
+        let mut edges = self.edges_of_vertex(vertex);
+        while let Some(edge) = edges.next() {
+            if edge.from() == vertex {
+                neighbors.push(edge.to());
+            } else {
+                neighbors.push(edge.from());
+            }
+        }
+        neighbors
+    }
 }
 
 impl GraphConstructor for SimpleSparseGraph {

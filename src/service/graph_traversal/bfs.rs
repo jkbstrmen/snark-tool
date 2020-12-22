@@ -1,16 +1,16 @@
+use crate::graph::graph::Graph;
 use crate::graph::temp_graph::TempGraph;
 use std::collections::VecDeque;
 
 // TODO - deduplicate with BfsGraph from perfect_matchings and cvd and put to own file
-// TODO - replace TempGraph with Graph
 
-pub struct BfsOfGraph<'a, G: TempGraph> {
+pub struct BfsOfGraph<'a, G: Graph> {
     graph: &'a G,
     visited: Vec<bool>,
     to_visit: VecDeque<usize>,
 }
 
-impl<'a, G: TempGraph> BfsOfGraph<'a, G> {
+impl<'a, G: Graph> BfsOfGraph<'a, G> {
     pub fn new(graph: &'a G, start: usize) -> Self {
         let visited = vec![false; graph.size()];
         let mut to_visit = VecDeque::new();
@@ -34,7 +34,7 @@ impl<'a, G: TempGraph> BfsOfGraph<'a, G> {
         !old_val
     }
 
-    pub fn bfs_next(&mut self) -> Option<usize> {
+    pub fn next(&mut self) -> Option<usize> {
         if let Some(vertex) = self.to_visit.pop_front() {
             for neighbor in self.graph.neighbors_of_vertex(vertex) {
                 if self.visit(neighbor) {

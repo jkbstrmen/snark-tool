@@ -5,5 +5,3 @@ pub mod vertex;
 
 pub mod undirected_sparse;
 pub mod undirected_sparse_2;
-
-pub mod temp_graph;

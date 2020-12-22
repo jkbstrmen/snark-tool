@@ -5,6 +5,7 @@ use crate::graph::graph::{Graph, GraphConstructor};
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::vertex::SimpleVertex;
 use crate::graph::vertex::{Vertex, VertexConstructor};
+use serde::export::Option::Some;
 
 #[derive(Debug, Clone)]
 pub struct SimpleGraph {
@@ -79,6 +80,19 @@ impl Graph for SimpleGraph {
         vertex: usize,
     ) -> Box<dyn Iterator<Item = &'a UndirectedEdge> + 'a> {
         Box::new(Edges::of_vertex(self.edges.iter(), vertex))
+    }
+
+    fn neighbors_of_vertex(&self, vertex: usize) -> Vec<usize> {
+        let mut neighbors = vec![];
+        let mut edges = self.edges_of_vertex(vertex);
+        while let Some(edge) = edges.next() {
+            if edge.from() == vertex {
+                neighbors.push(edge.to());
+            } else {
+                neighbors.push(edge.from());
+            }
+        }
+        neighbors
     }
 }
 

@@ -1,11 +1,12 @@
 use crate::graph::graph::Graph;
 use crate::graph::temp_graph::TempGraph;
 use crate::graph::vertex::Vertex;
+use crate::service::graph_traversal::cycle_discovery::BFSCyclehDiscovery;
 use std::collections::VecDeque;
 
 // TODO - replace TempGraph with Graph
 
-pub fn girth<G: TempGraph>(graph: &G) -> usize {
+pub fn girth<G: Graph>(graph: &G) -> usize {
     let mut shortest_cycle_length = usize::max_value();
 
     for vertex in graph.vertices() {
@@ -18,8 +19,7 @@ pub fn girth<G: TempGraph>(graph: &G) -> usize {
     shortest_cycle_length
 }
 
-fn find_cycle<G: TempGraph>(graph: &G, vertex: usize) -> usize {
-    //  TODO - use BFS to find cycle
-
-    0
+fn find_cycle<G: Graph>(graph: &G, vertex: usize) -> usize {
+    let mut cd = BFSCyclehDiscovery::new(graph, vertex);
+    cd.length_of_next_cycle()
 }

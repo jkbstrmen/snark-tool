@@ -1,5 +1,6 @@
 mod colour_test;
 mod graph_test;
+mod graph_traversal_tests;
 mod io_test;
 mod procedure_test;
 

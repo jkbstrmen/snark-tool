@@ -28,6 +28,17 @@ pub trait Graph {
     fn edges<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::E> + 'a>;
     fn edges_of_vertex<'a>(&'a self, vertex: usize) -> Box<dyn Iterator<Item = &'a Self::E> + 'a>;
 
+    // fn edges<'a>(&'a self) -> Box<dyn Iterator<Item = Self::E> + 'a>;
+    // fn edges_of_vertex<'a>(&'a self, vertex: usize) -> Box<dyn Iterator<Item = Self::E> + 'a>;
+
+    // TODO
+    // fn neighbors_of_vertex(&self) -> Vec<usize>; // or Vec<Vertex>
+    // fn neighbors_of_vertex(&self) -> Box<dyn Iterator<Item = &'a Self::V> + 'a>; // or Box<dyn Iterator<Item = usize> + 'a>
+
+    // TODO
+    // fn vertex(&self) -> &Self::V;
+    // fn vertex_mut(&mut self) -> &Self::V;
+
     // fn edges(&self) -> Edges<E>;
     // fn edges_of_vertex(&self, vertex: usize) -> Edges<E>;
 

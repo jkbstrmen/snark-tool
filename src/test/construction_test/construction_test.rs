@@ -11,9 +11,7 @@ pub mod constructions_tests {
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::dfs_improved::DFSColourizer;
     use crate::service::colour::sat::SATColourizer;
-    use crate::service::component_analysis::removable_edge::{
-        removable_edges, RemovablePairsOfEdges,
-    };
+    use crate::service::component_analysis::removable_edge::RemovablePairsOfEdges;
     use crate::service::constructions::dot_product::dot_product_first;
     use crate::service::constructions::i_extension::{i_extension, IExtensions};
     use crate::service::constructions::y_extension::y_extension;

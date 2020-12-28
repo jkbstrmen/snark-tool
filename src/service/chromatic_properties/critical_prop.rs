@@ -97,7 +97,7 @@ where
 
         let graph = &mut self.graph;
 
-        for first_vertex in 0..graph.size {
+        for first_vertex in 0..graph.size() {
             self.is_vertex_subcritical = false;
 
             graph.remove_edges_of_vertex(first_vertex);

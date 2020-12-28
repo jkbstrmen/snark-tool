@@ -1,6 +1,6 @@
 use crate::graph::graph::Graph;
-use std::collections::VecDeque;
 use serde::export::Option::Some;
+use std::collections::VecDeque;
 
 #[derive(Debug, Clone)]
 struct CycleDiscoveryVertex {
@@ -36,7 +36,7 @@ impl<'a, G: Graph> BFSCyclehDiscovery<'a, G> {
             graph,
             visited,
             to_visit,
-            length_of_first_cycle: None
+            length_of_first_cycle: None,
         };
         cd.visit(start);
         cd.set_distance_from_root(start, 0);
@@ -85,7 +85,8 @@ impl<'a, G: Graph> BFSCyclehDiscovery<'a, G> {
                 if self.visit(neighbor) {
                     self.to_visit.push_back(neighbor);
                 } else {
-                    let length = self.distance_from_root(vertex) + self.distance_from_root(neighbor) + 1;
+                    let length =
+                        self.distance_from_root(vertex) + self.distance_from_root(neighbor) + 1;
                     self.length_of_first_cycle = Some(length);
                     return length;
                 }

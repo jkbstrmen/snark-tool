@@ -6,15 +6,14 @@ use crate::graph::vertex::{Vertex, VertexConstructor};
 use std::{fmt, slice};
 
 ///
-/// better for sparse graphs
-/// use VertexWithEdges - faster edge addition and removal
+/// Can hold multiple edges from one vertex to another
 ///
 #[derive(Debug, Clone)]
-pub struct SimpleSparseGraph {
+pub struct MultiGraph {
     pub vertices: Vec<VertexWithEdges>,
 }
 
-impl Graph for SimpleSparseGraph {
+impl Graph for MultiGraph {
     type V = VertexWithEdges;
     type E = UndirectedEdge;
 
@@ -45,9 +44,6 @@ impl Graph for SimpleSparseGraph {
         if from == to {
             return;
         }
-        if self.has_edge(from, to) {
-            return;
-        }
         while self.vertices.len() <= edge.to() {
             self.add_non_active_vertex();
         }
@@ -63,14 +59,26 @@ impl Graph for SimpleSparseGraph {
         let edge_to_remove = UndirectedEdge::new(from, to);
 
         let from_vertex = &mut self.vertices[from];
-        from_vertex.edges.retain(|edge| {
-            edge.from() != edge_to_remove.from() || edge.to() != edge_to_remove.to()
-        });
+
+        let pos = from_vertex.edges.iter().position(|x| *x == edge_to_remove);
+        if let Some(position) = pos {
+            from_vertex.edges.remove(position);
+        }
+
+        // from_vertex.edges.remove_item(&edge_to_remove);
+        //
+        // from_vertex.edges.retain(|edge| {
+        //     edge.from() != edge_to_remove.from() || edge.to() != edge_to_remove.to()
+        // });
 
         let to_vertex = &mut self.vertices[to];
-        to_vertex.edges.retain(|edge| {
-            edge.from() != edge_to_remove.from() || edge.to() != edge_to_remove.to()
-        });
+        let pos = to_vertex.edges.iter().position(|x| *x == edge_to_remove);
+        if let Some(position) = pos {
+            to_vertex.edges.remove(position);
+        }
+        // to_vertex.edges.retain(|edge| {
+        //     edge.from() != edge_to_remove.from() || edge.to() != edge_to_remove.to()
+        // });
     }
 
     fn remove_edges_of_vertex(&mut self, vertex: usize) {
@@ -88,7 +96,6 @@ impl Graph for SimpleSparseGraph {
     }
 
     fn vertices<'a>(&'a self) -> Box<dyn Iterator<Item = &'a VertexWithEdges> + 'a> {
-        // Box::new(self.vertices.iter())
         Box::new(Vertices::new(self.vertices.iter()))
     }
 
@@ -113,11 +120,13 @@ impl Graph for SimpleSparseGraph {
                 neighbors.push(edge.from());
             }
         }
+        neighbors.sort();
+        neighbors.dedup();
         neighbors
     }
 }
 
-impl GraphConstructor for SimpleSparseGraph {
+impl GraphConstructor for MultiGraph {
     fn new() -> Self {
         Self::with_vertices_capacity(20)
     }
@@ -127,15 +136,15 @@ impl GraphConstructor for SimpleSparseGraph {
     }
 
     fn with_vertices_capacity(vertices: usize) -> Self {
-        SimpleSparseGraph {
+        MultiGraph {
             vertices: Vec::with_capacity(vertices),
         }
     }
 }
 
-impl SimpleSparseGraph {
+impl MultiGraph {
     pub fn from_graph<G: Graph>(graph: &G) -> Self {
-        let mut result = SimpleSparseGraph::with_vertices_capacity(graph.size());
+        let mut result = MultiGraph::with_vertices_capacity(graph.size());
         for edge in graph.edges() {
             result.add_edge(edge.from(), edge.to());
         }
@@ -251,7 +260,7 @@ impl<'a> Iterator for Edges<'a> {
     }
 }
 
-impl fmt::Display for SimpleSparseGraph {
+impl fmt::Display for MultiGraph {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for vertex in &self.vertices {
             write!(f, "{}: ", vertex.index())?;
@@ -273,7 +282,7 @@ impl fmt::Display for SimpleSparseGraph {
 }
 
 // TODO - to compare like this - we need to sort edges after new edge to vertex is added
-impl PartialEq for SimpleSparseGraph {
+impl PartialEq for MultiGraph {
     fn eq(&self, other: &Self) -> bool {
         unimplemented!();
 

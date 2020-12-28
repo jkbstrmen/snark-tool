@@ -122,7 +122,7 @@ where
         self.is_costable = true;
 
         let graph = &mut self.graph;
-        for first_vertex in 0..graph.size {
+        for first_vertex in 0..graph.size() {
             graph.remove_edges_of_vertex(first_vertex);
 
             for second_vertex in 0..graph.size() {
@@ -166,7 +166,7 @@ where
                         // if self.get_colouring(first_vertex, second_vertex.index()) {
                         if Self::get_colouring(
                             colourings,
-                            graph.size,
+                            graph.size(),
                             first_vertex,
                             second_vertex.index(),
                         ) {
@@ -178,7 +178,7 @@ where
                     } else {
                         if Self::get_colouring(
                             colourings,
-                            graph.size,
+                            graph.size(),
                             first_vertex,
                             second_vertex.index(),
                         ) {

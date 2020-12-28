@@ -5,6 +5,7 @@ use crate::graph::vertex::{Vertex, VertexConstructor};
 #[derive(Debug, Hash, Eq, PartialEq, Clone)]
 pub struct VertexWithEdges {
     index: usize,
+    active: bool,
     pub edges: Vec<UndirectedEdge>,
 }
 
@@ -18,12 +19,21 @@ impl VertexConstructor for VertexWithEdges {
     fn new(index: usize) -> Self {
         VertexWithEdges {
             index,
+            active: true,
             edges: vec![],
         }
     }
 }
 
 impl VertexWithEdges {
+    pub fn new_non_active(index: usize) -> Self {
+        VertexWithEdges {
+            index,
+            active: false,
+            edges: vec![],
+        }
+    }
+
     pub fn add_edge(&mut self, to: usize, colour: u8) {
         self.edges
             .push(UndirectedEdge::new_with_colour(self.index, to, colour));
@@ -39,5 +49,13 @@ impl VertexWithEdges {
             }
         }
         neighbors
+    }
+    
+    pub fn active(&self) -> bool {
+        self.active
+    }
+
+    pub fn set_active(&mut self, active: bool) {
+        self.active = active;
     }
 }

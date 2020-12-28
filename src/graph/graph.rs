@@ -14,9 +14,9 @@ pub trait Graph {
     fn add_edge(&mut self, from: usize, to: usize);
     // remove_edge
     fn remove_edge(&mut self, from: usize, to: usize);
-    // ??
+
+    // TODO replace by remove_vertex
     fn remove_edges_of_vertex(&mut self, vertex: usize);
-    // fn remove_edges_of_vertex(self, index: usize) -> Self;
     // remove_vertex
     // fn remove_vertex(&mut self, index: usize);
 
@@ -36,6 +36,9 @@ pub trait Graph {
     // TODO
     // fn vertex(&self) -> &Self::V;
     // fn vertex_mut(&mut self) -> &Self::V;
+
+    // TODO
+    // fn has_vertex(&self, vertex: usize) -> bool;
 
     // fn edges(&self) -> Edges<E>;
     // fn edges_of_vertex(&self, vertex: usize) -> Edges<E>;

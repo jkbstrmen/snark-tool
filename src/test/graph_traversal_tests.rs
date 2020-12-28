@@ -2,7 +2,6 @@
 pub mod graph_traversal_tests {
     use crate::service::graph_traversal::bfs::BfsOfGraph;
     use crate::test::test_data::test_data;
-    use serde::export::Option::Some;
 
     #[test]
     fn should_traverse_using_bfs() {
@@ -12,7 +11,7 @@ pub mod graph_traversal_tests {
 
         let mut vertices = vec![];
         while let Some(next) = bfs.next() {
-            vertices.push(next);
+            vertices.push(next.index());
         }
 
         let right_order = vec![0, 4, 6, 8, 2, 5, 1, 7, 3, 9];

@@ -15,12 +15,11 @@ pub mod girth_tests {
     fn should_have_girth_five() {
         let graph = test_data::get_petersen_graph();
         let girth = girth(&graph);
-
         assert_eq!(girth, 5);
     }
 
     #[test]
-    fn should_have_girth() {
+    fn should_have_girth_six() {
         let graph_string = test_data::SNARK_IN_G6_30_GIRTH_6;
         let graph = G6Reader::<SimpleGraph>::read_graph(graph_string).unwrap();
         let girth = girth(&graph);

@@ -47,14 +47,6 @@ impl Vertex {
         }
     }
 
-    // pub fn with_neighbors(index: usize, neighbors: Vec<usize>) -> Self {
-    //     Vertex {
-    //         index,
-    //         active: true,
-    //         neighbors,
-    //     }
-    // }
-
     pub fn index(&self) -> &usize {
         &self.index
     }

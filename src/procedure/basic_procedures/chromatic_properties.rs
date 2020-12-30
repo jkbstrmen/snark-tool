@@ -136,7 +136,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         let mut next_graph = graphs_iter.next();
         while next_graph.is_some() {
             let graph = next_graph.unwrap();
-            // TODO - if graph will be bigger could cause performance issues
+            // if graph is bigger could cause performance issues
             let graph_local = SimpleGraph::from_graph(&graph.0);
             let tx_cloned = mpsc::Sender::clone(&tx);
             let handle = Self::spawn_thread_for_graph(

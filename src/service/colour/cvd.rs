@@ -11,7 +11,7 @@ pub static NON_COLOURED_EDGE: u8 = 0;
 // #[derive(Clone)]
 struct CVDGraph {
     // Vec of vertices, where vertex is Vec of neighbors, where neighbor is (usize, u8) as (index, colour)
-    // TODO - try with fixed size array [(usize, u8), 3]
+    // TODO - for optimization try with fixed size array [(usize, u8), 3]
     vertices: Vec<Vec<(usize, u8)>>,
     vertices_to_try: Vec<usize>,
     kempe_chain: KempeChain,
@@ -421,20 +421,6 @@ struct BfsGraph<'a> {
 }
 
 impl<'a> BfsGraph<'a> {
-    // pub fn new(graph: &'a CVDGraph, start: usize) -> Self {
-    //     let visited = vec![false; graph.vertices.len()];
-    //     let mut to_visit = VecDeque::new();
-    //     to_visit.push_back(start);
-    //
-    //     let mut bfs = Self {
-    //         vertices: &graph.vertices,
-    //         visited,
-    //         to_visit,
-    //     };
-    //     bfs.visit(start);
-    //     bfs
-    // }
-
     pub unsafe fn new_from_raw_ptr(graph: *const CVDGraph, start: usize) -> Self {
         let visited = vec![false; (*graph).vertices.len()];
         let mut to_visit = VecDeque::new();

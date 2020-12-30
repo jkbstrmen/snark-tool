@@ -272,18 +272,3 @@ impl fmt::Display for SimpleSparseGraph {
         Ok(())
     }
 }
-
-// TODO - to compare like this - we need to sort edges after new edge to vertex is added
-impl PartialEq for SimpleSparseGraph {
-    fn eq(&self, other: &Self) -> bool {
-        unimplemented!();
-
-        if self.size() != other.size() {
-            return false;
-        }
-        if self.vertices[..] != other.vertices[..] {
-            return false;
-        }
-        true
-    }
-}

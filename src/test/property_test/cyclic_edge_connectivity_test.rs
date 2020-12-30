@@ -6,6 +6,10 @@ pub mod cyclic_edge_connectivity_tests {
         contract_sub_graph, cyclic_edge_connectivity, full_tree, vertex_disjoint_graphs,
     };
     use crate::test::test_data::test_data;
+    use crate::service::io::reader_g6::G6Reader;
+    use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
+    use crate::service::io::reader::Reader;
+    use std::fs;
 
     #[test]
     fn should_have_cec_five() {

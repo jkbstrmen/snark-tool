@@ -3,11 +3,8 @@ use crate::graph::graph::Graph;
 use crate::service::colour::matching::CycleDiscovery;
 use crate::service::matching::perfect_matchings::MatchingGraph;
 
-// TODO - create procedure for oddness
-
 pub struct Oddness {}
 
-#[allow(dead_code)]
 impl Oddness {
     pub fn of_graph<G: Graph>(graph: &G) -> usize {
         let mut match_graph = MatchingGraph::from_graph(graph);

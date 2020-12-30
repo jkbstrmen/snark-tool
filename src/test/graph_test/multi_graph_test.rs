@@ -55,7 +55,7 @@ mod multi_graph_tests {
             edges.retain(|edge_temp| edge_temp != edge);
             index += 1;
         }
-        assert_eq!(index, 3);
+        assert_eq!(index, 4);
         assert_eq!(edges.len(), 0);
     }
 
@@ -70,15 +70,15 @@ mod multi_graph_tests {
             edges.retain(|edge_temp| edge_temp != edge);
             index += 1;
         }
-        assert_eq!(index, 2);
+        assert_eq!(index, 3);
         assert_eq!(edges.len(), 0);
     }
 
     #[test]
     fn should_remove_edges_of_vertex() {
         let mut graph = get_graph();
-        assert_eq!(graph.vertices[0].edges.len(), 2);
-        assert_eq!(graph.vertices[1].edges.len(), 2);
+        assert_eq!(graph.vertices[0].edges.len(), 3);
+        assert_eq!(graph.vertices[1].edges.len(), 3);
         assert_eq!(graph.vertices[2].edges.len(), 2);
         graph.remove_edges_of_vertex(0);
         assert_eq!(graph.vertices[0].edges.len(), 0);

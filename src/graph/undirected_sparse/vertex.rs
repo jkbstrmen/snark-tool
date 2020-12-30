@@ -50,7 +50,7 @@ impl VertexWithEdges {
         }
         neighbors
     }
-    
+
     pub fn active(&self) -> bool {
         self.active
     }

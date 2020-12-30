@@ -107,4 +107,23 @@ mod simple_sparse_graph_tests {
         assert_eq!(first_vertex.is_some(), true);
         assert_eq!(first_vertex.unwrap().index(), 1);
     }
+
+    #[test]
+    fn should_add_vertex_with_index() {
+        let mut graph = SimpleSparseGraph::new();
+        graph.add_vertex_with_index(1);
+        assert_eq!(graph.size(), 2);
+        graph.add_vertex();
+        assert_eq!(graph.size(), 3);
+        assert_eq!(graph.has_vertex(0), false);
+        assert_eq!(graph.has_vertex(1), true);
+        graph.add_vertex_with_index(2);
+        assert_eq!(graph.size(), 3);
+        graph.add_vertex_with_index(3);
+        assert_eq!(graph.size(), 4);
+        graph.add_vertex_with_index(5);
+        assert_eq!(graph.size(), 6);
+        assert_eq!(graph.has_vertex(4), false);
+        assert_eq!(graph.has_vertex(5), true);
+    }
 }

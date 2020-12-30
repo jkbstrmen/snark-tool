@@ -1,8 +1,11 @@
 use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::{Graph, GraphConstructor};
-use crate::graph::undirected::edge::UndirectedEdge;
-use crate::graph::undirected_sparse::vertex::VertexWithEdges;
+use crate::graph::multi::graph::MultiGraph;
+use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
 use crate::graph::vertex::{Vertex, VertexConstructor};
+use crate::service::property::max_flow::residual_graph::edge::DirectedFlowEdge;
+use crate::service::property::max_flow::residual_graph::vertex::ResidualVertex;
+use serde::export::Option::Some;
 use std::{fmt, slice};
 
 ///
@@ -10,13 +13,13 @@ use std::{fmt, slice};
 /// use VertexWithEdges - faster edge addition and removal
 ///
 #[derive(Debug, Clone)]
-pub struct SimpleSparseGraph {
-    pub vertices: Vec<VertexWithEdges>,
+pub struct ResidualGraph {
+    pub vertices: Vec<ResidualVertex>,
 }
 
-impl Graph for SimpleSparseGraph {
-    type V = VertexWithEdges;
-    type E = UndirectedEdge;
+impl Graph for ResidualGraph {
+    type V = ResidualVertex;
+    type E = DirectedFlowEdge;
 
     fn size(&self) -> usize {
         self.vertices.len()
@@ -27,48 +30,35 @@ impl Graph for SimpleSparseGraph {
             return false;
         }
         let from_vertex = &self.vertices[from];
-        for edge in from_vertex.edges.iter() {
-            if edge.from() == from && edge.to() == to || edge.from() == to && edge.to() == from {
-                return true;
-            }
-        }
-        false
+        from_vertex.has_neighbor(to)
     }
 
     fn add_vertex(&mut self) {
-        self.vertices
-            .push(VertexWithEdges::new(self.vertices.len()));
+        self.vertices.push(ResidualVertex::new(self.vertices.len()));
     }
 
     fn add_edge(&mut self, from: usize, to: usize) {
-        let edge = UndirectedEdge::new(from, to);
+        let edge = DirectedFlowEdge::new(from, to);
         if from == to {
             return;
         }
         if self.has_edge(from, to) {
+            self.increase_edge_capacity(from, to);
             return;
         }
-        while self.vertices.len() <= edge.to() {
+        while self.vertices.len() <= edge.to() || self.vertices.len() <= edge.from() {
             self.add_non_active_vertex();
         }
         let from_vertex = &mut self.vertices[from];
-        from_vertex.add_edge(to, 0);
+        from_vertex.add_edge(to);
         from_vertex.set_active(true);
-        let to_vertex = &mut self.vertices[to];
-        to_vertex.add_edge(from, 0);
-        to_vertex.set_active(true);
     }
 
     fn remove_edge(&mut self, from: usize, to: usize) {
-        let edge_to_remove = UndirectedEdge::new(from, to);
+        let edge_to_remove = DirectedFlowEdge::new(from, to);
 
         let from_vertex = &mut self.vertices[from];
         from_vertex.edges.retain(|edge| {
-            edge.from() != edge_to_remove.from() || edge.to() != edge_to_remove.to()
-        });
-
-        let to_vertex = &mut self.vertices[to];
-        to_vertex.edges.retain(|edge| {
             edge.from() != edge_to_remove.from() || edge.to() != edge_to_remove.to()
         });
     }
@@ -77,47 +67,33 @@ impl Graph for SimpleSparseGraph {
         if vertex >= self.vertices.len() {
             return;
         }
-        let neighbors = self.vertices[vertex].neighbors().clone();
         self.vertices[vertex].edges = vec![];
-        for neighbor in neighbors {
-            let edge_to_remove = UndirectedEdge::new(vertex, neighbor);
-            self.vertices[neighbor].edges.retain(|edge| {
-                edge_to_remove.from() != edge.from() || edge_to_remove.to() != edge.to()
-            });
-        }
     }
 
-    fn vertices<'a>(&'a self) -> Box<dyn Iterator<Item = &'a VertexWithEdges> + 'a> {
-        // Box::new(self.vertices.iter())
+    fn vertices<'a>(&'a self) -> Box<dyn Iterator<Item = &'a ResidualVertex> + 'a> {
         Box::new(Vertices::new(self.vertices.iter()))
     }
 
-    fn edges<'a>(&'a self) -> Box<dyn Iterator<Item = &'a UndirectedEdge> + 'a> {
+    fn edges<'a>(&'a self) -> Box<dyn Iterator<Item = &'a DirectedFlowEdge> + 'a> {
         Box::new(Edges::new(&self.vertices))
     }
 
     fn edges_of_vertex<'a>(
         &'a self,
         vertex: usize,
-    ) -> Box<dyn Iterator<Item = &'a UndirectedEdge> + 'a> {
+    ) -> Box<dyn Iterator<Item = &'a DirectedFlowEdge> + 'a> {
         Box::new(self.vertices[vertex].edges.iter())
     }
 
     fn neighbors_of_vertex(&self, vertex: usize) -> Vec<usize> {
-        let mut neighbors = vec![];
-        let mut edges = self.edges_of_vertex(vertex);
-        while let Some(edge) = edges.next() {
-            if edge.from() == vertex {
-                neighbors.push(edge.to());
-            } else {
-                neighbors.push(edge.from());
-            }
+        if let Some(vertex) = self.vertex(vertex) {
+            return vertex.neighbors();
         }
-        neighbors
+        vec![]
     }
 }
 
-impl GraphConstructor for SimpleSparseGraph {
+impl GraphConstructor for ResidualGraph {
     fn new() -> Self {
         Self::with_vertices_capacity(20)
     }
@@ -127,17 +103,30 @@ impl GraphConstructor for SimpleSparseGraph {
     }
 
     fn with_vertices_capacity(vertices: usize) -> Self {
-        SimpleSparseGraph {
+        ResidualGraph {
             vertices: Vec::with_capacity(vertices),
         }
     }
 }
 
-impl SimpleSparseGraph {
-    pub fn from_graph<G: Graph>(graph: &G) -> Self {
-        let mut result = SimpleSparseGraph::with_vertices_capacity(graph.size());
+impl ResidualGraph {
+    // ///
+    // /// only for graphs without edge capacity
+    // /// every edge is taken as with capacity of 1
+    // ///
+    // pub fn from_graph<G: Graph>(graph: &G) -> Self {
+    //     let mut result = ResidualGraph::with_vertices_capacity(graph.size());
+    //     for edge in graph.edges() {
+    //         result.add_edge(edge.from(), edge.to());
+    //     }
+    //     result
+    // }
+
+    pub fn from_multi_graph(graph: &MultiGraph) -> Self {
+        let mut result = ResidualGraph::with_vertices_capacity(graph.size());
         for edge in graph.edges() {
             result.add_edge(edge.from(), edge.to());
+            result.add_edge(edge.to(), edge.from());
         }
         result
     }
@@ -156,7 +145,7 @@ impl SimpleSparseGraph {
         self.vertices[vertex].active()
     }
 
-    pub fn first_vertex(&self) -> Option<&VertexWithEdges> {
+    pub fn first_vertex(&self) -> Option<&ResidualVertex> {
         for vertex in self.vertices() {
             if self.has_vertex(vertex.index()) {
                 return Some(vertex);
@@ -165,11 +154,18 @@ impl SimpleSparseGraph {
         None
     }
 
-    pub fn vertex(&self, index: usize) -> Option<&VertexWithEdges> {
+    pub fn vertex(&self, index: usize) -> Option<&ResidualVertex> {
         if !self.has_vertex(index) {
             return None;
         }
         Some(&self.vertices[index])
+    }
+
+    pub fn vertex_mut(&mut self, index: usize) -> Option<&mut ResidualVertex> {
+        if !self.has_vertex(index) {
+            return None;
+        }
+        Some(&mut self.vertices[index])
     }
 
     pub fn remove_vertex(&mut self, vertex: usize) {
@@ -182,23 +178,43 @@ impl SimpleSparseGraph {
 
     fn add_non_active_vertex(&mut self) {
         self.vertices
-            .push(VertexWithEdges::new_non_active(self.vertices.len()));
+            .push(ResidualVertex::new_non_active(self.vertices.len()));
+    }
+
+    pub fn increase_edge_capacity(&mut self, from: usize, to: usize) {
+        if let Some(vertex) = self.vertex_mut(from) {
+            vertex.increase_edge_capacity(to);
+        }
+    }
+
+    pub fn decrease_edge_capacity(&mut self, from: usize, to: usize) -> bool {
+        if let Some(vertex) = self.vertex_mut(from) {
+            return vertex.decrease_edge_capacity(to);
+        }
+        false
+    }
+
+    pub fn edge_capacity(&self, from: usize, to: usize) -> usize {
+        if let Some(vertex) = self.vertex(from) {
+            return vertex.edge_capacity(to);
+        }
+        0
     }
 }
 
 /// Vertices
 pub struct Vertices<'a> {
-    vertices: slice::Iter<'a, VertexWithEdges>,
+    vertices: slice::Iter<'a, ResidualVertex>,
 }
 
 impl<'a> Vertices<'a> {
-    pub fn new(vertices: slice::Iter<'a, VertexWithEdges>) -> Self {
+    pub fn new(vertices: slice::Iter<'a, ResidualVertex>) -> Self {
         Vertices { vertices }
     }
 }
 
 impl<'a> Iterator for Vertices<'a> {
-    type Item = &'a VertexWithEdges;
+    type Item = &'a ResidualVertex;
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(vertex) = self.vertices.next() {
@@ -213,12 +229,12 @@ impl<'a> Iterator for Vertices<'a> {
 
 /// Edges
 pub struct Edges<'a> {
-    vertices: &'a Vec<VertexWithEdges>,
+    vertices: &'a Vec<ResidualVertex>,
     position: (usize, usize),
 }
 
 impl<'a> Edges<'a> {
-    pub fn new(vertices: &'a Vec<VertexWithEdges>) -> Self {
+    pub fn new(vertices: &'a Vec<ResidualVertex>) -> Self {
         Edges {
             vertices,
             position: (0, 0),
@@ -227,7 +243,7 @@ impl<'a> Edges<'a> {
 }
 
 impl<'a> Iterator for Edges<'a> {
-    type Item = &'a UndirectedEdge;
+    type Item = &'a DirectedFlowEdge;
     fn next(&mut self) -> Option<Self::Item> {
         if self.vertices.len() <= self.position.0 {
             return None;
@@ -252,7 +268,7 @@ impl<'a> Iterator for Edges<'a> {
     }
 }
 
-impl fmt::Display for SimpleSparseGraph {
+impl fmt::Display for ResidualGraph {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for vertex in &self.vertices {
             write!(f, "{}: ", vertex.index())?;
@@ -274,7 +290,7 @@ impl fmt::Display for SimpleSparseGraph {
 }
 
 // TODO - to compare like this - we need to sort edges after new edge to vertex is added
-impl PartialEq for SimpleSparseGraph {
+impl PartialEq for ResidualGraph {
     fn eq(&self, other: &Self) -> bool {
         unimplemented!();
 

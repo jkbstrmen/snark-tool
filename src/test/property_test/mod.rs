@@ -6,3 +6,4 @@ mod oddness_test;
 mod order_test;
 mod resistance_test;
 mod resistibility_test;
+mod max_flow_test;

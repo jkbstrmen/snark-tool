@@ -1,7 +1,8 @@
 use crate::graph::graph::Graph;
 use std::collections::VecDeque;
+use std::slice::from_raw_parts;
 
-// TODO - deduplicate with BfsGraph from perfect_matchings and cvd and put to own file
+// TODO - deduplicate with BfsGraph from perfect_matchings and cvd
 
 #[derive(Debug, Clone)]
 pub struct BfsVertex {
@@ -63,15 +64,13 @@ impl BfsVertex {
 
 pub struct BfsOfGraph<'a, G: Graph> {
     graph: &'a G,
-    // visited: Vec<bool>,
-    // to_visit: VecDeque<usize>,
-    visited: Vec<BfsVertex>,
+    visited: Vec<Option<BfsVertex>>,
     to_visit: VecDeque<BfsVertex>,
 }
 
 impl<'a, G: Graph> BfsOfGraph<'a, G> {
     pub fn new(graph: &'a G, start: usize) -> Self {
-        let visited = vec![BfsVertex::default(); graph.size()];
+        let visited = vec![None; graph.size()];
         let mut to_visit = VecDeque::new();
         to_visit.push_back(BfsVertex::new(start, true, start, 0));
 
@@ -80,26 +79,33 @@ impl<'a, G: Graph> BfsOfGraph<'a, G> {
             visited,
             to_visit,
         };
-        bfs.visit(start);
+        let start_vertex = BfsVertex::new(start, true, start, 0);
+        bfs.visited[start] = Some(start_vertex);
         bfs
+    }
+
+    pub unsafe fn new_from_raw_ptr(graph: *const G, start: usize) -> Self {
+        let graph_ref = &(*graph);
+        Self::new(graph_ref, start)
     }
 
     ///
     /// if true, visited for the first time
     ///
-    fn visit(&mut self, vertex: usize) -> bool {
-        let old_val = self.visited[vertex].visited;
-        self.visited[vertex].visited = true;
-        !old_val
-    }
-
     fn visit_from(&mut self, vertex: usize, visited_from: &BfsVertex) -> bool {
-        let already_visited = self.visited[vertex].visited;
+        let vert = &self.visited[vertex];
+        let mut already_visited = false;
+        if vert.is_some() && vert.as_ref().unwrap().visited {
+            already_visited = true;
+        }
         if !already_visited {
-            self.visited[vertex].index = vertex;
-            self.visited[vertex].visited = true;
-            self.visited[vertex].discovered_from = visited_from.index;
-            self.visited[vertex].distance_from_root = visited_from.distance_from_root + 1;
+            let visited_vertex = BfsVertex::new(
+                vertex,
+                true,
+                visited_from.index,
+                visited_from.distance_from_root + 1,
+            );
+            self.visited[vertex] = Some(visited_vertex);
         }
         !already_visited
     }
@@ -117,6 +123,14 @@ impl<'a, G: Graph> BfsOfGraph<'a, G> {
                 }
             }
             return Some(vertex);
+        }
+        None
+    }
+
+    pub fn visited_vertex(&self, index: usize) -> Option<&BfsVertex> {
+        let vert = self.visited.get(index);
+        if let Some(result) = vert {
+            return result.as_ref();
         }
         None
     }

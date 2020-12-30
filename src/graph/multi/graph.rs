@@ -198,9 +198,7 @@ pub struct Vertices<'a> {
 
 impl<'a> Vertices<'a> {
     pub fn new(vertices: slice::Iter<'a, VertexWithEdges>) -> Self {
-        Vertices {
-            vertices,
-        }
+        Vertices { vertices }
     }
 }
 
@@ -217,7 +215,6 @@ impl<'a> Iterator for Vertices<'a> {
         None
     }
 }
-
 
 /// Edges
 pub struct Edges<'a> {

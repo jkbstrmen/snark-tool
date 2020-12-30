@@ -1,9 +1,13 @@
 use crate::graph::graph::{Graph, GraphConstructor};
+use crate::graph::multi::graph::MultiGraph;
 use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
 use crate::graph::vertex::Vertex;
 use crate::service::graph_traversal::bfs::BfsOfGraph;
 use crate::service::property::girth::girth;
-use crate::graph::multi::graph::MultiGraph;
+use crate::service::property::max_flow::max_flow::FordFulkerson;
+use serde::export::Option::Some;
+
+// TODO - needs optimizations
 
 /**
  * Algorithm for finding cyclic edge connectivity of cubic simple graph with at
@@ -14,14 +18,15 @@ use crate::graph::multi::graph::MultiGraph;
  * Science Charles University
  *
 */
-
 pub fn cyclic_edge_connectivity<G: Graph>(graph: &G) -> Option<usize> {
     let mut cut_size = girth(graph);
 
     for vertex_v in graph.vertices() {
         for vertex_w in graph.vertices() {
+            if vertex_v.index() == vertex_w.index() {
+                continue;
+            }
             let mut depth = 0;
-
             loop {
                 // Tv - treeVertex // a full tree of depth depth rooted at vertex_v
                 let ftv = full_tree(graph, vertex_v.index(), depth);
@@ -34,9 +39,9 @@ pub fn cyclic_edge_connectivity<G: Graph>(graph: &G) -> Option<usize> {
                     break;
                 }
 
-                let max_flow = contract_full_trees_and_find_max_flow(graph, &ftv, &ftw);
-                if max_flow < (3 * (2 as usize).pow(depth)) && max_flow < cut_size {
-                    cut_size = max_flow;
+                let paths_count = find_paths_count(graph, &ftv, &ftw);
+                if paths_count < (3 * (2 as usize).pow(depth)) && paths_count < cut_size {
+                    cut_size = paths_count;
                 }
                 if (3 * (2 as usize).pow(depth)) >= cut_size {
                     break;
@@ -45,13 +50,13 @@ pub fn cyclic_edge_connectivity<G: Graph>(graph: &G) -> Option<usize> {
             }
         }
     }
-
     Some(cut_size)
 }
 
 pub fn full_tree<G: Graph>(graph: &G, root_vertex: usize, depth: u32) -> SimpleSparseGraph {
     let mut bfs = BfsOfGraph::new(graph, root_vertex);
     let mut full_tree = SimpleSparseGraph::new();
+    full_tree.add_vertex_with_index(root_vertex);
 
     while let Some(next) = bfs.next() {
         if next.distance_from_root() > depth as usize {
@@ -75,7 +80,41 @@ pub fn vertex_disjoint_graphs(
     true
 }
 
-fn contract_full_trees_and_find_max_flow<G: Graph>(
+///
+/// In given graph contract vertices of given sub-graph to one vertex
+/// method returns graph with contracted sub-graph and index of vertex of output graph representing this contracted sub_graph
+/// Given sub_graph should be one connected component of original graph.
+///
+pub fn contract_sub_graph<G: Graph>(
+    graph: &G,
+    sub_graph_to_contract: &SimpleSparseGraph,
+) -> (MultiGraph, Option<usize>) {
+    let mut output_graph = MultiGraph::from_graph(graph);
+    let representing_vertex = sub_graph_to_contract.first_vertex();
+    if representing_vertex.is_none() {
+        return (output_graph, None);
+    }
+    let representing_vertex = representing_vertex.unwrap().index();
+
+    for vertex in sub_graph_to_contract.vertices() {
+        if vertex.index() == representing_vertex {
+            continue;
+        }
+        for neighbor in graph.neighbors_of_vertex(vertex.index()) {
+            if !sub_graph_to_contract.has_vertex(neighbor) {
+                output_graph.add_edge(representing_vertex, neighbor);
+            }
+        }
+        output_graph.remove_vertex(vertex.index());
+    }
+    (output_graph, Some(representing_vertex))
+}
+
+///
+/// returns count of edge-disjoint paths from first full tree to second full tree
+/// for now only count
+///
+fn find_paths_count<G: Graph>(
     graph: &G,
     first_full_tree: &SimpleSparseGraph,
     second_full_tree: &SimpleSparseGraph,
@@ -88,44 +127,9 @@ fn contract_full_trees_and_find_max_flow<G: Graph>(
     if source.is_none() || sink.is_none() {
         return 0;
     }
+    let source = source.unwrap();
+    let sink = sink.unwrap();
+    let mut contracted_graph = contracted_second.0;
 
-    max_flow(&contracted_second.0, source.unwrap(), sink.unwrap())
-}
-
-///
-/// In given graph contract vertices of given sub-graph to one vertex
-/// method returns graph with contracted sub-graph and index of vertex of output graph representing this contracted sub_graph
-/// Given sub_graph should be one connected component of original graph.
-///
-pub fn contract_sub_graph<G: Graph>(
-    graph: &G,
-    sub_graph_to_contract: &SimpleSparseGraph,
-) -> (MultiGraph, Option<usize>) {
-    let output_graph = MultiGraph::from_graph(graph);
-    let representing_vertex = sub_graph_to_contract.first_vertex();
-    if representing_vertex.is_none() {
-        return (output_graph, None);
-    }
-    let representing_vertex = representing_vertex.unwrap().index();
-
-    // TODO - finish contracting
-    // could be for all edges of sub_graph
-
-    for vertex in sub_graph_to_contract.vertices() {
-        if vertex.index() == representing_vertex {
-            continue;
-        }
-
-        for neighbor in graph.neighbors_of_vertex(vertex.index()) {
-
-        }
-
-    }
-
-
-    unimplemented!()
-}
-
-fn max_flow<G: Graph>(graph: &G, source: usize, sink: usize) -> usize {
-    unimplemented!()
+    FordFulkerson::max_flow(&contracted_graph, source, sink)
 }

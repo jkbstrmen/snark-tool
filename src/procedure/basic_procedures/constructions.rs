@@ -1,4 +1,4 @@
-use crate::graph::graph::Graph;
+use crate::graph::graph::{Graph, GraphConstructor};
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure;
 use crate::procedure::procedure::{GraphProperties, Procedure};
@@ -6,10 +6,13 @@ use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
 use crate::service::colour::colouriser::Colouriser;
 use crate::service::colour::dfs_improved::DFSColourizer;
 use crate::service::constructions::error::ConstructionError;
-use crate::service::constructions::i_extension::{i_extension, IExtensions};
+use crate::service::constructions::i_extension::IExtensions;
 use std::collections::HashMap;
 use std::str::FromStr;
 use std::{marker, result};
+use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
+use crate::service::constructions::y_extension::YExtensions;
+use crate::service::constructions::dot_product::DotProducts;
 
 pub type Result<T> = result::Result<T, ConstructionError>;
 
@@ -62,17 +65,38 @@ impl<G: Graph> Procedure<G> for ConstructionProcedure<G> {
 }
 
 impl<G: Graph> ConstructionProcedure<G> {
-    pub fn construct(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
-        for graph in graphs.iter() {
+    pub fn construct(&self, _graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
+
+        // TODO - finish when graphs are Undirected
+
+        if ConstructionProcedureConfig::PROC_TYPE == "construction" {
+            println!("Constructions are not ready yet.");
+            return Ok(());
+        }
+
+        for _graph in _graphs.iter() {
+
             match self.config.construction_type {
-                ConstructionType::DotProduct => {}
-                ConstructionType::IExtension => {
-                    // let colouriser = DFSColourizer::new();
-                    // let mut i_extensions = IExtensions::new(graph, &colouriser);
-                    // let extended = i_extensions.next().unwrap();
+                ConstructionType::DotProduct => {
+                    let graph = SimpleSparseGraph::new();
+                    let mut dot_products = DotProducts::new(&graph, &graph);
+                    let _extended = dot_products.next().unwrap();
                     // graphs.push(extended);
                 }
-                ConstructionType::YExtension => {}
+                ConstructionType::IExtension => {
+                    let graph = SimpleSparseGraph::new();
+                    let colouriser = DFSColourizer::new();
+                    let mut i_extensions = IExtensions::new(&graph, &colouriser);
+                    let _extended = i_extensions.next().unwrap();
+                    // graphs.push(extended);
+                }
+                ConstructionType::YExtension => {
+                    let graph = SimpleSparseGraph::new();
+                    let colouriser = DFSColourizer::new();
+                    let mut y_extensions = YExtensions::new(&graph, &colouriser);
+                    let _extended = y_extensions.next().unwrap();
+                    // graphs.push(extended);
+                }
             }
         }
         Ok(())
@@ -90,9 +114,9 @@ impl ConstructionProcedureConfig {
         Ok(result)
     }
 
-    pub fn construction_type(&self) -> &ConstructionType {
-        &self.construction_type
-    }
+    // pub fn construction_type(&self) -> &ConstructionType {
+    //     &self.construction_type
+    // }
 }
 
 impl<G: Graph + 'static> ProcedureBuilder<G> for ConstructionProcedureBuilder {

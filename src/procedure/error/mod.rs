@@ -1,4 +1,3 @@
-use crate::service::chromatic_properties::error::ChromaticPropertiesError;
 use crate::service::io::error::{ReadError, WriteError};
 use std::fmt;
 

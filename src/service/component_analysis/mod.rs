@@ -1,1 +1,3 @@
-pub mod removable_edge;
+pub mod edge_pairs;
+pub mod edge_triplets;
+pub mod vertex_pairs;

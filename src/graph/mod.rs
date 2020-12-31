@@ -1,6 +1,6 @@
 pub mod edge;
 pub mod graph;
-pub mod undirected;
-pub mod vertex;
-pub mod undirected_sparse;
 pub mod multi;
+pub mod undirected;
+pub mod undirected_sparse;
+pub mod vertex;

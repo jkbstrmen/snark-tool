@@ -1,8 +1,11 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
+use crate::service::colour::colouriser::Colouriser;
+use crate::service::component_analysis::edge_triplets::RemovableTripletsOfEdges;
+use crate::graph::undirected::edge::UndirectedEdge;
 
 ///
-/// if graph is snark and first, second and third edge are non adjacent?? and removable
+/// if graph is snark and first, second and third edge are removable
 /// -> output graph will be snark as well
 ///
 pub fn y_extension<G: Graph + Clone, E: Edge>(
@@ -33,10 +36,30 @@ pub fn y_extension<G: Graph + Clone, E: Edge>(
     result_graph
 }
 
-pub fn y_extension_arbitrary<G: Graph + Clone, E: Edge>(graph: &G) -> G {
-    // resolve edges to apply y_extension to
+pub struct YExtensions<'a, G: Graph + Clone, C: Colouriser> {
+    graph: &'a G,
+    colouriser: &'a C,
+    removable_edge_triplets: RemovableTripletsOfEdges<'a, G, C>,
+}
 
-    // apply y extension
+impl<'a, G: Graph<E = UndirectedEdge> + Clone, C: Colouriser> Iterator for YExtensions<'a, G, C> {
+    type Item = G;
 
-    unimplemented!()
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(triplet) = self.removable_edge_triplets.next() {
+            let graph = y_extension(self.graph, triplet.0, triplet.1, triplet.2);
+            return Some(graph);
+        }
+        None
+    }
+}
+
+impl<'a, G: Graph<E = UndirectedEdge> + Clone, C: Colouriser> YExtensions<'a, G, C> {
+    pub fn new(graph: &'a G, colouriser: &'a C) -> Self {
+        YExtensions {
+            graph,
+            colouriser,
+            removable_edge_triplets: RemovableTripletsOfEdges::new(&graph, &colouriser),
+        }
+    }
 }

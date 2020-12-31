@@ -4,7 +4,7 @@ use crate::graph::undirected::edge::UndirectedEdge;
 use std::collections::VecDeque;
 use std::slice;
 
-// TODO - rename MatchingGraph, impl Graph for MatchingGraph
+// TODO - refactor, rename MatchingGraph, impl Graph for MatchingGraph
 
 #[derive(Debug, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Matching {

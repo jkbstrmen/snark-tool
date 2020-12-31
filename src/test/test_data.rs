@@ -27,6 +27,11 @@ pub mod test_data {
 
     // pub const SNARK_IN_ADJ_10_PETERSEN: &str = "0000101010\n0000011001\n0000100101\n0000010110\n1010010000\n0101100000\n1100000100\n0011001000\n1001000001\n0110000010\n";
 
+    pub const GG_30_G05_CYC4_G6_FILE_PATH: &str =
+        "resources/test/Generated_graphs.30.05.sn.cyc4.100.g6";
+    pub const GG_30_G05_CYC5_G6_FILE_PATH: &str =
+        "resources/test/Generated_graphs.30.05.sn.cyc5.100.g6";
+
     pub fn get_petersen_graph() -> SimpleGraph {
         let mut graph = SimpleGraph::with_capacity(10, 15);
         graph.add_edge(0, 4);

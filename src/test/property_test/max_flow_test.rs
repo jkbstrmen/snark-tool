@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub mod max_flow_tests {
+    use crate::graph::graph::{Graph, GraphConstructor};
     use crate::graph::multi::graph::MultiGraph;
-    use crate::graph::graph::{GraphConstructor, Graph};
     use crate::service::property::max_flow::max_flow::FordFulkerson;
 
     #[test]
@@ -18,5 +18,4 @@ pub mod max_flow_tests {
         let max_flow = FordFulkerson::max_flow(&graph, 0, 5);
         assert_eq!(max_flow, 2);
     }
-
 }

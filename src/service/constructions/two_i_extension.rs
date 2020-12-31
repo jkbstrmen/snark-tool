@@ -1,6 +1,8 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 
+// TODO - remove or implement
+
 ///
 /// if graph is snark and first, second and third edge are non adjacent?? and removable
 /// -> output graph will be snark as well

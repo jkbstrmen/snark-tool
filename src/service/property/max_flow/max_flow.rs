@@ -20,7 +20,8 @@ impl FordFulkerson {
         // when augmenting - BfsOfGraph is not using residual_graph anymore, just reading already discovered vertices
         // from its own attributes, hence use of raw pointer is safe here
         unsafe {
-            while let Some(augmenting_path) = Self::find_augmenting_path(residual_graph_ptr, source, sink)
+            while let Some(augmenting_path) =
+                Self::find_augmenting_path(residual_graph_ptr, source, sink)
             {
                 let path_flow = Self::augment(&mut residual_graph, augmenting_path, source, sink);
                 max_flow += path_flow;

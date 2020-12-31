@@ -4,7 +4,7 @@ pub mod critical_prop_tests {
     use crate::service::chromatic_properties::critical_prop::CriticalProperties;
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::cvd_dfs::CvdDfsColourizer;
-    use crate::service::colour::matching::MatchingColouriser;
+    use crate::service::colour::matching_col::MatchingColouriser;
     use crate::service::io::reader_g6::G6Reader;
     use crate::test::test_data::test_data;
 

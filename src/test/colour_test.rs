@@ -5,7 +5,7 @@ pub mod colour_tests {
     use crate::service::colour::cvd;
     use crate::service::colour::cvd_dfs::CvdDfsColourizer;
     use crate::service::colour::dfs_improved::DFSColourizer;
-    use crate::service::colour::matching::MatchingColouriser;
+    use crate::service::colour::matching_col::MatchingColouriser;
     use crate::service::colour::sat::SATColourizer;
     use crate::service::io::reader_g6::G6Reader;
     use crate::test::test_data::test_data;

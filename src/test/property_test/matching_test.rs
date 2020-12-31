@@ -112,7 +112,6 @@ pub mod matching_tests {
 
     #[test]
     fn should_find_all_perfect_matchings() {
-        // let mut graph = MatchingGraph::from_graph(&test_data::get_petersen_graph());
         let mut graph = MatchingGraph::from_graph(&test_data::get_petersen_graph());
         let mut matchings = graph.perfect_matchings();
         let petersens_matchings = test_data::petersens_matchings();

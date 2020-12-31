@@ -1,5 +1,9 @@
+use crate::service::chromatic_properties::error::ChromaticPropertiesError;
 use crate::service::io::error::{ReadError, WriteError};
 use std::fmt;
+
+pub mod chromatic_properties_procedure_error;
+pub mod construction_procedure_error;
 
 #[derive(Debug)]
 pub enum Error {

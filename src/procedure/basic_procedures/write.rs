@@ -1,5 +1,5 @@
-use crate::error::Error;
 use crate::graph::graph::{Graph, GraphConstructor};
+use crate::procedure::error::Error;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
 use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
@@ -134,7 +134,7 @@ pub struct GraphWithProperties {
 }
 
 impl WriteProcedureConfig {
-    const PROC_TYPE: &'static str = "write";
+    pub const PROC_TYPE: &'static str = "write";
 
     pub fn from_proc_config(config: &HashMap<String, serde_json::Value>) -> Result<Self> {
         let file_path = config_helper::resolve_value_or_default(

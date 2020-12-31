@@ -9,7 +9,7 @@ pub struct RemovablePairsOfEdges<'a, G: Graph + Clone, C: Colouriser> {
     first_edge: Option<&'a UndirectedEdge>,
     graph: &'a G,
     local_graph: G,
-    colouriser: &'a C,
+    _colouriser: &'a C,
 }
 
 impl<'a, G: Graph<E = UndirectedEdge> + Clone, C: Colouriser> Iterator
@@ -60,7 +60,7 @@ impl<'a, G: Graph<E = UndirectedEdge> + Clone, C: Colouriser> RemovablePairsOfEd
             first_edge: None,
             graph,
             local_graph: graph.clone(),
-            colouriser,
+            _colouriser: colouriser,
         }
     }
 }

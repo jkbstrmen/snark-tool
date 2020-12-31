@@ -10,7 +10,7 @@ struct FilterProcedure<G> {
     _ph: marker::PhantomData<G>,
 }
 
-struct FilterProcedureConfig {
+pub struct FilterProcedureConfig {
     filter_by: GraphProperties,
 }
 
@@ -47,7 +47,7 @@ impl<G: Graph> FilterProcedure<G> {
 }
 
 impl FilterProcedureConfig {
-    const PROC_TYPE: &'static str = "filter";
+    pub const PROC_TYPE: &'static str = "filter";
 
     pub fn from_proc_config(config: &HashMap<String, serde_json::Value>) -> Result<Self> {
         let filter_by = config_helper::resolve_value(&config, "filter-by", Self::PROC_TYPE)?;

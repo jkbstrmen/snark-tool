@@ -1,7 +1,6 @@
 use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::{Graph, GraphConstructor};
 use crate::graph::multi::graph::MultiGraph;
-use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
 use crate::graph::vertex::{Vertex, VertexConstructor};
 use crate::service::property::max_flow::residual_graph::edge::DirectedFlowEdge;
 use crate::service::property::max_flow::residual_graph::vertex::ResidualVertex;
@@ -131,6 +130,7 @@ impl ResidualGraph {
         result
     }
 
+    #[allow(dead_code)]
     pub fn add_vertex_with_index(&mut self, vertex: usize) {
         while self.size() < vertex + 1 {
             self.add_non_active_vertex();
@@ -145,6 +145,7 @@ impl ResidualGraph {
         self.vertices[vertex].active()
     }
 
+    #[allow(dead_code)]
     pub fn first_vertex(&self) -> Option<&ResidualVertex> {
         for vertex in self.vertices() {
             if self.has_vertex(vertex.index()) {
@@ -168,6 +169,7 @@ impl ResidualGraph {
         Some(&mut self.vertices[index])
     }
 
+    #[allow(dead_code)]
     pub fn remove_vertex(&mut self, vertex: usize) {
         if vertex >= self.vertices.len() {
             return;
@@ -194,6 +196,7 @@ impl ResidualGraph {
         false
     }
 
+    #[allow(dead_code)]
     pub fn edge_capacity(&self, from: usize, to: usize) -> usize {
         if let Some(vertex) = self.vertex(from) {
             return vertex.edge_capacity(to);

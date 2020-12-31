@@ -1,5 +1,7 @@
 #[cfg(test)]
 mod graph_component_analysis_tests {
+    use crate::graph::edge::Edge;
+    use crate::graph::graph::Graph;
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::dfs_improved::DFSColourizer;
     use crate::service::component_analysis::edge_pairs::{
@@ -8,8 +10,6 @@ mod graph_component_analysis_tests {
     use crate::service::component_analysis::edge_triplets::RemovableTripletsOfEdges;
     use crate::service::component_analysis::vertex_pairs::PairsOfAdjacentVertices;
     use crate::test::test_data::test_data;
-    use crate::graph::graph::Graph;
-    use crate::graph::edge::Edge;
 
     #[test]
     fn should_produce_pairs_of_non_adjacent_edges() {

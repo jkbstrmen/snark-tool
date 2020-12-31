@@ -3,10 +3,7 @@ mod graph_tests {
     use crate::graph::edge::EdgeConstructor;
     use crate::graph::graph::{Graph, GraphConstructor};
     use crate::graph::undirected::edge::UndirectedEdge;
-    use crate::graph::undirected::simple_graph::SimpleGraph;
-    use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
-    use crate::service::matching::perfect_matchings::{MatchingGraph, Vertex};
-    use crate::test::test_data::test_data;
+    use crate::graph::undirected::graph::SimpleGraph;
 
     #[test]
     fn should_create_graph() {

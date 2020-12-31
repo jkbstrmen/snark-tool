@@ -1,5 +1,6 @@
 pub mod basic_procedures;
 pub mod configuration;
+pub mod error;
 pub mod helpers;
 pub mod procedure;
 pub mod procedure_builder;

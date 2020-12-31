@@ -1,5 +1,5 @@
-use crate::error::Error;
 use crate::graph::graph::Graph;
+use crate::procedure::error::Error;
 use crate::procedure::procedure::{GraphProperties, Procedure};
 use std::result;
 

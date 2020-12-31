@@ -1,6 +1,6 @@
 #[cfg(test)]
 pub mod resistibility_tests {
-    use crate::graph::undirected::simple_graph::SimpleGraph;
+    use crate::graph::undirected::graph::SimpleGraph;
     use crate::service::chromatic_properties::resistibility::Resistibility;
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::dfs_improved::DFSColourizer;

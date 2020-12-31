@@ -1,5 +1,4 @@
-use crate::graph::edge::{Edge, EdgeConstructor};
-use crate::graph::undirected::edge::UndirectedEdge;
+use crate::graph::edge::Edge;
 use crate::graph::vertex::{Vertex, VertexConstructor};
 use crate::service::property::max_flow::residual_graph::edge::DirectedFlowEdge;
 
@@ -71,6 +70,7 @@ impl ResidualVertex {
         self.active = active;
     }
 
+    #[allow(dead_code)]
     pub fn edge_capacity(&self, to: usize) -> usize {
         let mut capacity = 0;
         for edge in self.edges.iter() {

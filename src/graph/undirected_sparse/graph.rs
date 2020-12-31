@@ -165,6 +165,7 @@ impl SimpleSparseGraph {
         None
     }
 
+    #[allow(dead_code)]
     pub fn vertex(&self, index: usize) -> Option<&VertexWithEdges> {
         if !self.has_vertex(index) {
             return None;
@@ -172,6 +173,7 @@ impl SimpleSparseGraph {
         Some(&self.vertices[index])
     }
 
+    #[allow(dead_code)]
     pub fn remove_vertex(&mut self, vertex: usize) {
         if vertex >= self.vertices.len() {
             return;

@@ -1,24 +1,16 @@
 #[cfg(test)]
 pub mod constructions_tests {
     use crate::graph::edge::{Edge, EdgeConstructor};
-    use crate::graph::graph::{Graph, GraphConstructor};
+    use crate::graph::graph::Graph;
     use crate::graph::undirected::edge::UndirectedEdge;
-    use crate::graph::undirected::simple_graph::SimpleGraph;
-    use crate::graph::undirected::vertex::SimpleVertex;
     use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
-    use crate::graph::undirected_sparse::vertex::VertexWithEdges;
-    use crate::graph::vertex::Vertex;
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::dfs_improved::DFSColourizer;
-    use crate::service::colour::sat::SATColourizer;
-    use crate::service::component_analysis::edge_pairs::RemovablePairsOfEdges;
-    use crate::service::constructions::dot_product::DotProduct;
+    use crate::service::constructions::dot_product::DotProducts;
     use crate::service::constructions::i_extension::{i_extension, IExtensions};
-    use crate::service::constructions::y_extension::y_extension;
+    use crate::service::constructions::y_extension::{y_extension, YExtensions};
     use crate::service::io::reader_g6::G6Reader;
-    use crate::service::io::writer_g6::G6Writer;
     use crate::test::test_data::test_data;
-    use crate::service::component_analysis::edge_triplets::RemovableTripletsOfEdges;
 
     #[test]
     fn dot_product_test() {
@@ -27,7 +19,7 @@ pub mod constructions_tests {
         let graph_h =
             G6Reader::<SimpleSparseGraph>::read_graph(test_data::SNARK_IN_G6_10_PETERSEN).unwrap();
 
-        let mut dot_product = DotProduct::new(&graph_g, &graph_h);
+        let mut dot_product = DotProducts::new(&graph_g, &graph_h);
         let gh = dot_product.next().unwrap();
 
         assert_eq!(gh.size(), graph_g.size() + graph_h.size() - 2);
@@ -149,10 +141,9 @@ pub mod constructions_tests {
         let graph = test_data::get_petersen_graph();
 
         let colouriser = DFSColourizer::new();
-        let mut edge_triplets = RemovableTripletsOfEdges::new(&graph, &colouriser);
+        let mut y_extensions = YExtensions::new(&graph, &colouriser);
         let mut counter = 0;
-        while let Some(triplet) = edge_triplets.next() {
-            let extended = y_extension(&graph, triplet.0, triplet.1, triplet.2);
+        while let Some(extended) = y_extensions.next() {
             assert_eq!(extended.size(), graph.size() + 4);
             let colourable = DFSColourizer::is_colorable(&extended);
             assert_eq!(colourable, false);

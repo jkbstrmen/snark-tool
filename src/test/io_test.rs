@@ -2,7 +2,7 @@
 mod io_tests {
     use std::fs::OpenOptions;
 
-    use crate::graph::undirected::simple_graph::SimpleGraph;
+    use crate::graph::undirected::graph::SimpleGraph;
     use crate::service::io::reader::Reader;
     use crate::service::io::reader_ba::BaReader;
     use crate::service::io::reader_g6::G6Reader;

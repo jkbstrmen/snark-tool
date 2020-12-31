@@ -48,6 +48,8 @@ procedures:
 #        - costable
 #        - resistance
         - oddness
+        - girth
+        - cyclic-edge-connectivity
 #        - edge-resistibility # for all edges
 #        - vertex-resistibility # for all vertices
 
@@ -87,3 +89,7 @@ procedures:
 
 
   - proc-type: last-procedure
+
+  - proc-type: construction
+    config:
+      construction-type: dot-product

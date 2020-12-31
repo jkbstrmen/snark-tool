@@ -1,7 +1,6 @@
 use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
 use crate::service::graph_traversal::cycle_discovery::BFSCyclehDiscovery;
-use std::collections::VecDeque;
 
 pub fn girth<G: Graph>(graph: &G) -> usize {
     let mut shortest_cycle_length = usize::max_value();

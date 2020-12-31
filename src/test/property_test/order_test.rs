@@ -1,6 +1,6 @@
 #[cfg(test)]
 pub mod order_tests {
-    use crate::graph::undirected::simple_graph::SimpleGraph;
+    use crate::graph::undirected::graph::SimpleGraph;
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::property::order::is_cubic;
     use crate::test::test_data::test_data;

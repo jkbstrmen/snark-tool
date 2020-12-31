@@ -1,6 +1,5 @@
 use crate::graph::graph::Graph;
 use std::collections::VecDeque;
-use std::slice::from_raw_parts;
 
 // TODO - deduplicate with BfsGraph from perfect_matchings and cvd
 
@@ -27,14 +26,14 @@ impl BfsVertex {
         }
     }
 
-    pub fn default() -> Self {
-        BfsVertex {
-            index: 0,
-            visited: false,
-            discovered_from: 0,
-            distance_from_root: 0,
-        }
-    }
+    // pub fn default() -> Self {
+    //     BfsVertex {
+    //         index: 0,
+    //         visited: false,
+    //         discovered_from: 0,
+    //         distance_from_root: 0,
+    //     }
+    // }
 
     /// GETTERS
     pub fn index(&self) -> usize {
@@ -50,16 +49,16 @@ impl BfsVertex {
         self.distance_from_root
     }
 
-    /// SETTERS
-    pub fn set_index(&mut self, index: usize) {
-        self.index = index;
-    }
-    pub fn set_visited(&mut self, visited: bool) {
-        self.visited = visited;
-    }
-    pub fn set_discovered_from(&mut self, discovered_from: usize) {
-        self.discovered_from = discovered_from;
-    }
+    // SETTERS
+    // pub fn set_index(&mut self, index: usize) {
+    //     self.index = index;
+    // }
+    // pub fn set_visited(&mut self, visited: bool) {
+    //     self.visited = visited;
+    // }
+    // pub fn set_discovered_from(&mut self, discovered_from: usize) {
+    //     self.discovered_from = discovered_from;
+    // }
 }
 
 pub struct BfsOfGraph<'a, G: Graph> {
@@ -95,7 +94,7 @@ impl<'a, G: Graph> BfsOfGraph<'a, G> {
     fn visit_from(&mut self, vertex: usize, visited_from: &BfsVertex) -> bool {
         let vert = &self.visited[vertex];
         let mut already_visited = false;
-        if vert.is_some() && vert.as_ref().unwrap().visited {
+        if vert.is_some() && vert.as_ref().unwrap().visited() {
             already_visited = true;
         }
         if !already_visited {

@@ -1,8 +1,6 @@
-use crate::graph::edge::{Edge, EdgeConstructor};
+use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 use crate::graph::undirected::edge::UndirectedEdge;
-use crate::graph::undirected::simple_graph::SimpleGraph;
-use crate::graph::undirected_sparse::graph::Edges;
 use crate::service::colour::colouriser::Colouriser;
 use crate::service::component_analysis::edge_pairs::RemovablePairsOfEdges;
 use serde::export::Option::Some;
@@ -27,9 +25,15 @@ pub fn i_extension<G: Graph + Clone, E: Edge>(graph: &G, first_edge: &E, second_
     result_graph
 }
 
+///
+/// Iterator over possible I-extensions of given graph
+///
+/// Be aware that graph isomorphism for result dot products is not checked and so result graph
+/// could be the same as previous or next one
+///
 pub struct IExtensions<'a, G: Graph + Clone, C: Colouriser> {
     graph: &'a G,
-    colouriser: &'a C,
+    _colouriser: &'a C,
     removable_edge_pairs: RemovablePairsOfEdges<'a, G, C>,
 }
 
@@ -49,7 +53,7 @@ impl<'a, G: Graph<E = UndirectedEdge> + Clone, C: Colouriser> IExtensions<'a, G,
     pub fn new(graph: &'a G, colouriser: &'a C) -> Self {
         IExtensions {
             graph,
-            colouriser,
+            _colouriser: colouriser,
             removable_edge_pairs: RemovablePairsOfEdges::new(&graph, &colouriser),
         }
     }

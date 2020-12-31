@@ -1,8 +1,6 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::{Graph, GraphConstructor};
 use crate::graph::undirected::edge::UndirectedEdge;
-use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
-use crate::graph::undirected_sparse::vertex::VertexWithEdges;
 use crate::graph::vertex::Vertex;
 use crate::service::component_analysis::edge_pairs::PairsOfNonAdjacentEdges;
 use crate::service::component_analysis::vertex_pairs::PairsOfAdjacentVertices;
@@ -87,16 +85,22 @@ pub fn concat_graphs<G: Graph + Clone>(first: &G, second: &G) -> G {
     result
 }
 
-pub struct DotProduct<'a, G: Graph<E = UndirectedEdge>> {
+///
+/// iterator over possible dot products of given two graphs
+///
+/// Be aware that graph isomorphism for result dot products is not checked and so result graph
+/// could be the same as previous or next one
+///
+pub struct DotProducts<'a, G: Graph<E = UndirectedEdge>> {
     graph_g: &'a G,
     graph_h: &'a G,
     non_adjacent_edge_pairs_of_g: PairsOfNonAdjacentEdges<'a, G>,
     adjacent_vertex_pairs_of_h: PairsOfAdjacentVertices<'a, G::V, G>,
 }
 
-impl<'a, G: Graph<E = UndirectedEdge> + Clone + GraphConstructor> DotProduct<'a, G> {
+impl<'a, G: Graph<E = UndirectedEdge> + Clone + GraphConstructor> DotProducts<'a, G> {
     pub fn new(graph_g: &'a G, graph_h: &'a G) -> Self {
-        DotProduct {
+        DotProducts {
             graph_g,
             graph_h,
             non_adjacent_edge_pairs_of_g: PairsOfNonAdjacentEdges::new(graph_g),
@@ -105,7 +109,7 @@ impl<'a, G: Graph<E = UndirectedEdge> + Clone + GraphConstructor> DotProduct<'a,
     }
 }
 
-impl<'a, G: Graph<E = UndirectedEdge> + Clone + GraphConstructor> Iterator for DotProduct<'a, G> {
+impl<'a, G: Graph<E = UndirectedEdge> + Clone + GraphConstructor> Iterator for DotProducts<'a, G> {
     type Item = G;
 
     fn next(&mut self) -> Option<Self::Item> {

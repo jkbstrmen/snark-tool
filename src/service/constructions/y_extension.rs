@@ -1,8 +1,8 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
+use crate::graph::undirected::edge::UndirectedEdge;
 use crate::service::colour::colouriser::Colouriser;
 use crate::service::component_analysis::edge_triplets::RemovableTripletsOfEdges;
-use crate::graph::undirected::edge::UndirectedEdge;
 
 ///
 /// if graph is snark and first, second and third edge are removable
@@ -36,9 +36,15 @@ pub fn y_extension<G: Graph + Clone, E: Edge>(
     result_graph
 }
 
+///
+/// Iterator over possible Y-extensions of given graph
+///
+/// Be aware that graph isomorphism for result dot products is not checked and so result graph
+/// could be the same as previous or next one
+///
 pub struct YExtensions<'a, G: Graph + Clone, C: Colouriser> {
     graph: &'a G,
-    colouriser: &'a C,
+    _colouriser: &'a C,
     removable_edge_triplets: RemovableTripletsOfEdges<'a, G, C>,
 }
 
@@ -58,7 +64,7 @@ impl<'a, G: Graph<E = UndirectedEdge> + Clone, C: Colouriser> YExtensions<'a, G,
     pub fn new(graph: &'a G, colouriser: &'a C) -> Self {
         YExtensions {
             graph,
-            colouriser,
+            _colouriser: colouriser,
             removable_edge_triplets: RemovableTripletsOfEdges::new(&graph, &colouriser),
         }
     }

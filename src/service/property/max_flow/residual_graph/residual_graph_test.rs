@@ -85,7 +85,7 @@ mod residual_graph_tests {
 
     #[test]
     fn should_have_first_vertex() {
-        let mut graph = get_graph();
+        let graph = get_graph();
         let first_vertex = graph.first_vertex();
         assert_eq!(first_vertex.is_some(), true);
         assert_eq!(first_vertex.unwrap().index(), 0);

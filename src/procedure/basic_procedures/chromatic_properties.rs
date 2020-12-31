@@ -1,5 +1,5 @@
 use crate::graph::graph::Graph;
-use crate::graph::undirected::simple_graph::SimpleGraph;
+use crate::graph::undirected::graph::SimpleGraph;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::helpers::serialize_helper;
 use crate::procedure::procedure;
@@ -13,6 +13,8 @@ use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCri
 use crate::service::colour::colouriser::Colouriser;
 use crate::service::colour::dfs_improved::DFSColourizer;
 use crate::service::colour::sat::SATColourizer;
+use crate::service::property::cyclic_connectivity::cyclic_edge_connectivity;
+use crate::service::property::girth::girth;
 use crate::service::property::oddness::Oddness;
 use std::borrow::Borrow;
 use std::collections::HashMap;
@@ -33,7 +35,7 @@ const STABLE: &str = "stable";
 const COSTABLE: &str = "costable";
 const RESISTANCE: &str = "resistance";
 const GIRTH: &str = "girth";
-const CYCLIC_CONNECTIVITY: &str = "cyclic-connectivity";
+const CYCLIC_EDGE_CONNECTIVITY: &str = "cyclic-edge-connectivity";
 const EDGE_RESISTIBILITY: &str = "edge-resistibility";
 const VERTEX_RESISTIBILITY: &str = "vertex-resistibility";
 const ODDNESS: &str = "oddness";
@@ -53,7 +55,7 @@ struct ChromaticPropsProcedure<G> {
     _ph: marker::PhantomData<G>,
 }
 
-struct ChromaticPropsProcedureConfig {
+pub struct ChromaticPropsProcedureConfig {
     colouriser_type: String,
     parallel: bool,
     properties_to_compute: ChromaticPropertiesToCompute,
@@ -344,9 +346,16 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         }
         if to_compute.girth {
             // compute girth and add result to properties
+            let girth = girth(graph);
+            properties.insert(GIRTH.to_string(), serde_json::to_value(girth)?);
         }
         if to_compute.cyclic_connectivity {
             // compute cyclic connectivity and add result to properties
+            let cyclic_edge_connectivity = cyclic_edge_connectivity(graph);
+            properties.insert(
+                CYCLIC_EDGE_CONNECTIVITY.to_string(),
+                serde_json::to_value(cyclic_edge_connectivity)?,
+            );
         }
         if to_compute.oddness {
             // compute cyclic connectivity and add result to properties
@@ -512,7 +521,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
 }
 
 impl ChromaticPropsProcedureConfig {
-    const PROC_TYPE: &'static str = "critic-and-stable-properties";
+    pub const PROC_TYPE: &'static str = "chromatic-properties";
 
     pub fn from_proc_config(config: &HashMap<String, serde_json::Value>) -> Result<Self> {
         let colouriser_type = config_helper::resolve_value_or_default(
@@ -561,7 +570,7 @@ impl ChromaticPropsProcedureConfig {
                 GIRTH => {
                     self.properties_to_compute.girth = true;
                 }
-                CYCLIC_CONNECTIVITY => {
+                CYCLIC_EDGE_CONNECTIVITY => {
                     self.properties_to_compute.cyclic_connectivity = true;
                 }
                 RESISTANCE => {

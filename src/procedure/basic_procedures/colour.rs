@@ -1,5 +1,5 @@
-use crate::error::Error;
 use crate::graph::graph::Graph;
+use crate::procedure::error::Error;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
 use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
@@ -15,7 +15,8 @@ struct ColourProcedure<G: Graph> {
     _ph: marker::PhantomData<G>,
 }
 
-struct ColourProcedureConfig {
+pub struct ColourProcedureConfig {
+    // TODO - use enum
     colouriser_type: String,
 }
 
@@ -61,7 +62,7 @@ impl<G: Graph> ColourProcedure<G> {
 }
 
 impl ColourProcedureConfig {
-    const PROC_TYPE: &'static str = "colour";
+    pub const PROC_TYPE: &'static str = "colour";
 
     pub fn colouriser_type(&self) -> &String {
         &self.colouriser_type

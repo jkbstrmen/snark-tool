@@ -1,7 +1,7 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
-use crate::service::colour::colouriser::Colouriser;
 use crate::graph::undirected::edge::UndirectedEdge;
+use crate::service::colour::colouriser::Colouriser;
 
 pub struct RemovableTripletsOfEdges<'a, G: Graph + Clone, C: Colouriser> {
     first_edge_iterator: Box<dyn Iterator<Item = &'a UndirectedEdge> + 'a>,
@@ -11,7 +11,7 @@ pub struct RemovableTripletsOfEdges<'a, G: Graph + Clone, C: Colouriser> {
     second_edge_current: Option<&'a UndirectedEdge>,
     graph: &'a G,
     local_graph: G,
-    colouriser: &'a C,
+    _colouriser: &'a C,
 }
 
 impl<'a, G: Graph<E = UndirectedEdge> + Clone, C: Colouriser> Iterator
@@ -85,7 +85,7 @@ impl<'a, G: Graph<E = UndirectedEdge> + Clone, C: Colouriser> RemovableTripletsO
             second_edge_current: None,
             graph,
             local_graph: graph.clone(),
-            colouriser,
+            _colouriser: colouriser,
         }
     }
 }

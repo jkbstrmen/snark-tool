@@ -36,18 +36,18 @@ pub mod cyclic_edge_connectivity_tests {
 
     #[test]
     fn should_have_cec_four_file() {
-        let path = test_data::GG_30_G05_CYC4_G6_FILE_PATH;
+        let path = test_data::GG_30_G05_CYC4_G6_100_FILE_PATH;
         let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
-        let mut reader = G6Reader::<SimpleSparseGraph>::new(&file_result);
+        let reader = G6Reader::<SimpleSparseGraph>::new(&file_result);
 
         test_graphs_for_cec(reader, 4);
     }
 
     #[test]
     fn should_have_cec_five_file() {
-        let path = test_data::GG_30_G05_CYC5_G6_FILE_PATH;
+        let path = test_data::GG_30_G05_CYC5_G6_100_FILE_PATH;
         let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
-        let mut reader = G6Reader::<SimpleSparseGraph>::new(&file_result);
+        let reader = G6Reader::<SimpleSparseGraph>::new(&file_result);
 
         test_graphs_for_cec(reader, 5);
     }
@@ -56,13 +56,11 @@ pub mod cyclic_edge_connectivity_tests {
         mut reader: G6Reader<G>,
         cyclic_edge_conn: usize,
     ) {
-        let mut counter = 0;
         while let Some(graph_result) = reader.next() {
             let graph = graph_result.unwrap();
             let cec = cyclic_edge_connectivity(&graph);
             assert_eq!(cec.is_some(), true);
             assert_eq!(cec.unwrap(), cyclic_edge_conn);
-            counter += 1;
         }
     }
 

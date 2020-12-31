@@ -161,6 +161,7 @@ impl MultiGraph {
         self.vertices[vertex].active()
     }
 
+    #[allow(dead_code)]
     pub fn first_vertex(&self) -> Option<&VertexWithEdges> {
         for vertex in self.vertices() {
             if self.has_vertex(vertex.index()) {
@@ -170,6 +171,7 @@ impl MultiGraph {
         None
     }
 
+    #[allow(dead_code)]
     pub fn vertex(&self, index: usize) -> Option<&VertexWithEdges> {
         if !self.has_vertex(index) {
             return None;

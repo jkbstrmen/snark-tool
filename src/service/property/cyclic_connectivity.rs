@@ -129,7 +129,7 @@ fn find_paths_count<G: Graph>(
     }
     let source = source.unwrap();
     let sink = sink.unwrap();
-    let mut contracted_graph = contracted_second.0;
+    let contracted_graph = contracted_second.0;
 
     FordFulkerson::max_flow(&contracted_graph, source, sink)
 }

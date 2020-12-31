@@ -1,6 +1,6 @@
 #[cfg(test)]
 pub mod colour_tests {
-    use crate::graph::undirected::graph::SimpleGraph;
+    use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::cvd;
     use crate::service::colour::cvd_dfs::CvdDfsColourizer;

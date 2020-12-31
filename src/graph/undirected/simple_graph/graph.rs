@@ -1,20 +1,22 @@
 use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::{Graph, GraphConstructor};
 use crate::graph::undirected::edge::UndirectedEdge;
-use crate::graph::undirected_sparse::vertex::VertexWithEdges;
+use crate::graph::undirected::vertex::VertexWithEdges;
+use crate::graph::undirected::UndirectedGraph;
 use crate::graph::vertex::{Vertex, VertexConstructor};
 use std::{fmt, slice};
 
 ///
-/// better for sparse graphs
-/// use VertexWithEdges - faster edge addition and removal
+/// undirected, without loops or multiple edges
 ///
 #[derive(Debug, Clone)]
-pub struct SimpleSparseGraph {
+pub struct SimpleGraph {
     pub vertices: Vec<VertexWithEdges>,
 }
 
-impl Graph for SimpleSparseGraph {
+impl UndirectedGraph for SimpleGraph {}
+
+impl Graph for SimpleGraph {
     type V = VertexWithEdges;
     type E = UndirectedEdge;
 
@@ -117,7 +119,7 @@ impl Graph for SimpleSparseGraph {
     }
 }
 
-impl GraphConstructor for SimpleSparseGraph {
+impl GraphConstructor for SimpleGraph {
     fn new() -> Self {
         Self::with_vertices_capacity(20)
     }
@@ -127,15 +129,15 @@ impl GraphConstructor for SimpleSparseGraph {
     }
 
     fn with_vertices_capacity(vertices: usize) -> Self {
-        SimpleSparseGraph {
+        SimpleGraph {
             vertices: Vec::with_capacity(vertices),
         }
     }
 }
 
-impl SimpleSparseGraph {
+impl SimpleGraph {
     pub fn from_graph<G: Graph>(graph: &G) -> Self {
-        let mut result = SimpleSparseGraph::with_vertices_capacity(graph.size());
+        let mut result = SimpleGraph::with_vertices_capacity(graph.size());
         for edge in graph.edges() {
             result.add_edge(edge.from(), edge.to());
         }
@@ -254,7 +256,7 @@ impl<'a> Iterator for Edges<'a> {
     }
 }
 
-impl fmt::Display for SimpleSparseGraph {
+impl fmt::Display for SimpleGraph {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for vertex in &self.vertices {
             write!(f, "{}: ", vertex.index())?;
@@ -274,3 +276,17 @@ impl fmt::Display for SimpleSparseGraph {
         Ok(())
     }
 }
+
+impl PartialEq for SimpleGraph {
+    fn eq(&self, other: &Self) -> bool {
+        if self.size() != other.size() {
+            return false;
+        }
+        if self.vertices[..] != other.vertices[..] {
+            return false;
+        }
+        true
+    }
+}
+
+impl Eq for SimpleGraph {}

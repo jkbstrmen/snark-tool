@@ -3,8 +3,7 @@ pub mod test_data {
     use crate::graph::edge::EdgeConstructor;
     use crate::graph::graph::{Graph, GraphConstructor};
     use crate::graph::undirected::edge::UndirectedEdge;
-    use crate::graph::undirected::graph::SimpleGraph;
-    use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
+    use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::matching::perfect_matchings::Matching;
 
@@ -90,7 +89,7 @@ pub mod test_data {
         graph
     }
 
-    pub fn get_falcon_graph() -> SimpleSparseGraph {
+    pub fn get_falcon_graph() -> SimpleGraph {
         let graph = G6Reader::read_graph(SNARK_IN_G6_36_STABLE_RES_3).unwrap();
         graph
     }

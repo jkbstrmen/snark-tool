@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub mod cyclic_edge_connectivity_tests {
     use crate::graph::graph::{Graph, GraphConstructor};
-    use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
+    use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::graph::vertex::Vertex;
     use crate::service::io::reader::Reader;
     use crate::service::io::reader_g6::G6Reader;
@@ -20,7 +20,7 @@ pub mod cyclic_edge_connectivity_tests {
 
         let graph_string =
             "]D?O@S??G??@??B?g??OP_G@????O?C?C_A?@?GG@?A??_`_??_?`??_AO????G@OC?????G?W";
-        let graph: SimpleSparseGraph = G6Reader::read_graph(graph_string).unwrap();
+        let graph: SimpleGraph = G6Reader::read_graph(graph_string).unwrap();
         let cec = cyclic_edge_connectivity(&graph);
         assert_eq!(cec.is_some(), true);
         assert_eq!(cec.unwrap(), 5);
@@ -38,7 +38,7 @@ pub mod cyclic_edge_connectivity_tests {
     fn should_have_cec_four_file() {
         let path = test_data::GG_30_G05_CYC4_G6_100_FILE_PATH;
         let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
-        let reader = G6Reader::<SimpleSparseGraph>::new(&file_result);
+        let reader = G6Reader::<SimpleGraph>::new(&file_result);
 
         test_graphs_for_cec(reader, 4);
     }
@@ -47,7 +47,7 @@ pub mod cyclic_edge_connectivity_tests {
     fn should_have_cec_five_file() {
         let path = test_data::GG_30_G05_CYC5_G6_100_FILE_PATH;
         let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
-        let reader = G6Reader::<SimpleSparseGraph>::new(&file_result);
+        let reader = G6Reader::<SimpleGraph>::new(&file_result);
 
         test_graphs_for_cec(reader, 5);
     }

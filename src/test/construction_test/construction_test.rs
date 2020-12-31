@@ -3,7 +3,7 @@ pub mod constructions_tests {
     use crate::graph::edge::{Edge, EdgeConstructor};
     use crate::graph::graph::Graph;
     use crate::graph::undirected::edge::UndirectedEdge;
-    use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
+    use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::dfs_improved::DFSColourizer;
     use crate::service::constructions::dot_product::DotProducts;
@@ -15,9 +15,9 @@ pub mod constructions_tests {
     #[test]
     fn dot_product_test() {
         let graph_g =
-            G6Reader::<SimpleSparseGraph>::read_graph(test_data::SNARK_IN_G6_10_PETERSEN).unwrap();
+            G6Reader::<SimpleGraph>::read_graph(test_data::SNARK_IN_G6_10_PETERSEN).unwrap();
         let graph_h =
-            G6Reader::<SimpleSparseGraph>::read_graph(test_data::SNARK_IN_G6_10_PETERSEN).unwrap();
+            G6Reader::<SimpleGraph>::read_graph(test_data::SNARK_IN_G6_10_PETERSEN).unwrap();
 
         let mut dot_product = DotProducts::new(&graph_g, &graph_h);
         let gh = dot_product.next().unwrap();

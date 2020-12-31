@@ -2,7 +2,7 @@
 mod matchings_performance {
     use crate::graph::edge::Edge;
     use crate::graph::graph::{Graph, GraphConstructor};
-    use crate::graph::undirected::graph::SimpleGraph;
+    use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::service::chromatic_properties::critical_prop::CriticalProperties;
     use crate::service::chromatic_properties::resistance::Resistance;
     use crate::service::chromatic_properties::resistibility::Resistibility;
@@ -20,7 +20,7 @@ mod matchings_performance {
     use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
     use crate::service::colour::sat::SATColourizer;
     use crate::service::colour::dfs_improved::DFSColourizer;
-    use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
+    use crate::graph::undirected::simple_graph::graph::SimpleSparseGraph;
     use crate::service::property::cyclic_connectivity::cyclic_edge_connectivity;
 
     #[test]

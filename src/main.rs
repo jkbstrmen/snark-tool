@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use structopt::StructOpt;
 
-use crate::graph::undirected::graph::SimpleGraph;
+use crate::graph::undirected::simple_graph::graph::SimpleGraph;
 use crate::procedure::configuration::Configuration;
 use crate::procedure::procedure::GraphProperties;
 use crate::procedure::procedure_chain::ProcedureChain;

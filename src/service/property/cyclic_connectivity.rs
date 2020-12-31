@@ -1,6 +1,6 @@
 use crate::graph::graph::{Graph, GraphConstructor};
-use crate::graph::multi::graph::MultiGraph;
-use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
+use crate::graph::undirected::multi_graph::graph::MultiGraph;
+use crate::graph::undirected::simple_graph::graph::SimpleGraph;
 use crate::graph::vertex::Vertex;
 use crate::service::graph_traversal::bfs::BfsOfGraph;
 use crate::service::property::girth::girth;
@@ -53,9 +53,9 @@ pub fn cyclic_edge_connectivity<G: Graph>(graph: &G) -> Option<usize> {
     Some(cut_size)
 }
 
-pub fn full_tree<G: Graph>(graph: &G, root_vertex: usize, depth: u32) -> SimpleSparseGraph {
+pub fn full_tree<G: Graph>(graph: &G, root_vertex: usize, depth: u32) -> SimpleGraph {
     let mut bfs = BfsOfGraph::new(graph, root_vertex);
-    let mut full_tree = SimpleSparseGraph::new();
+    let mut full_tree = SimpleGraph::new();
     full_tree.add_vertex_with_index(root_vertex);
 
     while let Some(next) = bfs.next() {
@@ -68,10 +68,7 @@ pub fn full_tree<G: Graph>(graph: &G, root_vertex: usize, depth: u32) -> SimpleS
     full_tree
 }
 
-pub fn vertex_disjoint_graphs(
-    first_graph: &SimpleSparseGraph,
-    second_graph: &SimpleSparseGraph,
-) -> bool {
+pub fn vertex_disjoint_graphs(first_graph: &SimpleGraph, second_graph: &SimpleGraph) -> bool {
     for vertex in first_graph.vertices() {
         if first_graph.has_vertex(vertex.index()) && second_graph.has_vertex(vertex.index()) {
             return false;
@@ -87,7 +84,7 @@ pub fn vertex_disjoint_graphs(
 ///
 pub fn contract_sub_graph<G: Graph>(
     graph: &G,
-    sub_graph_to_contract: &SimpleSparseGraph,
+    sub_graph_to_contract: &SimpleGraph,
 ) -> (MultiGraph, Option<usize>) {
     let mut output_graph = MultiGraph::from_graph(graph);
     let representing_vertex = sub_graph_to_contract.first_vertex();
@@ -116,8 +113,8 @@ pub fn contract_sub_graph<G: Graph>(
 ///
 fn find_paths_count<G: Graph>(
     graph: &G,
-    first_full_tree: &SimpleSparseGraph,
-    second_full_tree: &SimpleSparseGraph,
+    first_full_tree: &SimpleGraph,
+    second_full_tree: &SimpleGraph,
 ) -> usize {
     let contracted_first = contract_sub_graph(graph, first_full_tree);
     let source = contracted_first.1;

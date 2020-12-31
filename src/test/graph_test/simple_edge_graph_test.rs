@@ -3,7 +3,7 @@ mod graph_tests {
     use crate::graph::edge::EdgeConstructor;
     use crate::graph::graph::{Graph, GraphConstructor};
     use crate::graph::undirected::edge::UndirectedEdge;
-    use crate::graph::undirected::graph::SimpleGraph;
+    use crate::graph::undirected::simple_edge_graph::graph::SimpleEdgeGraph;
 
     #[test]
     fn should_create_graph() {
@@ -28,7 +28,7 @@ mod graph_tests {
     #[test]
     fn should_be_equal() {
         let first = get_graph();
-        let mut second = SimpleGraph::with_capacity(3, 3);
+        let mut second = SimpleEdgeGraph::with_capacity(3, 3);
         second.add_edge(2, 1);
         second.add_edge(0, 2);
         second.add_edge(0, 1);
@@ -38,15 +38,15 @@ mod graph_tests {
     #[test]
     fn should_not_be_equal() {
         let first = get_graph();
-        let mut second = SimpleGraph::with_capacity(3, 3);
+        let mut second = SimpleEdgeGraph::with_capacity(3, 3);
         second.add_edge(2, 1);
         second.add_edge(0, 2);
         second.add_edge(0, 3);
         assert_ne!(first, second);
     }
 
-    fn get_graph() -> SimpleGraph {
-        let mut graph = SimpleGraph::with_capacity(3, 3);
+    fn get_graph() -> SimpleEdgeGraph {
+        let mut graph = SimpleEdgeGraph::with_capacity(3, 3);
         graph.add_vertex();
         graph.add_vertex();
         graph.add_vertex();

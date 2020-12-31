@@ -2,9 +2,9 @@
 mod multi_graph_tests {
     use crate::graph::edge::EdgeConstructor;
     use crate::graph::graph::{Graph, GraphConstructor};
-    use crate::graph::multi::graph::MultiGraph;
     use crate::graph::undirected::edge::UndirectedEdge;
-    use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
+    use crate::graph::undirected::multi_graph::graph::MultiGraph;
+    use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::graph::vertex::Vertex;
 
     fn get_graph() -> MultiGraph {
@@ -22,7 +22,7 @@ mod multi_graph_tests {
 
     #[test]
     fn multi_graph() {
-        let mut graph = SimpleSparseGraph::with_vertices_capacity(10);
+        let mut graph = SimpleGraph::with_vertices_capacity(10);
 
         graph.add_edge(0, 1);
         graph.add_edge(2, 5);
@@ -93,7 +93,7 @@ mod multi_graph_tests {
         assert_eq!(first_vertex.is_some(), true);
         assert_eq!(first_vertex.unwrap().index(), 0);
 
-        let mut graph = SimpleSparseGraph::new();
+        let mut graph = SimpleGraph::new();
         let first_vertex = graph.first_vertex();
         assert_eq!(first_vertex.is_none(), true);
 

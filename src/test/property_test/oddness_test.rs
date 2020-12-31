@@ -1,6 +1,6 @@
 #[cfg(test)]
 pub mod oddness_tests {
-    use crate::graph::undirected::graph::SimpleGraph;
+    use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::property::oddness::Oddness;
     use crate::test::test_data::test_data;

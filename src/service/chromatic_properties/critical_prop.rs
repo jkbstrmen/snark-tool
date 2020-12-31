@@ -1,8 +1,7 @@
 use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::Graph;
 use crate::graph::undirected::edge::UndirectedEdge;
-use crate::graph::undirected::graph::SimpleGraph;
-use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
+use crate::graph::undirected::simple_graph::graph::SimpleGraph;
 use crate::service::colour::colouriser::Colouriser;
 use crate::service::colour::dfs_improved::DFSColourizer;
 
@@ -10,8 +9,8 @@ pub struct CriticalProperties<C>
 where
     C: Colouriser,
 {
-    untouched_graph: SimpleSparseGraph,
-    graph: SimpleSparseGraph,
+    untouched_graph: SimpleGraph,
+    graph: SimpleGraph,
     _colourizer: C,
 
     is_critical: bool,
@@ -29,7 +28,7 @@ where
     C: Colouriser,
 {
     pub fn of_graph_with_colourizer<G: Graph + Clone>(graph: &G, colourizer: C) -> Self {
-        let local_graph = SimpleSparseGraph::from_graph(graph);
+        let local_graph = SimpleGraph::from_graph(graph);
         CriticalProperties {
             untouched_graph: local_graph.clone(),
             graph: local_graph,
@@ -159,14 +158,14 @@ where
         }
     }
 
-    pub fn compute_edge_subcriticality(graph: &mut SimpleSparseGraph) -> bool {
+    pub fn compute_edge_subcriticality(graph: &mut SimpleGraph) -> bool {
         let local_graph = SimpleGraph::from_graph(graph);
         let mut edge_subcritical = true;
 
-        for first_edge in local_graph.edges.iter() {
+        for first_edge in local_graph.edges() {
             graph.remove_edge(first_edge.from(), first_edge.to());
 
-            for second_edge in local_graph.edges.iter() {
+            for second_edge in local_graph.edges() {
                 if first_edge.eq(second_edge) {
                     continue;
                 }
@@ -196,8 +195,8 @@ impl CriticalProperties<DFSColourizer> {
 }
 
 pub fn restore_edges_of_vertex(
-    original_graph: &SimpleSparseGraph,
-    changed_graph: &mut SimpleSparseGraph,
+    original_graph: &SimpleGraph,
+    changed_graph: &mut SimpleGraph,
     vertex: usize,
 ) {
     for neighboring_edge in original_graph.vertices[vertex].edges.iter() {
@@ -206,8 +205,8 @@ pub fn restore_edges_of_vertex(
 }
 
 pub fn restore_edges_of_vertex_except_for(
-    original_graph: &SimpleSparseGraph,
-    changed_graph: &mut SimpleSparseGraph,
+    original_graph: &SimpleGraph,
+    changed_graph: &mut SimpleGraph,
     vertex: usize,
     except_for: usize,
 ) {

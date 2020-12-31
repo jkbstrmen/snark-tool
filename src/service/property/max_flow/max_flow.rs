@@ -1,4 +1,4 @@
-use crate::graph::multi::graph::MultiGraph;
+use crate::graph::undirected::multi_graph::graph::MultiGraph;
 use crate::service::graph_traversal::bfs::BfsOfGraph;
 use crate::service::property::max_flow::residual_graph::graph::ResidualGraph;
 

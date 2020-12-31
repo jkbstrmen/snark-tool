@@ -1,5 +1,5 @@
 use crate::graph::graph::Graph;
-use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
+use crate::graph::undirected::simple_graph::graph::SimpleGraph;
 use crate::graph::vertex::Vertex;
 use crate::service::chromatic_properties::critical_prop;
 use crate::service::chromatic_properties::critical_prop::CriticalProperties;
@@ -9,8 +9,8 @@ pub struct StableAndCriticalProperties<C>
 where
     C: Colouriser,
 {
-    untouched_graph: SimpleSparseGraph,
-    graph: SimpleSparseGraph,
+    untouched_graph: SimpleGraph,
+    graph: SimpleGraph,
     _colourizer: C,
 
     is_critical: bool,
@@ -31,7 +31,7 @@ where
     C: Colouriser,
 {
     pub fn of_graph_with_colourizer<G: Graph + Clone>(graph: &G, colourizer: C) -> Self {
-        let local_graph = SimpleSparseGraph::from_graph(graph);
+        let local_graph = SimpleGraph::from_graph(graph);
         StableAndCriticalProperties {
             untouched_graph: local_graph.clone(),
             graph: local_graph,

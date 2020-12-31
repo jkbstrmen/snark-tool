@@ -1,6 +1,6 @@
 use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::{Graph, GraphConstructor};
-use crate::graph::multi::graph::MultiGraph;
+use crate::graph::undirected::multi_graph::graph::MultiGraph;
 use crate::graph::vertex::{Vertex, VertexConstructor};
 use crate::service::property::max_flow::residual_graph::edge::DirectedFlowEdge;
 use crate::service::property::max_flow::residual_graph::vertex::ResidualVertex;

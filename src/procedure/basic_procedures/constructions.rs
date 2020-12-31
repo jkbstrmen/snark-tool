@@ -1,18 +1,18 @@
 use crate::graph::graph::{Graph, GraphConstructor};
+use crate::graph::undirected::simple_graph::graph::SimpleGraph;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure;
 use crate::procedure::procedure::{GraphProperties, Procedure};
 use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
 use crate::service::colour::colouriser::Colouriser;
 use crate::service::colour::dfs_improved::DFSColourizer;
+use crate::service::constructions::dot_product::DotProducts;
 use crate::service::constructions::error::ConstructionError;
 use crate::service::constructions::i_extension::IExtensions;
+use crate::service::constructions::y_extension::YExtensions;
 use std::collections::HashMap;
 use std::str::FromStr;
 use std::{marker, result};
-use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
-use crate::service::constructions::y_extension::YExtensions;
-use crate::service::constructions::dot_product::DotProducts;
 
 pub type Result<T> = result::Result<T, ConstructionError>;
 
@@ -66,7 +66,6 @@ impl<G: Graph> Procedure<G> for ConstructionProcedure<G> {
 
 impl<G: Graph> ConstructionProcedure<G> {
     pub fn construct(&self, _graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
-
         // TODO - finish when graphs are Undirected
 
         if ConstructionProcedureConfig::PROC_TYPE == "construction" {
@@ -75,23 +74,22 @@ impl<G: Graph> ConstructionProcedure<G> {
         }
 
         for _graph in _graphs.iter() {
-
             match self.config.construction_type {
                 ConstructionType::DotProduct => {
-                    let graph = SimpleSparseGraph::new();
+                    let graph = SimpleGraph::new();
                     let mut dot_products = DotProducts::new(&graph, &graph);
                     let _extended = dot_products.next().unwrap();
                     // graphs.push(extended);
                 }
                 ConstructionType::IExtension => {
-                    let graph = SimpleSparseGraph::new();
+                    let graph = SimpleGraph::new();
                     let colouriser = DFSColourizer::new();
                     let mut i_extensions = IExtensions::new(&graph, &colouriser);
                     let _extended = i_extensions.next().unwrap();
                     // graphs.push(extended);
                 }
                 ConstructionType::YExtension => {
-                    let graph = SimpleSparseGraph::new();
+                    let graph = SimpleGraph::new();
                     let colouriser = DFSColourizer::new();
                     let mut y_extensions = YExtensions::new(&graph, &colouriser);
                     let _extended = y_extensions.next().unwrap();

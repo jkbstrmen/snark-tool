@@ -1,5 +1,5 @@
 use crate::graph::graph::Graph;
-use crate::graph::undirected::graph::SimpleGraph;
+use crate::graph::undirected::simple_graph::graph::SimpleGraph;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::helpers::serialize_helper;
 use crate::procedure::procedure;

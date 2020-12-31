@@ -1,7 +1,8 @@
 use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::{Graph, GraphConstructor};
 use crate::graph::undirected::edge::UndirectedEdge;
-use crate::graph::undirected_sparse::vertex::VertexWithEdges;
+use crate::graph::undirected::vertex::VertexWithEdges;
+use crate::graph::undirected::UndirectedGraph;
 use crate::graph::vertex::{Vertex, VertexConstructor};
 use std::{fmt, slice};
 
@@ -12,6 +13,8 @@ use std::{fmt, slice};
 pub struct MultiGraph {
     pub vertices: Vec<VertexWithEdges>,
 }
+
+impl UndirectedGraph for MultiGraph {}
 
 impl Graph for MultiGraph {
     type V = VertexWithEdges;

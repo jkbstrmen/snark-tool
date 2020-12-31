@@ -36,8 +36,6 @@ pub trait Graph {
     // TODO
     // fn vertex(&self) -> &Self::V;
     // fn vertex_mut(&mut self) -> &Self::V;
-
-    // TODO
     // fn has_vertex(&self, vertex: usize) -> bool;
 
     // fn edges(&self) -> Edges<E>;

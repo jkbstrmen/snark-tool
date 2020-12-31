@@ -3,11 +3,11 @@ mod simple_sparse_graph_tests {
     use crate::graph::edge::EdgeConstructor;
     use crate::graph::graph::{Graph, GraphConstructor};
     use crate::graph::undirected::edge::UndirectedEdge;
-    use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
+    use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::graph::vertex::Vertex;
 
-    fn get_ss_graph() -> SimpleSparseGraph {
-        let mut graph = SimpleSparseGraph::with_capacity(3, 3);
+    fn get_graph() -> SimpleGraph {
+        let mut graph = SimpleGraph::with_capacity(3, 3);
         graph.add_vertex();
         graph.add_vertex();
         graph.add_vertex();
@@ -19,8 +19,8 @@ mod simple_sparse_graph_tests {
     }
 
     #[test]
-    fn simple_sparse_graph() {
-        let mut graph = SimpleSparseGraph::with_vertices_capacity(10);
+    fn simple_graph() {
+        let mut graph = SimpleGraph::with_vertices_capacity(10);
 
         graph.add_edge(0, 1);
         graph.add_edge(2, 5);
@@ -40,8 +40,8 @@ mod simple_sparse_graph_tests {
     }
 
     #[test]
-    fn should_iter_edges_ssg() {
-        let graph = get_ss_graph();
+    fn should_iter_edges() {
+        let graph = get_graph();
         let mut edges = vec![];
         edges.push(UndirectedEdge::new(0, 1));
         edges.push(UndirectedEdge::new(0, 2));
@@ -57,8 +57,8 @@ mod simple_sparse_graph_tests {
     }
 
     #[test]
-    fn should_iter_edges_of_vertex_ssg() {
-        let graph = get_ss_graph();
+    fn should_iter_edges_of_vertex() {
+        let graph = get_graph();
         let mut edges = vec![];
         edges.push(UndirectedEdge::new(0, 1));
         edges.push(UndirectedEdge::new(1, 2));
@@ -72,8 +72,8 @@ mod simple_sparse_graph_tests {
     }
 
     #[test]
-    fn should_remove_edges_of_vertex_ssg() {
-        let mut graph = get_ss_graph();
+    fn should_remove_edges_of_vertex() {
+        let mut graph = get_graph();
         assert_eq!(graph.vertices[0].edges.len(), 2);
         assert_eq!(graph.vertices[1].edges.len(), 2);
         assert_eq!(graph.vertices[2].edges.len(), 2);
@@ -85,12 +85,12 @@ mod simple_sparse_graph_tests {
 
     #[test]
     fn should_have_first_vertex() {
-        let graph = get_ss_graph();
+        let graph = get_graph();
         let first_vertex = graph.first_vertex();
         assert_eq!(first_vertex.is_some(), true);
         assert_eq!(first_vertex.unwrap().index(), 0);
 
-        let mut graph = SimpleSparseGraph::new();
+        let mut graph = SimpleGraph::new();
         let first_vertex = graph.first_vertex();
         assert_eq!(first_vertex.is_none(), true);
 
@@ -110,7 +110,7 @@ mod simple_sparse_graph_tests {
 
     #[test]
     fn should_add_vertex_with_index() {
-        let mut graph = SimpleSparseGraph::new();
+        let mut graph = SimpleGraph::new();
         graph.add_vertex_with_index(1);
         assert_eq!(graph.size(), 2);
         graph.add_vertex();

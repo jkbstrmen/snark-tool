@@ -2,7 +2,7 @@
 pub mod measurement_tests {
     use crate::graph::graph::Graph;
     use crate::graph::undirected::simple_graph::SimpleGraph;
-    use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
+    use crate::graph::undirected::simple_graph::graph::SimpleSparseGraph;
     use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
     use crate::service::colour::colouriser::Colourizer;
     use crate::service::colour::cvd_dfs::CvdDfsColourizer;
@@ -277,7 +277,7 @@ pub mod measurement_tests {
 pub mod cvd_measurement_tests {
     use std::{fs, time, thread};
     use crate::service::io::reader_s6::S6Reader;
-    use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
+    use crate::graph::undirected::simple_graph::graph::SimpleSparseGraph;
     use crate::service::io::reader::Reader;
     use crate::graph::graph::Graph;
 

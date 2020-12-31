@@ -80,6 +80,10 @@ procedures:
 #        vertex_resistibility_index: 20
 #        resistance: 2
 
+  - proc-type: construction
+    config:
+      construction-type: dot-product
+
   - proc-type: write
     config:
       file: output
@@ -89,7 +93,3 @@ procedures:
 
 
   - proc-type: last-procedure
-
-  - proc-type: construction
-    config:
-      construction-type: dot-product

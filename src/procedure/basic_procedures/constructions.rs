@@ -1,5 +1,4 @@
 use crate::graph::graph::GraphConstructor;
-use crate::graph::undirected::simple_graph::graph::SimpleGraph;
 use crate::graph::undirected::UndirectedGraph;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure;
@@ -54,7 +53,7 @@ pub struct ConstructionProcedureConfig {
 
 pub struct ConstructionProcedureBuilder {}
 
-impl<G: UndirectedGraph> Procedure<G> for ConstructionProcedure<G> {
+impl<G: UndirectedGraph + GraphConstructor + Clone> Procedure<G> for ConstructionProcedure<G> {
     fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> procedure::Result<()> {
         println!(
             "running {} procedure",
@@ -65,39 +64,34 @@ impl<G: UndirectedGraph> Procedure<G> for ConstructionProcedure<G> {
     }
 }
 
-impl<G: UndirectedGraph> ConstructionProcedure<G> {
-    pub fn construct(&self, _graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
-        // TODO - finish when graphs are Undirected
+impl<G: UndirectedGraph + GraphConstructor + Clone> ConstructionProcedure<G> {
+    pub fn construct(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
 
-        if ConstructionProcedureConfig::PROC_TYPE == "construction" {
-            println!("Constructions are not ready yet.");
-            return Ok(());
-        }
+        // for now just constructing fist possible extension of given graph
 
-        for _graph in _graphs.iter() {
+        let mut extended_graphs = vec![];
+        for graph in graphs.iter() {
             match self.config.construction_type {
                 ConstructionType::DotProduct => {
-                    let graph = SimpleGraph::new();
-                    let mut dot_products = DotProducts::new(&graph, &graph);
-                    let _extended = dot_products.next().unwrap();
-                    // graphs.push(extended);
+                    let mut dot_products = DotProducts::new(&graph.0, &graph.0);
+                    let extended = dot_products.next().unwrap();
+                    extended_graphs.push((extended, GraphProperties::new()));
                 }
                 ConstructionType::IExtension => {
-                    let graph = SimpleGraph::new();
                     let colouriser = DFSColourizer::new();
-                    let mut i_extensions = IExtensions::new(&graph, &colouriser);
-                    let _extended = i_extensions.next().unwrap();
-                    // graphs.push(extended);
+                    let mut i_extensions = IExtensions::new(&graph.0, &colouriser);
+                    let extended = i_extensions.next().unwrap();
+                    extended_graphs.push((extended, GraphProperties::new()));
                 }
                 ConstructionType::YExtension => {
-                    let graph = SimpleGraph::new();
                     let colouriser = DFSColourizer::new();
-                    let mut y_extensions = YExtensions::new(&graph, &colouriser);
-                    let _extended = y_extensions.next().unwrap();
-                    // graphs.push(extended);
+                    let mut y_extensions = YExtensions::new(&graph.0, &colouriser);
+                    let extended = y_extensions.next().unwrap();
+                    extended_graphs.push((extended, GraphProperties::new()));
                 }
             }
         }
+        graphs.append(&mut extended_graphs);
         Ok(())
     }
 }
@@ -118,7 +112,7 @@ impl ConstructionProcedureConfig {
     // }
 }
 
-impl<G: UndirectedGraph + 'static> ProcedureBuilder<G> for ConstructionProcedureBuilder {
+impl<G: UndirectedGraph + 'static + GraphConstructor + Clone > ProcedureBuilder<G> for ConstructionProcedureBuilder {
     fn build(&self, config: Config) -> procedure::Result<Box<dyn Procedure<G>>> {
         let proc_config = ConstructionProcedureConfig::from_proc_config(&config)?;
         Ok(Box::new(ConstructionProcedure {

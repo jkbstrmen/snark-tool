@@ -1,20 +1,26 @@
-use crate::graph::graph::{Graph, GraphConstructor};
-use crate::procedure::basic_procedures::chromatic_properties::ChromaticPropsProcedureBuilder;
-use crate::procedure::basic_procedures::colour::ColourProcedureBuilder;
-use crate::procedure::basic_procedures::filter::FilterProcedureBuilder;
-use crate::procedure::basic_procedures::read::ReadProcedureBuilder;
+use crate::graph::graph::GraphConstructor;
+use crate::graph::undirected::UndirectedGraph;
+use crate::procedure::basic_procedures::chromatic_properties::{
+    ChromaticPropsProcedureBuilder, ChromaticPropsProcedureConfig,
+};
+use crate::procedure::basic_procedures::colour::{ColourProcedureBuilder, ColourProcedureConfig};
+use crate::procedure::basic_procedures::constructions::{
+    ConstructionProcedureBuilder, ConstructionProcedureConfig,
+};
+use crate::procedure::basic_procedures::filter::{FilterProcedureBuilder, FilterProcedureConfig};
+use crate::procedure::basic_procedures::read::{ReadProcedureBuilder, ReadProcedureConfig};
 use crate::procedure::basic_procedures::unknown_procedure::UnknownProcedure;
-use crate::procedure::basic_procedures::write::WriteProcedureBuilder;
+use crate::procedure::basic_procedures::write::{WriteProcedureBuilder, WriteProcedureConfig};
 use crate::procedure::configuration::ProcedureConfig;
 use crate::procedure::procedure::{Procedure, Result};
 use crate::procedure::procedure_builder::ProcedureBuilder;
 use std::collections::HashMap;
 
-pub struct ProcedureRegistry<G: Graph> {
+pub struct ProcedureRegistry<G: UndirectedGraph> {
     registry: HashMap<String, Box<dyn ProcedureBuilder<G>>>,
 }
 
-impl<G: Graph + GraphConstructor + Clone + 'static> ProcedureRegistry<G> {
+impl<G: UndirectedGraph + GraphConstructor + Clone + 'static> ProcedureRegistry<G> {
     pub fn new() -> Self {
         ProcedureRegistry {
             registry: HashMap::new(),
@@ -23,13 +29,29 @@ impl<G: Graph + GraphConstructor + Clone + 'static> ProcedureRegistry<G> {
 
     pub fn new_basic() -> Self {
         let mut reg = Self::new();
-        reg.insert("read".to_string(), ReadProcedureBuilder {});
-        reg.insert("write".to_string(), WriteProcedureBuilder {});
-        reg.insert("colour".to_string(), ColourProcedureBuilder {});
-        reg.insert("filter".to_string(), FilterProcedureBuilder {});
         reg.insert(
-            "chromatic-properties".to_string(),
+            ReadProcedureConfig::PROC_TYPE.to_string(),
+            ReadProcedureBuilder {},
+        );
+        reg.insert(
+            WriteProcedureConfig::PROC_TYPE.to_string(),
+            WriteProcedureBuilder {},
+        );
+        reg.insert(
+            ColourProcedureConfig::PROC_TYPE.to_string(),
+            ColourProcedureBuilder {},
+        );
+        reg.insert(
+            FilterProcedureConfig::PROC_TYPE.to_string(),
+            FilterProcedureBuilder {},
+        );
+        reg.insert(
+            ChromaticPropsProcedureConfig::PROC_TYPE.to_string(),
             ChromaticPropsProcedureBuilder {},
+        );
+        reg.insert(
+            ConstructionProcedureConfig::PROC_TYPE.to_string(),
+            ConstructionProcedureBuilder {},
         );
         reg
     }

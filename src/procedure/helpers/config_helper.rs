@@ -1,4 +1,4 @@
-use crate::error::Error;
+use crate::procedure::error::Error;
 use crate::procedure::procedure::Result;
 use std::collections::HashMap;
 use std::result;

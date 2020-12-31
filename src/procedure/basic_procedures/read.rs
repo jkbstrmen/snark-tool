@@ -1,12 +1,14 @@
-use crate::error::Error;
 use crate::graph::graph::{Graph, GraphConstructor};
-use crate::procedure::config_helper;
+use crate::graph::undirected::UndirectedGraph;
+use crate::procedure::error::Error;
+use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
 use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
 use crate::service::io::error::ReadError;
 use crate::service::io::reader::Reader;
 use crate::service::io::reader_ba::BaReader;
 use crate::service::io::reader_g6::G6Reader;
+use crate::service::io::reader_json::JsonReader;
 use crate::service::io::reader_s6::S6Reader;
 use std::collections::HashMap;
 use std::{fs, marker, path};
@@ -16,14 +18,14 @@ struct ReadProcedure<G: Graph> {
     _ph: marker::PhantomData<G>,
 }
 
-impl<G: Graph + GraphConstructor> Procedure<G> for ReadProcedure<G> {
+impl<G: UndirectedGraph + GraphConstructor> Procedure<G> for ReadProcedure<G> {
     fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         println!("running read procedure");
         self.read_graphs(graphs)
     }
 }
 
-impl<G: Graph + GraphConstructor> ReadProcedure<G> {
+impl<G: UndirectedGraph + GraphConstructor> ReadProcedure<G> {
     pub fn read_graphs(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         let file_path = self.config.file_path();
         let graphs_count = self.config.number_of_graphs();
@@ -42,6 +44,9 @@ impl<G: Graph + GraphConstructor> ReadProcedure<G> {
             "s6" => {
                 let reader = S6Reader::<G>::new(&file);
                 Self::read_by_format(reader, graphs, graphs_count)?;
+            }
+            "json" => {
+                Self::read_json_format(graphs, graphs_count, &file)?;
             }
             _ => {
                 return Err(Error::ConfigError(String::from(
@@ -83,6 +88,37 @@ impl<G: Graph + GraphConstructor> ReadProcedure<G> {
         Ok(())
     }
 
+    fn read_json_format(
+        graphs: &mut Vec<(G, GraphProperties)>,
+        graphs_count: Option<usize>,
+        file: &fs::File,
+    ) -> Result<()> {
+        let mut counter = 1;
+
+        let mut reader = JsonReader::<G>::new(file);
+
+        let mut graph_opt = reader.next_with_properties();
+        while graph_opt.is_some() {
+            let graph = graph_opt.unwrap()?;
+            graphs.push(graph);
+            counter += 1;
+
+            if graphs_count.is_some() && graphs_count.unwrap() < counter {
+                break;
+            }
+
+            graph_opt = reader.next_with_properties();
+        }
+        if graphs_count.is_some() && graphs_count.unwrap() > counter {
+            println!(
+                "You asked for: {} graphs but given file contains only {}",
+                graphs_count.unwrap(),
+                counter
+            );
+        }
+        Ok(())
+    }
+
     fn open_file_to_read<P: AsRef<path::Path>>(path: P) -> Result<fs::File> {
         let file_result = fs::OpenOptions::new().read(true).open(&path);
         if file_result.is_err() {
@@ -101,7 +137,7 @@ pub struct ReadProcedureConfig {
 }
 
 impl ReadProcedureConfig {
-    const PROC_TYPE: &'static str = "read";
+    pub const PROC_TYPE: &'static str = "read";
 
     pub fn from_proc_config(config: &HashMap<String, serde_json::Value>) -> Result<Self> {
         let file_path = config_helper::resolve_value_or_default(
@@ -145,7 +181,7 @@ impl ReadProcedureConfig {
 
 pub struct ReadProcedureBuilder {}
 
-impl<G: Graph + GraphConstructor + 'static> ProcedureBuilder<G> for ReadProcedureBuilder {
+impl<G: UndirectedGraph + GraphConstructor + 'static> ProcedureBuilder<G> for ReadProcedureBuilder {
     fn build(&self, config: Config) -> Result<Box<dyn Procedure<G>>> {
         let proc_config = ReadProcedureConfig::from_proc_config(&config)?;
         Ok(Box::new(ReadProcedure {

@@ -1,39 +1,40 @@
-use crate::error::Error;
-use crate::graph::graph::Graph;
-use crate::procedure::config_helper;
+use crate::graph::undirected::UndirectedGraph;
+use crate::procedure::error::Error;
+use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
 use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
-use crate::service::colour::bfs::BFSColourizer;
-use crate::service::colour::colouriser::Colourizer;
+use crate::service::colour::colouriser::Colouriser;
 use crate::service::colour::cvd_dfs::CvdDfsColourizer;
+use crate::service::colour::dfs_improved::DFSColourizer;
 use crate::service::colour::sat::SATColourizer;
 use std::collections::HashMap;
 use std::marker;
 
-struct ColourProcedure<G: Graph> {
+struct ColourProcedure<G: UndirectedGraph> {
     config: ColourProcedureConfig,
     _ph: marker::PhantomData<G>,
 }
 
-struct ColourProcedureConfig {
+pub struct ColourProcedureConfig {
+    // TODO - use enum
     colouriser_type: String,
 }
 
 pub struct ColourProcedureBuilder {}
 
-impl<G: Graph> Procedure<G> for ColourProcedure<G> {
+impl<G: UndirectedGraph> Procedure<G> for ColourProcedure<G> {
     fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         println!("running colour procedure");
         self.colour_graph(graphs)
     }
 }
 
-impl<G: Graph> ColourProcedure<G> {
+impl<G: UndirectedGraph> ColourProcedure<G> {
     pub fn colour_graph(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         let colouriser_type = self.config.colouriser_type();
         match colouriser_type.as_str() {
             "bfs" => {
-                Self::color_by_colourizer::<BFSColourizer>(graphs);
+                Self::color_by_colourizer::<DFSColourizer>(graphs);
             }
             "sat" => {
                 Self::color_by_colourizer::<SATColourizer>(graphs);
@@ -50,7 +51,7 @@ impl<G: Graph> ColourProcedure<G> {
         Ok(())
     }
 
-    fn color_by_colourizer<C: Colourizer>(graphs: &mut Vec<(G, GraphProperties)>) {
+    fn color_by_colourizer<C: Colouriser>(graphs: &mut Vec<(G, GraphProperties)>) {
         for graph in graphs {
             let result = C::is_colorable(&graph.0);
             graph
@@ -61,7 +62,7 @@ impl<G: Graph> ColourProcedure<G> {
 }
 
 impl ColourProcedureConfig {
-    const PROC_TYPE: &'static str = "colour";
+    pub const PROC_TYPE: &'static str = "colour";
 
     pub fn colouriser_type(&self) -> &String {
         &self.colouriser_type
@@ -79,7 +80,7 @@ impl ColourProcedureConfig {
     }
 }
 
-impl<G: Graph + 'static> ProcedureBuilder<G> for ColourProcedureBuilder {
+impl<G: UndirectedGraph + 'static> ProcedureBuilder<G> for ColourProcedureBuilder {
     fn build(&self, config: Config) -> Result<Box<dyn Procedure<G>>> {
         let proc_config = ColourProcedureConfig::from_proc_config(&config)?;
         Ok(Box::new(ColourProcedure {

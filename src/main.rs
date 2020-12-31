@@ -1,12 +1,13 @@
-use crate::graph::undirected::simple_graph::SimpleGraph;
+use std::time::Instant;
+
+use structopt::StructOpt;
+
+use crate::graph::undirected::simple_graph::graph::SimpleGraph;
 use crate::procedure::configuration::Configuration;
 use crate::procedure::procedure::GraphProperties;
 use crate::procedure::procedure_chain::ProcedureChain;
 use crate::procedure::procedure_registry::ProcedureRegistry;
-use std::time::Instant;
-use structopt::StructOpt;
 
-mod error;
 mod graph;
 mod procedure;
 mod service;
@@ -42,7 +43,7 @@ fn main() {
             let config = parse_yaml_config(&config_str);
 
             let registry = ProcedureRegistry::new_basic();
-            // add builder of own procedure impl to registry as below
+            // add builder of own procedure impl to registry as shown below
             // registry.insert("read".to_string(), ReadProcedureBuilder{});
 
             let chain = ProcedureChain::from_procedures_config(registry, config.procedures);

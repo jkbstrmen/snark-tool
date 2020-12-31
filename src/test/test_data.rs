@@ -1,10 +1,16 @@
 #[cfg(test)]
 pub mod test_data {
+    use crate::graph::edge::EdgeConstructor;
     use crate::graph::graph::{Graph, GraphConstructor};
-    use crate::graph::undirected::simple_graph::SimpleGraph;
+    use crate::graph::undirected::edge::UndirectedEdge;
+    use crate::graph::undirected::simple_graph::graph::SimpleGraph;
+    use crate::service::io::reader_g6::G6Reader;
+    use crate::service::matching::perfect_matchings::Matching;
 
     pub const SNARK_IN_G6_10_PETERSEN: &str = "I?h]@eOWG";
     pub const SNARK_IN_G6_20: &str = "Ss??GOGA_I?c????GOQAACGO_P?_K@?S?";
+    pub const SNARK_IN_G6_30_GIRTH_6: &str =
+        "]D@Q?UGOGA?????Dc???PG???GGC??O???CG??g???E???F_??_@??O??a???CG?????o????w";
     pub const SNARK_IN_G6_36: &str = "c?HI@cO?GC?@_AOCp????_G??C??@???O?O????O??`???H???C???_c?_??g??@??C????C?G??g?????CG??A?G?????w??@_?????g@";
     pub const SNARK_IN_G6_40: &str = "g?`G?e?WG?D????A?@?????g??W?E???eA??D?????G???G???K???BC?O?????@?O??C?CO?IC????`????????O?????w?O??@????W??????B??????_?G@??G?@?G?A";
 
@@ -19,6 +25,13 @@ pub mod test_data {
         "\n1\n10\n4 6 8 \n5 6 9 \n4 7 9 \n5 7 8 \n0 2 5 \n1 3 4 \n0 1 7 \n2 3 6 \n0 3 9 \n1 2 8 \n";
 
     // pub const SNARK_IN_ADJ_10_PETERSEN: &str = "0000101010\n0000011001\n0000100101\n0000010110\n1010010000\n0101100000\n1100000100\n0011001000\n1001000001\n0110000010\n";
+
+    pub const GG_30_G05_CYC4_G6_100_FILE_PATH: &str =
+        "resources/test/Generated_graphs.30.05.sn.cyc4.100.g6";
+    pub const GG_30_G05_CYC4_G6_FILE_PATH: &str =
+        "resources/test/Generated_graphs.30.05.sn.cyc4.g6";
+    pub const GG_30_G05_CYC5_G6_100_FILE_PATH: &str =
+        "resources/test/Generated_graphs.30.05.sn.cyc5.100.g6";
 
     pub fn get_petersen_graph() -> SimpleGraph {
         let mut graph = SimpleGraph::with_capacity(10, 15);
@@ -76,6 +89,11 @@ pub mod test_data {
         graph
     }
 
+    pub fn get_falcon_graph() -> SimpleGraph {
+        let graph = G6Reader::read_graph(SNARK_IN_G6_36_STABLE_RES_3).unwrap();
+        graph
+    }
+
     pub const SNARK_IN_G6_26_CRITICAL_1: &str =
         "Y?gY@eOGGC?B???@__??D??@??k?????C??@??aG?O_??GHO??G??A__";
     pub const SNARK_IN_G6_26_CRITICAL_2: &str =
@@ -96,6 +114,134 @@ pub mod test_data {
     pub const SNARK_IN_G6_30_ACRITICAL_2: &str =
         "]C?G?SGG??G@_AO_g_?CP_??C?@_????[O?C?GAGA????_@G????G???A??_???F?C??O???IG";
 
+    pub const SNARK_IN_G6_36_STABLE_34_IER: &str =
+        "c?gW@eOGG??A????G???O??g?@W?E??@c????__C??@?@?@?_???A?G_??E????L??????D??A?????G???T????G?@???G????W?????R";
+
+    // falcon graph - 36 vertices and resistance 3
+    pub const SNARK_IN_G6_36_STABLE_RES_3: &str =
+        "c?gW@eOGG??A????G??C???g?@W?E??@c????A_C??@?@?@?_???A?G_??E????L??????D??A?????G???T????G?@???G????W?????R";
+
     // pub const SNARK_IN_G6_76: &str =
     //     "~?@KhDGHEG?G?_@?@?O_@G?c??C??G??G??C??@??@G?@@?O?P??AO????_???G???@???CC????G???@G????C????P????P??????_????@?????@??????_????CG?????H?????AO??????G??????G??????C??????@???????G??????C_?????AA?????O?P??????@G????????G???????@????????C???????GG????????G????????c????????@????????AG???????@C?????????@?????????@??????????_?????????G?????????`??????????c?????????C_??????????G??????????C??????????@???????????G???????????a??????????H??????????AA?????????G?Go??????????Q??G???C???A??";
+
+    pub fn first_odd_component() -> Vec<UndirectedEdge> {
+        let mut edges = vec![];
+        edges.push(UndirectedEdge::new(0, 1));
+        edges.push(UndirectedEdge::new(0, 2));
+        edges.push(UndirectedEdge::new(1, 4));
+        edges.push(UndirectedEdge::new(2, 3));
+        edges.push(UndirectedEdge::new(2, 4));
+        edges.push(UndirectedEdge::new(3, 4));
+        edges
+    }
+
+    pub fn second_odd_component() -> Vec<UndirectedEdge> {
+        let mut edges = vec![];
+        edges.push(UndirectedEdge::new(15, 16));
+        edges.push(UndirectedEdge::new(15, 17));
+        edges.push(UndirectedEdge::new(16, 17));
+        edges
+    }
+
+    pub fn first_even_component() -> Vec<UndirectedEdge> {
+        let mut edges = vec![];
+        edges.push(UndirectedEdge::new(5, 6));
+        edges.push(UndirectedEdge::new(5, 7));
+        edges.push(UndirectedEdge::new(5, 10));
+        edges.push(UndirectedEdge::new(6, 8));
+        edges.push(UndirectedEdge::new(6, 9));
+        edges.push(UndirectedEdge::new(7, 8));
+        edges.push(UndirectedEdge::new(7, 9));
+        edges.push(UndirectedEdge::new(8, 10));
+        edges.push(UndirectedEdge::new(9, 10));
+        edges
+    }
+
+    pub fn second_even_component() -> Vec<UndirectedEdge> {
+        let mut edges = vec![];
+        edges.push(UndirectedEdge::new(11, 12));
+        edges.push(UndirectedEdge::new(11, 13));
+        edges.push(UndirectedEdge::new(11, 14));
+        edges.push(UndirectedEdge::new(12, 13));
+        edges.push(UndirectedEdge::new(12, 14));
+        edges.push(UndirectedEdge::new(13, 14));
+        edges
+    }
+
+    pub fn third_even_component_petersen() -> Vec<UndirectedEdge> {
+        let mut edges = vec![];
+        edges.push(UndirectedEdge::new(18, 22));
+        edges.push(UndirectedEdge::new(18, 24));
+        edges.push(UndirectedEdge::new(18, 26));
+        edges.push(UndirectedEdge::new(19, 23));
+        edges.push(UndirectedEdge::new(19, 24));
+        edges.push(UndirectedEdge::new(19, 27));
+        edges.push(UndirectedEdge::new(20, 22));
+        edges.push(UndirectedEdge::new(20, 25));
+        edges.push(UndirectedEdge::new(20, 27));
+        edges.push(UndirectedEdge::new(21, 23));
+        edges.push(UndirectedEdge::new(21, 25));
+        edges.push(UndirectedEdge::new(21, 26));
+        edges.push(UndirectedEdge::new(22, 23));
+        edges.push(UndirectedEdge::new(24, 25));
+        edges.push(UndirectedEdge::new(26, 27));
+        edges
+    }
+
+    pub fn petersens_matchings() -> Vec<Matching> {
+        let mut matchings = vec![];
+        let mut first_matching = Matching::new();
+        first_matching.edges.push(UndirectedEdge::new(0, 6));
+        first_matching.edges.push(UndirectedEdge::new(8, 9));
+        first_matching.edges.push(UndirectedEdge::new(3, 7));
+        first_matching.edges.push(UndirectedEdge::new(1, 5));
+        first_matching.edges.push(UndirectedEdge::new(2, 4));
+
+        let mut second_matching = Matching::new();
+        second_matching.edges.push(UndirectedEdge::new(0, 4));
+        second_matching.edges.push(UndirectedEdge::new(3, 8));
+        second_matching.edges.push(UndirectedEdge::new(1, 5));
+        second_matching.edges.push(UndirectedEdge::new(2, 9));
+        second_matching.edges.push(UndirectedEdge::new(6, 7));
+
+        let mut third_matching = Matching::new();
+        third_matching.edges.push(UndirectedEdge::new(2, 4));
+        third_matching.edges.push(UndirectedEdge::new(0, 8));
+        third_matching.edges.push(UndirectedEdge::new(3, 5));
+        third_matching.edges.push(UndirectedEdge::new(6, 7));
+        third_matching.edges.push(UndirectedEdge::new(1, 9));
+
+        let mut fourth_matching = Matching::new();
+        fourth_matching.edges.push(UndirectedEdge::new(0, 4));
+        fourth_matching.edges.push(UndirectedEdge::new(3, 5));
+        fourth_matching.edges.push(UndirectedEdge::new(1, 6));
+        fourth_matching.edges.push(UndirectedEdge::new(2, 7));
+        fourth_matching.edges.push(UndirectedEdge::new(8, 9));
+
+        let mut fifth_matching = Matching::new();
+        fifth_matching.edges.push(UndirectedEdge::new(0, 8));
+        fifth_matching.edges.push(UndirectedEdge::new(4, 5));
+        fifth_matching.edges.push(UndirectedEdge::new(1, 6));
+        fifth_matching.edges.push(UndirectedEdge::new(2, 9));
+        fifth_matching.edges.push(UndirectedEdge::new(3, 7));
+
+        let mut sixth_matching = Matching::new();
+        sixth_matching.edges.push(UndirectedEdge::new(0, 6));
+        sixth_matching.edges.push(UndirectedEdge::new(4, 5));
+        sixth_matching.edges.push(UndirectedEdge::new(3, 8));
+        sixth_matching.edges.push(UndirectedEdge::new(1, 9));
+        sixth_matching.edges.push(UndirectedEdge::new(2, 7));
+
+        matchings.push(first_matching);
+        matchings.push(second_matching);
+        matchings.push(third_matching);
+        matchings.push(fourth_matching);
+        matchings.push(fifth_matching);
+        matchings.push(sixth_matching);
+        for matching in matchings.iter_mut() {
+            matching.edges.sort();
+        }
+        matchings.sort();
+        matchings
+    }
 }

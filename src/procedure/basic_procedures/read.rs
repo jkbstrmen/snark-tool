@@ -1,4 +1,5 @@
 use crate::graph::graph::{Graph, GraphConstructor};
+use crate::graph::undirected::UndirectedGraph;
 use crate::procedure::error::Error;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
@@ -17,14 +18,14 @@ struct ReadProcedure<G: Graph> {
     _ph: marker::PhantomData<G>,
 }
 
-impl<G: Graph + GraphConstructor> Procedure<G> for ReadProcedure<G> {
+impl<G: UndirectedGraph + GraphConstructor> Procedure<G> for ReadProcedure<G> {
     fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         println!("running read procedure");
         self.read_graphs(graphs)
     }
 }
 
-impl<G: Graph + GraphConstructor> ReadProcedure<G> {
+impl<G: UndirectedGraph + GraphConstructor> ReadProcedure<G> {
     pub fn read_graphs(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         let file_path = self.config.file_path();
         let graphs_count = self.config.number_of_graphs();
@@ -180,7 +181,7 @@ impl ReadProcedureConfig {
 
 pub struct ReadProcedureBuilder {}
 
-impl<G: Graph + GraphConstructor + 'static> ProcedureBuilder<G> for ReadProcedureBuilder {
+impl<G: UndirectedGraph + GraphConstructor + 'static> ProcedureBuilder<G> for ReadProcedureBuilder {
     fn build(&self, config: Config) -> Result<Box<dyn Procedure<G>>> {
         let proc_config = ReadProcedureConfig::from_proc_config(&config)?;
         Ok(Box::new(ReadProcedure {

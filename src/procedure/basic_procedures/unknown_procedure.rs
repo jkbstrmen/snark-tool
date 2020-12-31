@@ -1,4 +1,4 @@
-use crate::graph::graph::Graph;
+use crate::graph::undirected::UndirectedGraph;
 use crate::procedure::error::Error;
 use crate::procedure::procedure::{GraphProperties, Procedure};
 use std::result;
@@ -15,7 +15,7 @@ impl UnknownProcedure {
     }
 }
 
-impl<G: Graph> Procedure<G> for UnknownProcedure {
+impl<G: UndirectedGraph> Procedure<G> for UnknownProcedure {
     fn run(&self, _graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         println!("unknown procedure type: {}", self.proc_type);
         Ok(())

@@ -1,4 +1,5 @@
-use crate::graph::graph::{Graph, GraphConstructor};
+use crate::graph::graph::GraphConstructor;
+use crate::graph::undirected::UndirectedGraph;
 use crate::procedure::basic_procedures::chromatic_properties::{
     ChromaticPropsProcedureBuilder, ChromaticPropsProcedureConfig,
 };
@@ -15,11 +16,11 @@ use crate::procedure::procedure::{Procedure, Result};
 use crate::procedure::procedure_builder::ProcedureBuilder;
 use std::collections::HashMap;
 
-pub struct ProcedureRegistry<G: Graph> {
+pub struct ProcedureRegistry<G: UndirectedGraph> {
     registry: HashMap<String, Box<dyn ProcedureBuilder<G>>>,
 }
 
-impl<G: Graph + GraphConstructor + Clone + 'static> ProcedureRegistry<G> {
+impl<G: UndirectedGraph + GraphConstructor + Clone + 'static> ProcedureRegistry<G> {
     pub fn new() -> Self {
         ProcedureRegistry {
             registry: HashMap::new(),

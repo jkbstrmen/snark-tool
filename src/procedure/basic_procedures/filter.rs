@@ -1,4 +1,4 @@
-use crate::graph::graph::Graph;
+use crate::graph::undirected::UndirectedGraph;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
 use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
@@ -16,14 +16,14 @@ pub struct FilterProcedureConfig {
 
 pub struct FilterProcedureBuilder {}
 
-impl<G: Graph> Procedure<G> for FilterProcedure<G> {
+impl<G: UndirectedGraph> Procedure<G> for FilterProcedure<G> {
     fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         println!("running filter procedure");
         self.filter(graphs)
     }
 }
 
-impl<G: Graph> FilterProcedure<G> {
+impl<G: UndirectedGraph> FilterProcedure<G> {
     pub fn filter(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         let filter_properties = self.config.filter_by();
         graphs.retain(|graph| {
@@ -61,7 +61,7 @@ impl FilterProcedureConfig {
     }
 }
 
-impl<G: Graph + 'static> ProcedureBuilder<G> for FilterProcedureBuilder {
+impl<G: UndirectedGraph + 'static> ProcedureBuilder<G> for FilterProcedureBuilder {
     fn build(&self, config: Config) -> Result<Box<dyn Procedure<G>>> {
         let proc_config = FilterProcedureConfig::from_proc_config(&config)?;
         Ok(Box::new(FilterProcedure {

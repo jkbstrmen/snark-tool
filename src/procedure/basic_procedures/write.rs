@@ -1,4 +1,5 @@
-use crate::graph::graph::{Graph, GraphConstructor};
+use crate::graph::graph::GraphConstructor;
+use crate::graph::undirected::UndirectedGraph;
 use crate::procedure::error::Error;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
@@ -13,7 +14,7 @@ use std::fs::OpenOptions;
 use std::io::Write;
 use std::{fs, marker, path};
 
-struct WriteProcedure<G: Graph> {
+struct WriteProcedure<G: UndirectedGraph> {
     config: WriteProcedureConfig,
     _ph: marker::PhantomData<G>,
 }
@@ -26,17 +27,17 @@ pub struct WriteProcedureConfig {
     with_properties: bool,
 }
 
-impl<G: Graph + GraphConstructor> Procedure<G> for WriteProcedure<G> {
+impl<G: UndirectedGraph + GraphConstructor> Procedure<G> for WriteProcedure<G> {
     fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         println!("running write procedure");
         self.write_graphs(graphs)
     }
 }
 
-impl<G: Graph + GraphConstructor> WriteProcedure<G> {
+impl<G: UndirectedGraph + GraphConstructor> WriteProcedure<G> {
     pub fn write_graphs(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()>
     where
-        G: Graph,
+        G: UndirectedGraph,
     {
         let file_path = self.config.file_path();
         let graph_format = self.config.graph_format();
@@ -172,7 +173,9 @@ impl WriteProcedureConfig {
     }
 }
 
-impl<G: Graph + GraphConstructor + 'static> ProcedureBuilder<G> for WriteProcedureBuilder {
+impl<G: UndirectedGraph + GraphConstructor + 'static> ProcedureBuilder<G>
+    for WriteProcedureBuilder
+{
     fn build(&self, config: Config) -> Result<Box<dyn Procedure<G>>> {
         let proc_config = WriteProcedureConfig::from_proc_config(&config)?;
         Ok(Box::new(WriteProcedure {

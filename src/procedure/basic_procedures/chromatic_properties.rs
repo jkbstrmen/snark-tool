@@ -1,5 +1,5 @@
-use crate::graph::graph::Graph;
 use crate::graph::undirected::simple_graph::graph::SimpleGraph;
+use crate::graph::undirected::UndirectedGraph;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::helpers::serialize_helper;
 use crate::procedure::procedure;
@@ -101,7 +101,7 @@ impl ChromaticPropertiesToCompute {
     }
 }
 
-impl<G: Graph + Clone> Procedure<G> for ChromaticPropsProcedure<G> {
+impl<G: UndirectedGraph + Clone> Procedure<G> for ChromaticPropsProcedure<G> {
     fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> procedure::Result<()> {
         println!("running chromatic properties procedure");
         self.chromatic_properties(graphs)?;
@@ -109,7 +109,7 @@ impl<G: Graph + Clone> Procedure<G> for ChromaticPropsProcedure<G> {
     }
 }
 
-impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
+impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
     fn chromatic_properties(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         let parallel = self.config.parallel();
         let colouriser_type = self.config.colouriser_type();
@@ -268,7 +268,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         Ok(())
     }
 
-    fn compute_properties_by_colouriser<Gr: Graph + Clone>(
+    fn compute_properties_by_colouriser<Gr: UndirectedGraph + Clone>(
         graph: &Gr,
         colouriser_type: &String,
         graph_index: usize,
@@ -303,7 +303,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         }
     }
 
-    fn compute_properties<Gr: Graph + Clone, C: Colouriser>(
+    fn compute_properties<Gr: UndirectedGraph + Clone, C: Colouriser>(
         graph: &Gr,
         colouriser: C,
         graph_index: usize,
@@ -366,7 +366,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         Ok(properties)
     }
 
-    fn critical_and_stable_properties<Gr: Graph + Clone, C: Colouriser>(
+    fn critical_and_stable_properties<Gr: UndirectedGraph + Clone, C: Colouriser>(
         graph: &Gr,
         _colouriser: &C,
         properties_to_compute: &ChromaticPropertiesToCompute,
@@ -412,7 +412,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         Ok(())
     }
 
-    fn critical_properties<Gr: Graph + Clone, C: Colouriser>(
+    fn critical_properties<Gr: UndirectedGraph + Clone, C: Colouriser>(
         graph: &Gr,
         _colouriser: &C,
         properties_to_compute: &ChromaticPropertiesToCompute,
@@ -446,7 +446,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         Ok(())
     }
 
-    fn resistance<Gr: Graph + Clone, C: Colouriser>(
+    fn resistance<Gr: UndirectedGraph + Clone, C: Colouriser>(
         graph: &Gr,
         _colouriser: &C,
         properties_computed: &mut GraphProperties,
@@ -467,7 +467,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         Ok(())
     }
 
-    fn edge_resistibility<Gr: Graph + Clone, C: Colouriser>(
+    fn edge_resistibility<Gr: UndirectedGraph + Clone, C: Colouriser>(
         graph: &Gr,
         _colouriser: &C,
         properties_computed: &mut GraphProperties,
@@ -486,7 +486,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         Ok(())
     }
 
-    fn vertex_resistibility<Gr: Graph + Clone, C: Colouriser>(
+    fn vertex_resistibility<Gr: UndirectedGraph + Clone, C: Colouriser>(
         graph: &Gr,
         _colouriser: &C,
         properties_computed: &mut GraphProperties,
@@ -599,7 +599,7 @@ impl ChromaticPropsProcedureConfig {
     }
 }
 
-impl<G: Graph + Clone + 'static> ProcedureBuilder<G> for ChromaticPropsProcedureBuilder {
+impl<G: UndirectedGraph + Clone + 'static> ProcedureBuilder<G> for ChromaticPropsProcedureBuilder {
     fn build(&self, config: Config) -> procedure::Result<Box<dyn Procedure<G>>> {
         let proc_config = ChromaticPropsProcedureConfig::from_proc_config(&config)?;
         Ok(Box::new(ChromaticPropsProcedure {

@@ -1,4 +1,4 @@
-use crate::graph::graph::Graph;
+use crate::graph::undirected::UndirectedGraph;
 use crate::procedure::error::Error;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
@@ -10,7 +10,7 @@ use crate::service::colour::sat::SATColourizer;
 use std::collections::HashMap;
 use std::marker;
 
-struct ColourProcedure<G: Graph> {
+struct ColourProcedure<G: UndirectedGraph> {
     config: ColourProcedureConfig,
     _ph: marker::PhantomData<G>,
 }
@@ -22,14 +22,14 @@ pub struct ColourProcedureConfig {
 
 pub struct ColourProcedureBuilder {}
 
-impl<G: Graph> Procedure<G> for ColourProcedure<G> {
+impl<G: UndirectedGraph> Procedure<G> for ColourProcedure<G> {
     fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         println!("running colour procedure");
         self.colour_graph(graphs)
     }
 }
 
-impl<G: Graph> ColourProcedure<G> {
+impl<G: UndirectedGraph> ColourProcedure<G> {
     pub fn colour_graph(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         let colouriser_type = self.config.colouriser_type();
         match colouriser_type.as_str() {
@@ -80,7 +80,7 @@ impl ColourProcedureConfig {
     }
 }
 
-impl<G: Graph + 'static> ProcedureBuilder<G> for ColourProcedureBuilder {
+impl<G: UndirectedGraph + 'static> ProcedureBuilder<G> for ColourProcedureBuilder {
     fn build(&self, config: Config) -> Result<Box<dyn Procedure<G>>> {
         let proc_config = ColourProcedureConfig::from_proc_config(&config)?;
         Ok(Box::new(ColourProcedure {

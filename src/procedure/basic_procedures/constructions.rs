@@ -1,5 +1,6 @@
-use crate::graph::graph::{Graph, GraphConstructor};
+use crate::graph::graph::GraphConstructor;
 use crate::graph::undirected::simple_graph::graph::SimpleGraph;
+use crate::graph::undirected::UndirectedGraph;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure;
 use crate::procedure::procedure::{GraphProperties, Procedure};
@@ -53,7 +54,7 @@ pub struct ConstructionProcedureConfig {
 
 pub struct ConstructionProcedureBuilder {}
 
-impl<G: Graph> Procedure<G> for ConstructionProcedure<G> {
+impl<G: UndirectedGraph> Procedure<G> for ConstructionProcedure<G> {
     fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> procedure::Result<()> {
         println!(
             "running {} procedure",
@@ -64,7 +65,7 @@ impl<G: Graph> Procedure<G> for ConstructionProcedure<G> {
     }
 }
 
-impl<G: Graph> ConstructionProcedure<G> {
+impl<G: UndirectedGraph> ConstructionProcedure<G> {
     pub fn construct(&self, _graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         // TODO - finish when graphs are Undirected
 
@@ -117,7 +118,7 @@ impl ConstructionProcedureConfig {
     // }
 }
 
-impl<G: Graph + 'static> ProcedureBuilder<G> for ConstructionProcedureBuilder {
+impl<G: UndirectedGraph + 'static> ProcedureBuilder<G> for ConstructionProcedureBuilder {
     fn build(&self, config: Config) -> procedure::Result<Box<dyn Procedure<G>>> {
         let proc_config = ConstructionProcedureConfig::from_proc_config(&config)?;
         Ok(Box::new(ConstructionProcedure {

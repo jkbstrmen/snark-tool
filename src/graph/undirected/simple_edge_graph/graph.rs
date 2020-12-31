@@ -3,18 +3,24 @@ use std::{fmt, slice};
 use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::{Graph, GraphConstructor};
 use crate::graph::undirected::edge::UndirectedEdge;
-use crate::graph::undirected::vertex::SimpleVertex;
+use crate::graph::undirected::simple_edge_graph::simple_vertex::SimpleVertex;
+use crate::graph::undirected::UndirectedGraph;
 use crate::graph::vertex::{Vertex, VertexConstructor};
+use serde::export::Option::Some;
 
+///
+/// undirected, without loops or multiple edges
+///
 #[derive(Debug, Clone)]
-pub struct SimpleGraph {
+pub struct SimpleEdgeGraph {
     pub size: usize,
     pub vertices: Vec<SimpleVertex>,
     pub edges: Vec<UndirectedEdge>,
 }
 
-/// undirected, without loop, without multiple edges
-impl Graph for SimpleGraph {
+impl UndirectedGraph for SimpleEdgeGraph {}
+
+impl Graph for SimpleEdgeGraph {
     type V = SimpleVertex;
     type E = UndirectedEdge;
 
@@ -80,15 +86,28 @@ impl Graph for SimpleGraph {
     ) -> Box<dyn Iterator<Item = &'a UndirectedEdge> + 'a> {
         Box::new(Edges::of_vertex(self.edges.iter(), vertex))
     }
+
+    fn neighbors_of_vertex(&self, vertex: usize) -> Vec<usize> {
+        let mut neighbors = vec![];
+        let mut edges = self.edges_of_vertex(vertex);
+        while let Some(edge) = edges.next() {
+            if edge.from() == vertex {
+                neighbors.push(edge.to());
+            } else {
+                neighbors.push(edge.from());
+            }
+        }
+        neighbors
+    }
 }
 
-impl GraphConstructor for SimpleGraph {
+impl GraphConstructor for SimpleEdgeGraph {
     fn new() -> Self {
         Self::with_vertices_capacity(20)
     }
 
     fn with_capacity(vertices: usize, edges: usize) -> Self {
-        SimpleGraph {
+        SimpleEdgeGraph {
             size: 0,
             vertices: Vec::with_capacity(vertices),
             edges: Vec::with_capacity(edges),
@@ -100,7 +119,8 @@ impl GraphConstructor for SimpleGraph {
     }
 }
 
-impl SimpleGraph {
+impl SimpleEdgeGraph {
+    #[allow(dead_code)]
     pub fn from_graph<G: Graph>(graph: &G) -> Self {
         let mut vertices = vec![];
         for vertex in graph.vertices() {
@@ -110,7 +130,7 @@ impl SimpleGraph {
         for edge in graph.edges() {
             edges.push(UndirectedEdge::new(edge.from(), edge.to()));
         }
-        SimpleGraph {
+        SimpleEdgeGraph {
             size: graph.size(),
             vertices,
             edges,
@@ -118,7 +138,7 @@ impl SimpleGraph {
     }
 }
 
-impl fmt::Display for SimpleGraph {
+impl fmt::Display for SimpleEdgeGraph {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for vertex in &self.vertices {
             write!(f, "{}: ", vertex.index())?;
@@ -137,7 +157,7 @@ impl fmt::Display for SimpleGraph {
     }
 }
 
-impl PartialEq for SimpleGraph {
+impl PartialEq for SimpleEdgeGraph {
     fn eq(&self, other: &Self) -> bool {
         if self.size != other.size {
             return false;
@@ -152,7 +172,7 @@ impl PartialEq for SimpleGraph {
     }
 }
 
-impl Eq for SimpleGraph {}
+impl Eq for SimpleEdgeGraph {}
 
 /// Edges
 pub struct Edges<'a, E> {

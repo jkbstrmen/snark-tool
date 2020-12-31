@@ -1,4 +1,4 @@
-pub trait Edge {
+pub trait Edge: Eq {
     fn from(&self) -> usize;
     fn to(&self) -> usize;
     fn color(&self) -> u8;

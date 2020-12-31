@@ -1,7 +1,7 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
-use crate::service::colour::colouriser::Colourizer;
+use crate::service::colour::colouriser::Colouriser;
 use std::collections::HashMap;
 use std::iter::FromIterator;
 use varisat::solver::Solver;
@@ -9,7 +9,7 @@ use varisat::{CnfFormula, ExtendFormula};
 
 pub struct SATColourizer {}
 
-impl Colourizer for SATColourizer {
+impl Colouriser for SATColourizer {
     fn is_colorable<G>(graph: &G) -> bool
     where
         G: Graph,

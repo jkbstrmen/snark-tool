@@ -1,4 +1,3 @@
-use crate::error::{Error, ProcedureError};
 use std::fmt;
 
 #[derive(Debug)]
@@ -16,28 +15,7 @@ impl ChromaticPropertiesError {
 
 impl fmt::Display for ChromaticPropertiesError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "chromatic properties procedure error: {}", self.message)?;
+        write!(f, "chromatic properties error: {}", self.message)?;
         Ok(())
-    }
-}
-
-impl From<ChromaticPropertiesError> for Error {
-    fn from(error: ChromaticPropertiesError) -> Self {
-        let message = format!("{}", error);
-        Error::ProcedureError(ProcedureError { message })
-    }
-}
-
-impl From<Error> for ChromaticPropertiesError {
-    fn from(error: Error) -> Self {
-        let message = format!("{}", error);
-        ChromaticPropertiesError::new(message)
-    }
-}
-
-impl From<serde_json::error::Error> for ChromaticPropertiesError {
-    fn from(error: serde_json::error::Error) -> Self {
-        let message = format!("serde json error: {}", error);
-        ChromaticPropertiesError { message }
     }
 }

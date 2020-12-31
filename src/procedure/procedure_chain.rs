@@ -1,14 +1,15 @@
-use crate::graph::graph::{Graph, GraphConstructor};
+use crate::graph::graph::GraphConstructor;
+use crate::graph::undirected::UndirectedGraph;
 use crate::procedure::configuration::ProcedureConfig;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
 use crate::procedure::procedure_registry::ProcedureRegistry;
 
-pub struct ProcedureChain<G: Graph> {
+pub struct ProcedureChain<G: UndirectedGraph> {
     _proc_registry: ProcedureRegistry<G>,
     procedures: Vec<Box<dyn Procedure<G>>>,
 }
 
-impl<G: Graph + GraphConstructor + Clone + 'static> ProcedureChain<G> {
+impl<G: UndirectedGraph + GraphConstructor + Clone + 'static> ProcedureChain<G> {
     pub fn from_procedures_config(
         registry: ProcedureRegistry<G>,
         configurations: Vec<ProcedureConfig>,

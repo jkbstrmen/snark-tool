@@ -2,7 +2,7 @@
 mod io_tests {
     use std::fs::OpenOptions;
 
-    use crate::graph::undirected::simple_graph::SimpleGraph;
+    use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::service::io::reader::Reader;
     use crate::service::io::reader_ba::BaReader;
     use crate::service::io::reader_g6::G6Reader;
@@ -114,4 +114,12 @@ mod io_tests {
         let graph_g6 = G6Reader::<SimpleGraph>::read_graph(test_data::NO_SNARK_IN_G6_112);
         assert_eq!(graph_s6.unwrap(), graph_g6.unwrap());
     }
+
+    // #[test]
+    // fn should_read_json() {
+    //     let file = OpenOptions::new().read(true).open("output").unwrap();
+    //
+    //     let mut reader = JsonReader::<SimpleGraph>::new(&file);
+    //     reader.next();
+    // }
 }

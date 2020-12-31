@@ -1,27 +1,61 @@
-use crate::graph::graph::Graph;
-use crate::graph::undirected::simple_graph::SimpleGraph;
+use crate::graph::undirected::simple_graph::graph::SimpleGraph;
+use crate::graph::undirected::UndirectedGraph;
+use crate::procedure::helpers::config_helper;
+use crate::procedure::helpers::serialize_helper;
+use crate::procedure::procedure;
 use crate::procedure::procedure::{GraphProperties, Procedure};
 use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
-use crate::procedure::{config_helper, procedure};
 use crate::service::chromatic_properties::critical_prop::CriticalProperties;
 use crate::service::chromatic_properties::error::ChromaticPropertiesError;
 use crate::service::chromatic_properties::resistance::Resistance;
+use crate::service::chromatic_properties::resistibility::Resistibility;
 use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
-use crate::service::colour::bfs::BFSColourizer;
-use crate::service::colour::colouriser::Colourizer;
+use crate::service::colour::colouriser::Colouriser;
+use crate::service::colour::dfs_improved::DFSColourizer;
 use crate::service::colour::sat::SATColourizer;
+use crate::service::property::cyclic_connectivity::cyclic_edge_connectivity;
+use crate::service::property::girth::girth;
+use crate::service::property::oddness::Oddness;
+use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::sync::mpsc;
 use std::{marker, result, thread};
 
 pub type Result<T> = result::Result<T, ChromaticPropertiesError>;
+const DFS_COLOURISER: &str = "dfs";
+const SAT_COLOURISER: &str = "sat";
+
+// property
+const CRITICAL: &str = "critical";
+const COCRITICAL: &str = "cocritical";
+const VERTEX_SUBCRITICAL: &str = "vertex-subcritical";
+const EDGE_SUBCRITICAL: &str = "edge-subcritical";
+const ACRITICAL: &str = "acritical";
+const STABLE: &str = "stable";
+const COSTABLE: &str = "costable";
+const RESISTANCE: &str = "resistance";
+const GIRTH: &str = "girth";
+const CYCLIC_EDGE_CONNECTIVITY: &str = "cyclic-edge-connectivity";
+const EDGE_RESISTIBILITY: &str = "edge-resistibility";
+const VERTEX_RESISTIBILITY: &str = "vertex-resistibility";
+const ODDNESS: &str = "oddness";
+
+const VERTEX_RESISTIBILITIES: &str = "vertex-resistibilities";
+const VERTEX_RESISTIBILITY_INDEX: &str = "vertex-resistibility-index";
+const EDGE_RESISTIBILITIES: &str = "edge-resistibilities";
+const EDGE_RESISTIBILITY_INDEX: &str = "edge-resistibility-index";
+
+// property name
+const COLOURISER_TYPE: &str = "colouriser-type";
+const PARALLEL: &str = "parallel";
+const PROPERTIES: &str = "properties";
 
 struct ChromaticPropsProcedure<G> {
     config: ChromaticPropsProcedureConfig,
     _ph: marker::PhantomData<G>,
 }
 
-struct ChromaticPropsProcedureConfig {
+pub struct ChromaticPropsProcedureConfig {
     colouriser_type: String,
     parallel: bool,
     properties_to_compute: ChromaticPropertiesToCompute,
@@ -44,6 +78,7 @@ struct ChromaticPropertiesToCompute {
     vertex_resistibility: bool,
     girth: bool,
     cyclic_connectivity: bool,
+    oddness: bool,
 }
 
 impl ChromaticPropertiesToCompute {
@@ -61,11 +96,12 @@ impl ChromaticPropertiesToCompute {
             vertex_resistibility: false,
             girth: false,
             cyclic_connectivity: false,
+            oddness: false,
         }
     }
 }
 
-impl<G: Graph + Clone> Procedure<G> for ChromaticPropsProcedure<G> {
+impl<G: UndirectedGraph + Clone> Procedure<G> for ChromaticPropsProcedure<G> {
     fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> procedure::Result<()> {
         println!("running chromatic properties procedure");
         self.chromatic_properties(graphs)?;
@@ -73,7 +109,7 @@ impl<G: Graph + Clone> Procedure<G> for ChromaticPropsProcedure<G> {
     }
 }
 
-impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
+impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
     fn chromatic_properties(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         let parallel = self.config.parallel();
         let colouriser_type = self.config.colouriser_type();
@@ -90,7 +126,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         graphs: &mut Vec<(G, GraphProperties)>,
         colouriser_type: &String,
     ) -> Result<()> {
-        let mut threads = vec![];
+        let mut threads = HashMap::new();
         let mut index = 0;
         let (tx, rx) = mpsc::channel();
         let cpus_count = num_cpus::get();
@@ -102,27 +138,36 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         let mut next_graph = graphs_iter.next();
         while next_graph.is_some() {
             let graph = next_graph.unwrap();
+            // if graph is bigger could cause performance issues
             let graph_local = SimpleGraph::from_graph(&graph.0);
             let tx_cloned = mpsc::Sender::clone(&tx);
-            let handle = Self::spawn_thread_for_graph_2(
+            let handle = Self::spawn_thread_for_graph(
                 graph_local,
                 index,
                 colouriser_type.clone(),
                 (*to_compute).clone(),
                 tx_cloned,
             );
-            threads.push(handle);
+            threads.insert(index, handle);
             index += 1;
-
             if index >= cpus_count {
                 break;
             }
             next_graph = graphs_iter.next();
         }
-
         let mut results = Vec::with_capacity(graphs.len());
+
         // receive results and create new threads while next graphs exists
         for received in &rx {
+            let received_result = received.borrow().as_ref();
+            let index_value = received_result.unwrap().get("graph_index").unwrap();
+            let received_index: usize = serde_json::from_value(index_value.clone())?;
+
+            // end/join thread which sent received results
+            let thread_opt = threads.remove(&received_index);
+            if thread_opt.is_some() {
+                let _result = thread_opt.unwrap().join();
+            }
             results.push(received);
 
             next_graph = graphs_iter.next();
@@ -130,14 +175,14 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
                 let graph = next_graph.unwrap();
                 let graph_local = SimpleGraph::from_graph(&graph.0);
                 let tx_cloned = mpsc::Sender::clone(&tx);
-                let handle = Self::spawn_thread_for_graph_2(
+                let handle = Self::spawn_thread_for_graph(
                     graph_local,
                     index,
                     colouriser_type.clone(),
                     (*to_compute).clone(),
                     tx_cloned,
                 );
-                threads.push(handle);
+                threads.insert(index, handle);
                 index += 1;
             } else {
                 break;
@@ -153,8 +198,9 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         for result in results {
             self.handle_parallel_result(graphs, result)?;
         }
+        // end/join remaining threads
         for thread in threads {
-            thread.join().unwrap();
+            thread.1.join().unwrap();
         }
         Ok(())
     }
@@ -177,7 +223,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         ))
     }
 
-    fn spawn_thread_for_graph_2(
+    fn spawn_thread_for_graph(
         graph: SimpleGraph,
         index: usize,
         colouriser_type: String,
@@ -222,7 +268,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         Ok(())
     }
 
-    fn compute_properties_by_colouriser<Gr: Graph + Clone>(
+    fn compute_properties_by_colouriser<Gr: UndirectedGraph + Clone>(
         graph: &Gr,
         colouriser_type: &String,
         graph_index: usize,
@@ -230,7 +276,7 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
     ) -> Result<GraphProperties> {
         // to do - change colouriser type according to graph size ...
         match colouriser_type.as_str() {
-            "sat" => {
+            SAT_COLOURISER => {
                 return Self::compute_properties(
                     graph,
                     SATColourizer::new(),
@@ -238,10 +284,10 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
                     &properties_to_compute,
                 );
             }
-            "bfs" => {
+            DFS_COLOURISER => {
                 return Self::compute_properties(
                     graph,
-                    BFSColourizer::new(),
+                    DFSColourizer::new(),
                     graph_index,
                     &properties_to_compute,
                 );
@@ -249,15 +295,15 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
             _ => {
                 return Err(ChromaticPropertiesError {
                     message: format!(
-                        "unknown colourizer: {} for chromatic properties",
-                        colouriser_type
+                        "unknown colourizer: {} to compute chromatic properties, did you mean {} or {}?",
+                        colouriser_type, DFS_COLOURISER, SAT_COLOURISER
                     ),
                 });
             }
         }
     }
 
-    fn compute_properties<Gr: Graph + Clone, C: Colourizer>(
+    fn compute_properties<Gr: UndirectedGraph + Clone, C: Colouriser>(
         graph: &Gr,
         colouriser: C,
         graph_index: usize,
@@ -265,7 +311,10 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
     ) -> Result<GraphProperties> {
         let to_compute = properties_to_compute;
         let mut properties = GraphProperties::new();
-        properties.insert("graph_index".to_string(), serde_json::json!(graph_index));
+        properties.insert(
+            "graph_index".to_string(),
+            serde_json::to_value(graph_index)?,
+        );
 
         if to_compute.stable || to_compute.costable {
             Self::critical_and_stable_properties(
@@ -285,25 +334,39 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
 
         if to_compute.resistance {
             // compute resistence and add result to properties
-            Self::resistance(graph, colouriser, &mut properties)?;
+            Self::resistance(graph, &colouriser, &mut properties)?;
         }
         if to_compute.vertex_resistibility {
             // compute vertex resistibility and add result to properties
+            Self::vertex_resistibility(graph, &colouriser, &mut properties)?;
         }
         if to_compute.edge_resistibility {
             // compute edge resistibility and add result to properties
+            Self::edge_resistibility(graph, &colouriser, &mut properties)?;
         }
         if to_compute.girth {
             // compute girth and add result to properties
+            let girth = girth(graph);
+            properties.insert(GIRTH.to_string(), serde_json::to_value(girth)?);
         }
         if to_compute.cyclic_connectivity {
             // compute cyclic connectivity and add result to properties
+            let cyclic_edge_connectivity = cyclic_edge_connectivity(graph);
+            properties.insert(
+                CYCLIC_EDGE_CONNECTIVITY.to_string(),
+                serde_json::to_value(cyclic_edge_connectivity)?,
+            );
+        }
+        if to_compute.oddness {
+            // compute cyclic connectivity and add result to properties
+            let oddness = Oddness::of_graph(graph);
+            properties.insert(ODDNESS.to_string(), serde_json::to_value(oddness)?);
         }
 
         Ok(properties)
     }
 
-    fn critical_and_stable_properties<Gr: Graph + Clone, C: Colourizer>(
+    fn critical_and_stable_properties<Gr: UndirectedGraph + Clone, C: Colouriser>(
         graph: &Gr,
         _colouriser: &C,
         properties_to_compute: &ChromaticPropertiesToCompute,
@@ -312,44 +375,44 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         let mut props = StableAndCriticalProperties::of_graph_with_colourizer(graph, C::new());
         if properties_to_compute.critical {
             properties_computed.insert(
-                "critical".to_string(),
+                CRITICAL.to_string(),
                 serde_json::Value::Bool(props.is_critical()),
             );
         }
         if properties_to_compute.cocritical {
             properties_computed.insert(
-                "cocritical".to_string(),
+                COCRITICAL.to_string(),
                 serde_json::Value::Bool(props.is_cocritical()),
             );
         }
         if properties_to_compute.vertex_subcritical {
             properties_computed.insert(
-                "vertex_subcritical".to_string(),
+                VERTEX_SUBCRITICAL.to_string(),
                 serde_json::Value::Bool(props.is_vertex_subcritical()),
             );
         }
         if properties_to_compute.edge_subcritical {
             properties_computed.insert(
-                "edge_subcritical".to_string(),
+                EDGE_SUBCRITICAL.to_string(),
                 serde_json::Value::Bool(props.is_edge_subcritical()),
             );
         }
         if properties_to_compute.stable {
             properties_computed.insert(
-                "stable".to_string(),
+                STABLE.to_string(),
                 serde_json::Value::Bool(props.is_stable()),
             );
         }
         if properties_to_compute.costable {
             properties_computed.insert(
-                "costable".to_string(),
+                COSTABLE.to_string(),
                 serde_json::Value::Bool(props.is_costable()),
             );
         }
         Ok(())
     }
 
-    fn critical_properties<Gr: Graph + Clone, C: Colourizer>(
+    fn critical_properties<Gr: UndirectedGraph + Clone, C: Colouriser>(
         graph: &Gr,
         _colouriser: &C,
         properties_to_compute: &ChromaticPropertiesToCompute,
@@ -358,49 +421,92 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
         let mut props = CriticalProperties::of_graph_with_colourizer(graph, C::new());
         if properties_to_compute.critical {
             properties_computed.insert(
-                "critical".to_string(),
+                CRITICAL.to_string(),
                 serde_json::Value::Bool(props.is_critical()),
             );
         }
         if properties_to_compute.cocritical {
             properties_computed.insert(
-                "cocritical".to_string(),
+                COCRITICAL.to_string(),
                 serde_json::Value::Bool(props.is_cocritical()),
             );
         }
         if properties_to_compute.vertex_subcritical {
             properties_computed.insert(
-                "vertex_subcritical".to_string(),
+                VERTEX_SUBCRITICAL.to_string(),
                 serde_json::Value::Bool(props.is_vertex_subcritical()),
             );
         }
         if properties_to_compute.edge_subcritical {
             properties_computed.insert(
-                "edge_subcritical".to_string(),
+                EDGE_SUBCRITICAL.to_string(),
                 serde_json::Value::Bool(props.is_edge_subcritical()),
             );
         }
         Ok(())
     }
 
-    fn resistance<Gr: Graph + Clone, C: Colourizer>(
+    fn resistance<Gr: UndirectedGraph + Clone, C: Colouriser>(
         graph: &Gr,
-        _colouriser: C,
+        _colouriser: &C,
         properties_computed: &mut GraphProperties,
     ) -> Result<()> {
         let resistance = Resistance::new_with_colouriser(C::new());
         let resistance = resistance.vertex_resistance(graph);
         if resistance.is_some() {
             properties_computed.insert(
-                "resistance".to_string(),
-                serde_json::json!(resistance.unwrap()),
+                RESISTANCE.to_string(),
+                serde_json::to_value(resistance.unwrap())?,
             );
         } else {
             properties_computed.insert(
-                "resistance".to_string(),
+                RESISTANCE.to_string(),
                 serde_json::Value::String("None".to_string()),
             );
         }
+        Ok(())
+    }
+
+    fn edge_resistibility<Gr: UndirectedGraph + Clone, C: Colouriser>(
+        graph: &Gr,
+        _colouriser: &C,
+        properties_computed: &mut GraphProperties,
+    ) -> Result<()> {
+        let mut resistibility = Resistibility::of_graph_with_colouriser(graph, C::new());
+        let edge_resistibilities = resistibility.edges_resistibility();
+        let edge_resistibilities_json = serialize_helper::map_to_json_value(edge_resistibilities)?;
+        properties_computed.insert(EDGE_RESISTIBILITIES.to_string(), edge_resistibilities_json);
+
+        let index_of_edge_resistibility = resistibility.edge_resistibility_index();
+        properties_computed.insert(
+            EDGE_RESISTIBILITY_INDEX.to_string(),
+            serde_json::to_value(index_of_edge_resistibility)?,
+        );
+
+        Ok(())
+    }
+
+    fn vertex_resistibility<Gr: UndirectedGraph + Clone, C: Colouriser>(
+        graph: &Gr,
+        _colouriser: &C,
+        properties_computed: &mut GraphProperties,
+    ) -> Result<()> {
+        let mut resistibility = Resistibility::of_graph_with_colouriser(graph, C::new());
+        let vertices_resistibility = resistibility.vertices_resistibility();
+        // let vertex_resistibilities_json =
+        //     serialize_helper::vec_to_json_value(vertices_resistibility)?;
+        let vertex_resistibilities_json = serde_json::to_value(vertices_resistibility)?;
+        properties_computed.insert(
+            VERTEX_RESISTIBILITIES.to_string(),
+            vertex_resistibilities_json,
+        );
+
+        let vertex_resistibility_index = resistibility.vertex_resistibility_index();
+        properties_computed.insert(
+            VERTEX_RESISTIBILITY_INDEX.to_string(),
+            serde_json::to_value(vertex_resistibility_index)?,
+        );
+
         Ok(())
     }
 
@@ -415,18 +521,18 @@ impl<G: Graph + Clone> ChromaticPropsProcedure<G> {
 }
 
 impl ChromaticPropsProcedureConfig {
-    const PROC_TYPE: &'static str = "critic-and-stable-properties";
+    pub const PROC_TYPE: &'static str = "chromatic-properties";
 
     pub fn from_proc_config(config: &HashMap<String, serde_json::Value>) -> Result<Self> {
         let colouriser_type = config_helper::resolve_value_or_default(
             &config,
-            "colouriser-type",
-            "bfs".to_string(),
+            COLOURISER_TYPE,
+            DFS_COLOURISER.to_string(),
             Self::PROC_TYPE,
         )?;
         let parallel =
-            config_helper::resolve_value_or_default(&config, "parallel", true, Self::PROC_TYPE)?;
-        let properties = config_helper::resolve_value(&config, "properties", Self::PROC_TYPE)?;
+            config_helper::resolve_value_or_default(&config, PARALLEL, true, Self::PROC_TYPE)?;
+        let properties = config_helper::resolve_value(&config, PROPERTIES, Self::PROC_TYPE)?;
         let properties_to_compute = ChromaticPropertiesToCompute::new();
         let mut result = ChromaticPropsProcedureConfig {
             colouriser_type,
@@ -440,41 +546,44 @@ impl ChromaticPropsProcedureConfig {
     fn resolve_properties_to_compute(&mut self, properties: Vec<String>) {
         for property in properties.iter() {
             match property.as_str() {
-                "critical" => {
+                CRITICAL => {
                     self.properties_to_compute.critical = true;
                 }
-                "cocritical" => {
+                COCRITICAL => {
                     self.properties_to_compute.cocritical = true;
                 }
-                "vertex-subcritical" => {
+                VERTEX_SUBCRITICAL => {
                     self.properties_to_compute.vertex_subcritical = true;
                 }
-                "edge-subcritical" => {
+                EDGE_SUBCRITICAL => {
                     self.properties_to_compute.edge_subcritical = true;
                 }
-                "acritical" => {
+                ACRITICAL => {
                     self.properties_to_compute.acritical = true;
                 }
-                "stable" => {
+                STABLE => {
                     self.properties_to_compute.stable = true;
                 }
-                "costable" => {
+                COSTABLE => {
                     self.properties_to_compute.costable = true;
                 }
-                "girth" => {
+                GIRTH => {
                     self.properties_to_compute.girth = true;
                 }
-                "cyclic-connectivity" => {
+                CYCLIC_EDGE_CONNECTIVITY => {
                     self.properties_to_compute.cyclic_connectivity = true;
                 }
-                "resistance" => {
+                RESISTANCE => {
                     self.properties_to_compute.resistance = true;
                 }
-                "edge-resistibility" => {
+                EDGE_RESISTIBILITY => {
                     self.properties_to_compute.edge_resistibility = true;
                 }
-                "vertex-resistibility" => {
+                VERTEX_RESISTIBILITY => {
                     self.properties_to_compute.vertex_resistibility = true;
+                }
+                ODDNESS => {
+                    self.properties_to_compute.oddness = true;
                 }
                 _ => {}
             }
@@ -490,7 +599,7 @@ impl ChromaticPropsProcedureConfig {
     }
 }
 
-impl<G: Graph + Clone + 'static> ProcedureBuilder<G> for ChromaticPropsProcedureBuilder {
+impl<G: UndirectedGraph + Clone + 'static> ProcedureBuilder<G> for ChromaticPropsProcedureBuilder {
     fn build(&self, config: Config) -> procedure::Result<Box<dyn Procedure<G>>> {
         let proc_config = ChromaticPropsProcedureConfig::from_proc_config(&config)?;
         Ok(Box::new(ChromaticPropsProcedure {

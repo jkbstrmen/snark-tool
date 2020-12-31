@@ -1,16 +1,16 @@
 use crate::graph::graph::Graph;
-use crate::graph::undirected_sparse::graph::SimpleSparseGraph;
+use crate::graph::undirected::simple_graph::graph::SimpleGraph;
 use crate::graph::vertex::Vertex;
 use crate::service::chromatic_properties::critical_prop;
 use crate::service::chromatic_properties::critical_prop::CriticalProperties;
-use crate::service::colour::colouriser::Colourizer;
+use crate::service::colour::colouriser::Colouriser;
 
 pub struct StableAndCriticalProperties<C>
 where
-    C: Colourizer,
+    C: Colouriser,
 {
-    untouched_graph: SimpleSparseGraph,
-    graph: SimpleSparseGraph,
+    untouched_graph: SimpleGraph,
+    graph: SimpleGraph,
     _colourizer: C,
 
     is_critical: bool,
@@ -28,10 +28,10 @@ where
 
 impl<C> StableAndCriticalProperties<C>
 where
-    C: Colourizer,
+    C: Colouriser,
 {
     pub fn of_graph_with_colourizer<G: Graph + Clone>(graph: &G, colourizer: C) -> Self {
-        let local_graph = SimpleSparseGraph::from_graph(graph);
+        let local_graph = SimpleGraph::from_graph(graph);
         StableAndCriticalProperties {
             untouched_graph: local_graph.clone(),
             graph: local_graph,
@@ -122,7 +122,7 @@ where
         self.is_costable = true;
 
         let graph = &mut self.graph;
-        for first_vertex in 0..graph.size {
+        for first_vertex in 0..graph.size() {
             graph.remove_edges_of_vertex(first_vertex);
 
             for second_vertex in 0..graph.size() {
@@ -166,7 +166,7 @@ where
                         // if self.get_colouring(first_vertex, second_vertex.index()) {
                         if Self::get_colouring(
                             colourings,
-                            graph.size,
+                            graph.size(),
                             first_vertex,
                             second_vertex.index(),
                         ) {
@@ -178,7 +178,7 @@ where
                     } else {
                         if Self::get_colouring(
                             colourings,
-                            graph.size,
+                            graph.size(),
                             first_vertex,
                             second_vertex.index(),
                         ) {

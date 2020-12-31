@@ -1,6 +1,6 @@
 use crate::graph::edge::{Edge, EdgeConstructor};
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub struct UndirectedEdge {
     from: usize,
     to: usize,
@@ -58,4 +58,17 @@ impl<'a> Edge for &'a UndirectedEdge {
     }
 
     fn set_color(&mut self, _color: u8) {}
+}
+
+impl UndirectedEdge {
+    pub(crate) fn is_adjacent(&self, other: &UndirectedEdge) -> bool {
+        if self.from() == other.from()
+            || self.from() == other.to()
+            || self.to() == other.from()
+            || self.to() == other.to()
+        {
+            return true;
+        }
+        false
+    }
 }

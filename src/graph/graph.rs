@@ -14,17 +14,29 @@ pub trait Graph {
     fn add_edge(&mut self, from: usize, to: usize);
     // remove_edge
     fn remove_edge(&mut self, from: usize, to: usize);
-    // ??
+
+    // TODO replace by remove_vertex
     fn remove_edges_of_vertex(&mut self, vertex: usize);
-    // fn remove_edges_of_vertex(self, index: usize) -> Self;
     // remove_vertex
     // fn remove_vertex(&mut self, index: usize);
 
     // fn vertices(&self) -> Vertices<V>;
     fn vertices<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::V> + 'a>;
 
+    // neighbors_of_vertex
+
     fn edges<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::E> + 'a>;
     fn edges_of_vertex<'a>(&'a self, vertex: usize) -> Box<dyn Iterator<Item = &'a Self::E> + 'a>;
+
+    // fn edges<'a>(&'a self) -> Box<dyn Iterator<Item = Self::E> + 'a>;
+    // fn edges_of_vertex<'a>(&'a self, vertex: usize) -> Box<dyn Iterator<Item = Self::E> + 'a>;
+
+    fn neighbors_of_vertex(&self, vertex: usize) -> Vec<usize>;
+
+    // TODO
+    // fn vertex(&self) -> &Self::V;
+    // fn vertex_mut(&mut self) -> &Self::V;
+    // fn has_vertex(&self, vertex: usize) -> bool;
 
     // fn edges(&self) -> Edges<E>;
     // fn edges_of_vertex(&self, vertex: usize) -> Edges<E>;

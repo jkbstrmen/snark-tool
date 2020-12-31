@@ -1,21 +1,23 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
-use crate::service::colour::colouriser::Colourizer;
+use crate::service::colour::colouriser::Colouriser;
 
-// Colorizer for (sub)cubic graphs only
-pub struct BFSColourizer {}
+///
+/// Colorizer for (sub)cubic graphs only
+/// version 2.2
+///
+pub struct DFSColourizer {}
 
-struct BFSColourizerGraph {
+struct DFSColourizerGraph {
     // pair - (neighbor, color)
     vertices: Vec<[(usize, usize); 3]>,
-    // vertices: Vec<Vec<(usize, usize)>>,
     one_edge_vert: Vec<usize>,
     non_colored_edges: Vec<usize>,
     non_colored_edges_of_graph: usize,
 }
 
-impl Colourizer for BFSColourizer {
+impl Colouriser for DFSColourizer {
     fn is_colorable<G: Graph>(graph: &G) -> bool {
         let mut vertices = Vec::with_capacity(graph.size());
         // create local graph
@@ -33,7 +35,7 @@ impl Colourizer for BFSColourizer {
             }
             vertices.push(neighbors);
         }
-        let mut color_graph = BFSColourizerGraph {
+        let mut color_graph = DFSColourizerGraph {
             vertices,
             one_edge_vert: vec![],
             non_colored_edges: vec![],
@@ -45,6 +47,7 @@ impl Colourizer for BFSColourizer {
         let mut first_vertex = 0;
         let mut index = 0;
         for vertex in color_graph.vertices.clone() {
+            // if vertex has only 2 neighbors - skip
             if vertex[2].1 == 0 {
                 index += 1;
                 continue;
@@ -75,7 +78,9 @@ impl Colourizer for BFSColourizer {
                 }
             }
             if non_colored_edges_of_vertex_count[i] == 1 {
-                one_edge_vert.push(i);
+                if vertex[2].1 != 0 {
+                    one_edge_vert.push(i);
+                }
             }
             i += 1;
         }
@@ -88,11 +93,11 @@ impl Colourizer for BFSColourizer {
     }
 
     fn new() -> Self {
-        BFSColourizer {}
+        DFSColourizer {}
     }
 }
 
-impl BFSColourizerGraph {
+impl DFSColourizerGraph {
     fn color(&mut self, vertex: usize) -> bool {
         let color_vars = [(4, 5), (3, 5), (3, 4)];
 
@@ -115,6 +120,7 @@ impl BFSColourizerGraph {
                     return true;
                 } else {
                     let mut vert = 0;
+                    // why skipping vertices with 3 non coloured edges? - algorithm wouldn't handle this scenario
                     while (self.non_colored_edges[vert] != 1) && (self.non_colored_edges[vert] != 2)
                     {
                         vert += 1;
@@ -128,8 +134,10 @@ impl BFSColourizerGraph {
                 self.non_colored_edges[neighbor1 as usize] -= 1;
                 let mut change = false;
                 let next_vertex;
-                if self.non_colored_edges[neighbor1 as usize] == 1 && !self.one_edge_vert.is_empty()
-                {
+
+                if self.non_colored_edges[neighbor1 as usize] == 1 {
+                    next_vertex = neighbor1;
+                } else if !self.one_edge_vert.is_empty() {
                     change = true;
                     next_vertex = self.one_edge_vert.pop().unwrap();
                 } else {
@@ -204,12 +212,16 @@ impl BFSColourizerGraph {
                 let next_vertex;
 
                 if self.non_colored_edges[neighbor1 as usize] == 1 {
-                    one_edge_neighbors += 1;
-                    self.one_edge_vert.push(neighbor1);
+                    if self.vertices[neighbor1 as usize][2].1 != 0 {
+                        one_edge_neighbors += 1;
+                        self.one_edge_vert.push(neighbor1);
+                    }
                 }
                 if self.non_colored_edges[neighbor2 as usize] == 1 {
-                    one_edge_neighbors += 1;
-                    self.one_edge_vert.push(neighbor2);
+                    if self.vertices[neighbor2 as usize][2].1 != 0 {
+                        one_edge_neighbors += 1;
+                        self.one_edge_vert.push(neighbor2);
+                    }
                 }
                 if !self.one_edge_vert.is_empty() {
                     next_from_queue = true;

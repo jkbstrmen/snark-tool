@@ -1,21 +1,20 @@
 #[cfg(test)]
 pub mod measurement_tests {
     use crate::graph::graph::Graph;
-    use crate::graph::undirected::simple_graph::SimpleGraph;
-    use crate::graph::undirected::simple_graph::graph::SimpleSparseGraph;
+    use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
-    use crate::service::colour::colouriser::Colourizer;
+    use crate::service::colour::colouriser::Colouriser;
+    use crate::service::colour::cvd;
     use crate::service::colour::cvd_dfs::CvdDfsColourizer;
     use crate::service::colour::dfs_improved::DFSColourizer;
+    use crate::service::colour::dfs_orig::DFSColourizerOriginal;
     use crate::service::colour::sat::SATColourizer;
-    use crate::service::colour::cvd;
     use crate::service::io::reader::Reader;
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::io::reader_s6::S6Reader;
     use crate::service::io::writer_s6::S6Writer;
-    use std::{fs, time};
     use std::io::Write;
-    use crate::service::colour::dfs_orig::DFSColourizerOriginal;
+    use std::{fs, time};
 
     // pub static mut FIRST_VERTEX: u128 = 0;
 
@@ -36,11 +35,15 @@ pub mod measurement_tests {
         // let path = "resources/measurement_samples/100K.Generated_graphs.30.04.sn.cyc4.g6";
         // let path = "resources/measurement_samples/100K.Generated_graphs.32.04.sn.cyc4.g6";
         // let path = "resources/measurement_samples/100K.Generated_graphs.34.04.sn.cyc4.g6";
-        let path = "resources/measurement_samples/100K.Generated_graphs.36.04.sn.cyc4.g6";
-        // let path = "resources/measurement_samples/100K.Generated_graphs.38.05.sn.cyc4.g6";
+        // let path = "resources/measurement_samples/100K.Generated_graphs.36.04.sn.cyc4.g6";
+        let path = "resources/measurement_samples/100K.Generated_graphs.38.05.sn.cyc4.g6";
 
         let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
-        let mut temp_file = fs::OpenOptions::new().create(true).write(true).open("temp").unwrap();
+        let mut temp_file = fs::OpenOptions::new()
+            .create(true)
+            .write(true)
+            .open("temp")
+            .unwrap();
         let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
 
         let begin = time::Instant::now();
@@ -63,7 +66,7 @@ pub mod measurement_tests {
             }
 
             writeln!(temp_file, "{}", counter);
-            counter +=1;
+            counter += 1;
         }
         println!("all false: {}", all_false);
         println!("elapsed: {}", begin.elapsed().as_millis());
@@ -270,16 +273,214 @@ pub mod measurement_tests {
 
         println!("{}", path);
     }
+}
 
+#[cfg(test)]
+pub mod sat_measurement_tests {
+    use crate::graph::graph::Graph;
+    use crate::graph::undirected::simple_edge_graph::graph::SimpleEdgeGraph;
+    use crate::graph::undirected::simple_graph::graph::SimpleGraph;
+    use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
+    use crate::service::colour::colouriser::Colouriser;
+    use crate::service::colour::dfs_improved::DFSColourizer;
+    use crate::service::colour::sat::SATColourizer;
+    use crate::service::colour::sat_splr::SATSplrColourizer;
+    use crate::service::constructions::dot_product::DotProducts;
+    use crate::service::io::reader::Reader;
+    use crate::service::io::reader_g6::G6Reader;
+    use crate::service::io::writer_g6::G6Writer;
+    use crate::service::io::writer_s6::S6Writer;
+    use crate::test::test_data::test_data;
+    use std::io::Write;
+    use std::{fs, time};
+
+    #[test]
+    fn sat_prepare_graphs() {
+        // let path = "resources/measurement_samples/Generated_graphs.38.05.sn.cyc4.10K.g6";
+        let path = "resources/measurement_samples/Generated_graphs.36.04.sn.cyc4.10K.g6";
+
+        let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
+        let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
+
+        // let begin = time::Instant::now();
+        let out_file_path = "resources/measurement_samples/dfs-vs-sat/10K.dot_product.56.g6";
+        let mut out_file = fs::OpenOptions::new()
+            .create(true)
+            .write(true)
+            .open(out_file_path)
+            .unwrap();
+
+        // let graph_2_g6 = test_data::SNARK_IN_G6_10_PETERSEN;
+        let graph_2_g6 = test_data::SNARK_IN_G6_22;
+        let graph_2 = G6Reader::read_graph(graph_2_g6).unwrap();
+
+        while let Some(graph_result) = reader.next() {
+            let mut graph = graph_result.unwrap();
+
+            let mut dot_products = DotProducts::new(&graph, &graph_2);
+            let extended = dot_products.next().unwrap();
+
+            G6Writer::write_graph(&extended, &mut out_file);
+
+            // let colourable = DFSColourizer::is_colorable(&graph);
+            // let colourable = SATColourizer::is_colorable(&graph);
+            // assert_eq!(colourable, false);
+        }
+        // println!("elapsed: {}", begin.elapsed().as_millis());
+    }
+
+    #[test]
+    fn sat_colouriser_performance() {
+        // let path = "resources/measurement_samples/dfs-vs-sat/10K.dot_product.56.g6";
+        // let path = "resources/measurement_samples/dfs-vs-sat/10K.dot_product.58.g6";
+        let path = "resources/measurement_samples/dfs-vs-sat/2K.dot_product.58.g6";
+
+        let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
+        let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
+
+        let begin = time::Instant::now();
+
+        while let Some(graph_result) = reader.next() {
+            let mut graph = graph_result.unwrap();
+
+            // let colourable = DFSColourizer::is_colorable(&graph);
+            let colourable = SATColourizer::is_colorable(&graph);
+            // let colourable = SATSplrColourizer::is_colorable(&graph);
+            assert_eq!(colourable, false);
+
+            // assert_eq!(graph.size(), 56);
+        }
+        println!("elapsed: {}", begin.elapsed().as_millis());
+    }
+
+    fn dfs_vs_sat_sizes() -> Vec<usize> {
+        let mut size = 44;
+        let mut sizes = vec![];
+        while size < 56 {
+            size += 2;
+            sizes.push(size)
+        }
+        sizes
+    }
+
+    #[test]
+    fn sat_colouriser_performance_set_of_files() {
+        let out_file_path = "resources/measurement_samples/dfs-vs-sat/results.txt";
+        let mut out_file = fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(out_file_path)
+            .unwrap();
+
+        for size in dfs_vs_sat_sizes() {
+            let path = format!(
+                "resources/measurement_samples/dfs-vs-sat/10K.dot_product.{}.g6",
+                size
+            );
+
+            let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
+            let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
+
+            let begin = time::Instant::now();
+
+            while let Some(graph_result) = reader.next() {
+                let mut graph = graph_result.unwrap();
+
+                // let colourable = DFSColourizer::is_colorable(&graph);
+                let colourable = SATColourizer::is_colorable(&graph);
+                assert_eq!(colourable, false);
+                assert_eq!(graph.size(), size);
+            }
+            writeln!(
+                out_file,
+                "size: {}, elapsed: {} ms",
+                size,
+                begin.elapsed().as_millis()
+            );
+        }
+    }
+
+    #[test]
+    fn sat_colouriser_critical_stable_properties_performance() {
+        // let path = "resources/measurement_samples/10_28vert_snarks.g6";
+        // let path = "resources/measurement_samples/10_30vert_snarks.g6";
+        // let path = "resources/measurement_samples/10_32vert_snarks.g6";
+        // let path = "resources/measurement_samples/10_34vert_snarks.g6";
+        // let path = "resources/measurement_samples/10_38vert_snarks.g6";
+        // let path = "resources/measurement_samples/10_40vert_snarks.g6";
+        // let path = "resources/measurement_samples/10_44vert_snarks.g6";
+
+        // let path = "resources/measurement_samples/10_36vert_snarks_stable.g6";
+        // let path = "resources/measurement_samples/10_36vert_snarks_bicritical.g6";
+        // let path = "resources/measurement_samples/10_36vert_snarks_str_critical.g6";
+
+        // let path = "resources/measurement_samples/100_28vert_snarks.g6";
+        // let path = "resources/measurement_samples/100_30vert_snarks.g6";
+        // let path = "resources/measurement_samples/100_32vert_snarks.g6";
+        let path = "resources/measurement_samples/100_34vert_snarks.g6";
+        // let path = "resources/measurement_samples/100_36vert_snarks.g6";
+        // let path = "resources/measurement_samples/100_38vert_snarks.g6";
+        let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
+        let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
+
+        let begin = time::Instant::now();
+
+        let mut crit_count = 0;
+        let mut cocrit_count = 0;
+        let mut v_sub_count = 0;
+        let mut e_sub_count = 0;
+        let mut stab_count = 0;
+        let mut costab_count = 0;
+        while let Some(graph_result) = reader.next() {
+            let graph = graph_result.unwrap();
+
+            let mut props =
+                StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizer::new());
+            let crit = props.is_critical();
+            let cocrit = props.is_cocritical();
+            let e_subcrit = props.is_edge_subcritical();
+            let v_subcrit = props.is_vertex_subcritical();
+            let stable = props.is_stable();
+            let costable = props.is_costable();
+
+            if crit {
+                crit_count += 1;
+            }
+            if cocrit {
+                cocrit_count += 1;
+            }
+            if v_subcrit {
+                v_sub_count += 1;
+            }
+            if e_subcrit {
+                e_sub_count += 1;
+            }
+            if stable {
+                stab_count += 1;
+            }
+            if costable {
+                costab_count += 1;
+            }
+        }
+
+        println!("CRITICAL: {}", crit_count);
+        println!("COCRITICAL: {}", cocrit_count);
+        println!("V subCRITICAL: {}", v_sub_count);
+        println!("E subCRITICAL: {}", e_sub_count);
+        println!("STABLE: {}", stab_count);
+        println!("COSTABLE: {}", costab_count);
+
+        println!("elapsed: {}", begin.elapsed().as_millis());
+    }
 }
 
 #[cfg(test)]
 pub mod cvd_measurement_tests {
-    use std::{fs, time, thread};
-    use crate::service::io::reader_s6::S6Reader;
-    use crate::graph::undirected::simple_graph::graph::SimpleSparseGraph;
-    use crate::service::io::reader::Reader;
     use crate::graph::graph::Graph;
+    use crate::graph::undirected::simple_graph::graph::SimpleGraph;
+    use crate::service::io::reader::Reader;
+    use crate::service::io::reader_s6::S6Reader;
+    use std::{fs, thread, time};
 
     #[test]
     fn temp() {
@@ -290,7 +491,7 @@ pub mod cvd_measurement_tests {
         let path = "resources/measurement_samples/random_1000.s6";
         let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
         // let mut reader = S6Reader::<SimpleGraph>::new(&file_result);
-        let mut reader = S6Reader::<SimpleSparseGraph>::new(&file_result);
+        let mut reader = S6Reader::<SimpleGraph>::new(&file_result);
 
         let begin = time::Instant::now();
         let graph = reader.next().unwrap().unwrap();
@@ -375,7 +576,7 @@ pub mod cvd_measurement_tests {
 
             // let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
             // let mut reader = S6Reader::<SimpleGraph>::new(&file_result);
-            let mut reader = S6Reader::<SimpleSparseGraph>::new(&file_result);
+            let mut reader = S6Reader::<SimpleGraph>::new(&file_result);
 
             let begin = time::Instant::now();
 
@@ -393,17 +594,24 @@ pub mod cvd_measurement_tests {
                     }
                 }
 
-                counter +=1;
+                counter += 1;
             }
 
-            let elapsed: f64 = (begin.elapsed().as_millis() as f64) / counter as f64 / number_of_iterations as f64 / 1000 as f64;
+            let elapsed: f64 = (begin.elapsed().as_millis() as f64)
+                / counter as f64
+                / number_of_iterations as f64
+                / 1000 as f64;
             // let elapsed: f64 = (begin.elapsed().as_micros() as f64) / counter as f64 / number_of_iterations as f64 / 1000 as f64;
-            measurement_string = measurement_string.add(format!("({}, {:.3})", size, elapsed).as_str());
-
+            measurement_string =
+                measurement_string.add(format!("({}, {:.3})", size, elapsed).as_str());
 
             let received = format!("({}, {:.4})", size, elapsed);
             let path = format!("{}/measurements_rust.txt", dir);
-            let mut measurement_file = fs::OpenOptions::new().create(true).append(true).open(&path).unwrap();
+            let mut measurement_file = fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(&path)
+                .unwrap();
             // writeln!(measurement_file);
             write!(measurement_file, "{}", received);
         }
@@ -415,18 +623,16 @@ pub mod cvd_measurement_tests {
         println!("{}", measurement_string);
     }
 
-    use std::io::Write;
-    use crate::service::colour::dfs_improved::DFSColourizer;
-    use crate::service::colour::sat::SATColourizer;
-    use crate::graph::undirected::simple_graph::SimpleGraph;
-    use crate::service::colour::colouriser::Colourizer;
-    use std::ops::Add;
-    use std::sync::mpsc;
+    use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::cvd;
     use crate::service::colour::cvd_dfs::CvdDfsColourizer;
+    use crate::service::colour::dfs_improved::DFSColourizer;
+    use crate::service::colour::sat::SATColourizer;
+    use std::io::Write;
+    use std::ops::Add;
+    use std::sync::mpsc;
 
     fn perform_measurements_parallel() {
-
         let sizes = small_sizes();
         // let sizes = big_sizes();
 
@@ -455,7 +661,11 @@ pub mod cvd_measurement_tests {
         }
 
         let path = format!("{}/measurements_rust.txt", dir);
-        let mut measurement_file = fs::OpenOptions::new().create(true).append(true).open(&path).unwrap();
+        let mut measurement_file = fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&path)
+            .unwrap();
         writeln!(measurement_file);
 
         drop(tx);
@@ -491,10 +701,13 @@ pub mod cvd_measurement_tests {
                 }
             }
 
-            counter +=1;
+            counter += 1;
         }
 
-        let elapsed: f64 = (begin.elapsed().as_millis() as f64) / counter as f64 / number_of_iterations as f64 / 1000 as f64;
+        let elapsed: f64 = (begin.elapsed().as_millis() as f64)
+            / counter as f64
+            / number_of_iterations as f64
+            / 1000 as f64;
         format!("({}, {:.4})", size, elapsed)
     }
 
@@ -507,5 +720,4 @@ pub mod cvd_measurement_tests {
     fn cvd_measurements() {
         perform_measurements();
     }
-
 }

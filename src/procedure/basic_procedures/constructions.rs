@@ -66,7 +66,6 @@ impl<G: UndirectedGraph + GraphConstructor + Clone> Procedure<G> for Constructio
 
 impl<G: UndirectedGraph + GraphConstructor + Clone> ConstructionProcedure<G> {
     pub fn construct(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
-
         // for now just constructing fist possible extension of given graph
 
         let mut extended_graphs = vec![];
@@ -112,7 +111,9 @@ impl ConstructionProcedureConfig {
     // }
 }
 
-impl<G: UndirectedGraph + 'static + GraphConstructor + Clone > ProcedureBuilder<G> for ConstructionProcedureBuilder {
+impl<G: UndirectedGraph + 'static + GraphConstructor + Clone> ProcedureBuilder<G>
+    for ConstructionProcedureBuilder
+{
     fn build(&self, config: Config) -> procedure::Result<Box<dyn Procedure<G>>> {
         let proc_config = ConstructionProcedureConfig::from_proc_config(&config)?;
         Ok(Box::new(ConstructionProcedure {

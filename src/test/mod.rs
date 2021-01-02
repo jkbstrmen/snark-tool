@@ -11,4 +11,5 @@ mod test_data;
 
 // mod temp_test;
 
-// mod measurement_test;
+mod measurement_test;
+mod splr_test;

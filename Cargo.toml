@@ -24,3 +24,4 @@ rand = "0.7"
 num_cpus = "1.13"
 
 splr = "0.5.0"
+itertools = "0.10.0"

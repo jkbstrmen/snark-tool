@@ -4,11 +4,13 @@ pub mod colour_tests {
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::dfs_improved::DFSColourizer;
     use crate::service::colour::sat::SATColourizer;
+    use crate::service::colour::sat_new::SATColourizerNew;
     use crate::service::colour::sat_splr::SATSplrColourizer;
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::io::reader_s6::S6Reader;
     use crate::test::test_data::test_data;
     use {splr::*, std::convert::TryFrom};
+    use std::time::Instant;
 
     // #[test]
     // fn test() {
@@ -35,5 +37,44 @@ pub mod colour_tests {
         let graph: SimpleGraph = S6Reader::read_graph(graph_g6).unwrap();
         let colourable = SATSplrColourizer::is_colorable(&graph);
         assert_eq!(colourable, false);
+    }
+
+    #[test]
+    fn new_formula() {
+        // let combinations = BinaryCombinationsIterator::new(9);
+        // for combination in combinations {
+        //     println!("{:?}", combination)
+        // }
+
+        let begin = Instant::now();
+
+        // let graph_g6 = test_data::SNARK_IN_S6_76_3TF1_03;
+        // let graph: SimpleGraph = S6Reader::read_graph(graph_g6).unwrap();
+        let graph_g6 = test_data::NO_SNARK_IN_G6_18;
+        let graph: SimpleGraph = G6Reader::read_graph(graph_g6).unwrap();
+        // let colourable = SATColourizerNew::is_colorable(&graph);
+        // let colourable = SATColourizer::is_colorable(&graph);
+        let colourable = SATColourizerNew2::is_colorable(&graph);
+        assert_eq!(colourable, true);
+
+        println!("{}", begin.elapsed().as_millis())
+    }
+
+    use itertools::Itertools;
+    use crate::service::colour::sat_new_2::SATColourizerNew2;
+
+    #[test]
+    fn temp() {
+
+        // let it = (1..4).combinations_with_replacement(3);
+        // for i in it {
+        //     println!("{:?}", i);
+        // }
+
+        let it = (1..4).permutations(3);
+        for i in it {
+            println!("{:?}", i);
+        }
+
     }
 }

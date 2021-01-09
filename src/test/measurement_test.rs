@@ -285,48 +285,100 @@ pub mod sat_measurement_tests {
     use crate::service::colour::dfs_improved::DFSColourizer;
     use crate::service::colour::sat::SATColourizer;
     use crate::service::colour::sat_splr::SATSplrColourizer;
+    use crate::service::component_analysis::edge_pairs::PairsOfNonAdjacentEdges;
+    use crate::service::component_analysis::vertex_pairs::PairsOfAdjacentVertices;
     use crate::service::constructions::dot_product::DotProducts;
     use crate::service::io::reader::Reader;
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::io::writer_g6::G6Writer;
     use crate::service::io::writer_s6::S6Writer;
     use crate::test::test_data::test_data;
+    use rand::Rng;
     use std::io::Write;
+    use std::iter::FromIterator;
+    use std::ops::Add;
     use std::{fs, time};
+    use crate::service::colour::sat_new::SATColourizerNew;
+    use crate::service::colour::sat_new_2::{SATColourizerNew2, ELAPSED};
 
     #[test]
     fn sat_prepare_graphs() {
-        // let path = "resources/measurement_samples/Generated_graphs.38.05.sn.cyc4.10K.g6";
-        let path = "resources/measurement_samples/Generated_graphs.36.04.sn.cyc4.10K.g6";
-
-        let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
-        let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
-
-        // let begin = time::Instant::now();
-        let out_file_path = "resources/measurement_samples/dfs-vs-sat/10K.dot_product.56.g6";
-        let mut out_file = fs::OpenOptions::new()
-            .create(true)
-            .write(true)
-            .open(out_file_path)
+        // first
+        // let graph_first_path = "resources/measurement_samples/dfs-vs-sat/graphs_for_dot_product.g6";
+        let graph_first_path = "resources/measurement_samples/dfs-vs-sat/temp.g6";
+        let file_first_result = fs::OpenOptions::new()
+            .read(true)
+            .open(&graph_first_path)
             .unwrap();
+        let mut reader_first = G6Reader::<SimpleGraph>::new(&file_first_result);
 
-        // let graph_2_g6 = test_data::SNARK_IN_G6_10_PETERSEN;
-        let graph_2_g6 = test_data::SNARK_IN_G6_22;
-        let graph_2 = G6Reader::read_graph(graph_2_g6).unwrap();
+        // second
+        // let path = "resources/measurement_samples/Generated_graphs.38.05.sn.cyc4.10K.g6";
+        // let path = "resources/measurement_samples/Generated_graphs.36.04.sn.cyc4.10K.g6";
+        let path = "resources/measurement_samples/100K.Generated_graphs.30.04.sn.cyc4.g6";
+        // let path = "resources/measurement_samples/100K.Generated_graphs.36.04.sn.cyc4.g6";
 
-        while let Some(graph_result) = reader.next() {
-            let mut graph = graph_result.unwrap();
+        let all_graphs = 100000;
+        let to_choose = 5000;
+        let size_of_second = 30;
+        let out_file_prefix = "5K";
 
-            let mut dot_products = DotProducts::new(&graph, &graph_2);
-            let extended = dot_products.next().unwrap();
+        // output
+        // let out_dir_path = "resources/measurement_samples/dfs-vs-sat/dot_product_30+(18-34)";
+        let out_dir_path = "resources/measurement_samples/dfs-vs-sat/temp_dir";
 
-            G6Writer::write_graph(&extended, &mut out_file);
+        while let Some(graph_result_first) = reader_first.next() {
+            let graph_first = graph_result_first.unwrap();
 
-            // let colourable = DFSColourizer::is_colorable(&graph);
-            // let colourable = SATColourizer::is_colorable(&graph);
-            // assert_eq!(colourable, false);
+            let file_second_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
+            let mut reader_second = G6Reader::<SimpleGraph>::new(&file_second_result);
+
+            let out_file_path = format!(
+                "{}/{}.dot_product.{}.g6",
+                out_dir_path,
+                out_file_prefix,
+                graph_first.size() + size_of_second - 2
+            );
+            let mut out_file = fs::OpenOptions::new()
+                .create(true)
+                .write(true)
+                .open(out_file_path)
+                .unwrap();
+
+            let mut counter = 0;
+            while let Some(graph_result_second) = reader_second.next() {
+                if counter == to_choose {
+                    break;
+                }
+                let mut graph_second = graph_result_second.unwrap();
+
+                let mut rng = rand::thread_rng();
+                let choose = rng.gen_ratio((to_choose as f64 * 1.2) as u32, all_graphs);
+                if !choose {
+                    continue;
+                }
+
+                let random_next = rng.gen_range(0, graph_first.size() * graph_second.size());
+                let mut dot_products = DotProducts::new(&graph_first, &graph_second);
+                let mut counter_next = 0;
+                while counter_next < random_next {
+                    dot_products.next();
+                    counter_next += 1;
+                }
+                let extended = dot_products.next().unwrap();
+
+                G6Writer::write_graph(&extended, &mut out_file);
+                assert_eq!(
+                    extended.size(),
+                    graph_first.size() + graph_second.size() - 2
+                );
+
+                counter += 1;
+            }
         }
-        // println!("elapsed: {}", begin.elapsed().as_millis());
+
+        // let graph_2_g6 = test_data::SNARK_IN_G6_30;
+        // let graph_2 = G6Reader::read_graph(graph_2_g6).unwrap();
     }
 
     #[test]
@@ -334,6 +386,15 @@ pub mod sat_measurement_tests {
         // let path = "resources/measurement_samples/dfs-vs-sat/10K.dot_product.56.g6";
         // let path = "resources/measurement_samples/dfs-vs-sat/10K.dot_product.58.g6";
         let path = "resources/measurement_samples/dfs-vs-sat/2K.dot_product.58.g6";
+        // let path = "resources/measurement_samples/dfs-vs-sat/100K.dot_product.46.g6";
+        // let path = "resources/measurement_samples/dfs-vs-sat/5K.dot_product.46.g6";
+        // let path = "resources/measurement_samples/dfs-vs-sat/5K.dot_product.58.g6";
+        // let path = "resources/measurement_samples/dfs-vs-sat/10K.dot_product.56.g6";
+        // let path = "resources/measurement_samples/dfs-vs-sat/temp_dir/5K.dot_product.62.g6";
+        // let path =
+        //     "resources/measurement_samples/dfs-vs-sat/dot_product_36+(18-34)/5K.dot_product.66.g6";
+        // let path =
+        //     "resources/measurement_samples/dfs-vs-sat/dot_product_36+(18-34)/5K.dot_product.64.g6";
 
         let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
         let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
@@ -344,19 +405,26 @@ pub mod sat_measurement_tests {
             let mut graph = graph_result.unwrap();
 
             // let colourable = DFSColourizer::is_colorable(&graph);
-            let colourable = SATColourizer::is_colorable(&graph);
+            // let colourable = SATColourizer::is_colorable(&graph);
+            // let colourable = SATColourizerNew::is_colorable(&graph);
+            let colourable = SATColourizerNew2::is_colorable(&graph);
             // let colourable = SATSplrColourizer::is_colorable(&graph);
             assert_eq!(colourable, false);
 
             // assert_eq!(graph.size(), 56);
         }
         println!("elapsed: {}", begin.elapsed().as_millis());
+
+        unsafe { println!("elapsed formula: {}", ELAPSED / 1000); }
+
     }
 
     fn dfs_vs_sat_sizes() -> Vec<usize> {
-        let mut size = 44;
+        // let mut size = 44;
+        let mut size = 60;
         let mut sizes = vec![];
-        while size < 56 {
+        // while size < 58 {
+        while size < 64 {
             size += 2;
             sizes.push(size)
         }
@@ -372,11 +440,12 @@ pub mod sat_measurement_tests {
             .open(out_file_path)
             .unwrap();
 
+        let dir_path = "resources/measurement_samples/dfs-vs-sat/dot_product_36+(18-34)";
+        // let dir_path = "resources/measurement_samples/dfs-vs-sat/dot_product_30+(18-34)";
+
+        let mut tex_string: String = "".to_string();
         for size in dfs_vs_sat_sizes() {
-            let path = format!(
-                "resources/measurement_samples/dfs-vs-sat/10K.dot_product.{}.g6",
-                size
-            );
+            let path = format!("{}/5K.dot_product.{}.g6", dir_path, size);
 
             let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
             let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
@@ -388,16 +457,56 @@ pub mod sat_measurement_tests {
 
                 // let colourable = DFSColourizer::is_colorable(&graph);
                 let colourable = SATColourizer::is_colorable(&graph);
+                // let colourable = SATSplrColourizer::is_colorable(&graph);
                 assert_eq!(colourable, false);
                 assert_eq!(graph.size(), size);
             }
-            writeln!(
-                out_file,
-                "size: {}, elapsed: {} ms",
-                size,
-                begin.elapsed().as_millis()
-            );
+            let elapsed = begin.elapsed().as_millis();
+            writeln!(out_file, "size: {}, elapsed: {} ms", size, elapsed);
+            tex_string =
+                tex_string.add(format!("({}, {})", size, (elapsed as f64) / 1000 as f64).as_ref());
         }
+
+        writeln!(out_file, "{}", tex_string);
+    }
+
+    // TODO - remove
+    #[test]
+    fn sat_colouriser_performance_set_of_files_dfs() {
+        let out_file_path = "resources/measurement_samples/dfs-vs-sat/results_dfs.txt";
+        let mut out_file = fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(out_file_path)
+            .unwrap();
+        let dir_path = "resources/measurement_samples/dfs-vs-sat/dot_product_36+(18-34)";
+        // let dir_path = "resources/measurement_samples/dfs-vs-sat/dot_product_30+(18-34)";
+
+        let mut tex_string: String = "".to_string();
+        for size in dfs_vs_sat_sizes() {
+            let path = format!("{}/5K.dot_product.{}.g6", dir_path, size);
+
+            let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
+            let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
+
+            let begin = time::Instant::now();
+
+            while let Some(graph_result) = reader.next() {
+                let mut graph = graph_result.unwrap();
+
+                let colourable = DFSColourizer::is_colorable(&graph);
+                // let colourable = SATColourizer::is_colorable(&graph);
+                // let colourable = SATSplrColourizer::is_colorable(&graph);
+                assert_eq!(colourable, false);
+                assert_eq!(graph.size(), size);
+            }
+            let elapsed = begin.elapsed().as_millis();
+            writeln!(out_file, "size: {}, elapsed: {} ms", size, elapsed);
+            tex_string =
+                tex_string.add(format!("({}, {})", size, (elapsed as f64) / 1000 as f64).as_ref());
+        }
+
+        writeln!(out_file, "{}", tex_string);
     }
 
     #[test]

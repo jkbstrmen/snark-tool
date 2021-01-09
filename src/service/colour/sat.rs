@@ -80,6 +80,9 @@ impl SATColourizer {
                 formula.add_clause(&[!lits_second.2, !lits_third.2]);
             }
             solver.add_formula(&formula);
+
+            // TODO - all colours has to be present in at least one edge of vertex
+            //  works only for cubic not subcubic graphs
         }
         solver
     }
@@ -108,7 +111,7 @@ impl SATColourizer {
 
             let mut formula = CnfFormula::new();
 
-            // neighbouring edges cannot have same colour
+            // neighbouring edges cannot all have same colour
             let mut clause_col_0 = vec![];
             let mut clause_col_1 = vec![];
             let mut clause_col_2 = vec![];

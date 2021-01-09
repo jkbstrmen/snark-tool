@@ -129,6 +129,9 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         let mut threads = HashMap::new();
         let mut index = 0;
         let (tx, rx) = mpsc::channel();
+
+        // TODO - do not user num_cpus directly - use as configurable param with default
+        //  num_cpus::get()
         let cpus_count = num_cpus::get();
 
         let to_compute = &self.config.properties_to_compute;

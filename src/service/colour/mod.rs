@@ -11,3 +11,4 @@ pub mod dfs_orig;
 pub mod sat_new;
 pub mod sat_splr;
 pub mod sat_new_2;
+pub mod sat_cadical;

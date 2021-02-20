@@ -1,6 +1,7 @@
 #[cfg(test)]
 pub mod graph_traversal_tests {
     use crate::service::graph_traversal::bfs::BfsOfGraph;
+    use crate::service::graph_traversal::dfs::DfsOfGraph;
     use crate::test::test_data::test_data;
 
     #[test]
@@ -46,5 +47,90 @@ pub mod graph_traversal_tests {
         }
         let path_check = vec![6, 7, 3, 5];
         assert_eq!(path, path_check);
+    }
+
+    // TODO - finish assert
+
+    #[test]
+    fn should_traverse_using_dfs() {
+        let graph = test_data::get_petersen_graph();
+
+        let mut dfs = DfsOfGraph::new(&graph, 0);
+
+        let mut vertices = vec![];
+        while let Some(next) = dfs.next() {
+            println!("{}", next.index());
+
+            vertices.push(next.index());
+        }
+
+        // let right_order = vec![0, 4, 6, 8, 2, 5, 1, 7, 3, 9];
+        // assert_eq!(vertices, right_order);
+    }
+}
+
+#[cfg(test)]
+pub mod traversal_test_temp {
+
+    // going back and forth in BFS graph traversal
+    use crate::service::graph_traversal::bfs_temp::BfsOfGraph;
+    use crate::test::test_data::test_data;
+
+    #[test]
+    fn should_traverse_using_bfs_discovery_order() {
+        let graph = test_data::get_petersen_graph();
+
+        let mut bfs = BfsOfGraph::new(&graph, 0);
+
+        let mut vertices = vec![];
+        while let Some(next) = bfs.next() {
+            vertices.push(next.index());
+        }
+
+        let right_order = vec![0, 4, 6, 8, 2, 5, 1, 7, 3, 9];
+        assert_eq!(vertices, right_order);
+        assert_eq!(bfs.discovery_order, right_order);
+
+        bfs.back();
+        let right_order = vec![0, 4, 6, 8, 2, 5, 1, 7, 3];
+        assert_eq!(bfs.discovery_order, right_order);
+
+        bfs.back();
+        bfs.back();
+        let right_order = vec![0, 4, 6, 8, 2, 5, 1];
+        assert_eq!(bfs.discovery_order, right_order);
+
+        bfs.next();
+        bfs.next();
+        bfs.next();
+        let right_order = vec![0, 4, 6, 8, 2, 5, 1, 7, 3, 9];
+        assert_eq!(bfs.discovery_order, right_order);
+
+        bfs.back();
+        bfs.back();
+        bfs.back();
+        bfs.back();
+        bfs.back();
+        bfs.back();
+        let right_order = vec![0, 4, 6, 8];
+        assert_eq!(bfs.discovery_order, right_order);
+
+        bfs.next();
+        bfs.next();
+        bfs.next();
+        bfs.next();
+        bfs.next();
+        bfs.next();
+        bfs.next();
+        bfs.next();
+        bfs.next();
+        bfs.next();
+        bfs.next();
+        bfs.next();
+        bfs.next();
+        bfs.next();
+        bfs.next();
+        let right_order = vec![0, 4, 6, 8, 2, 5, 1, 7, 3, 9];
+        assert_eq!(bfs.discovery_order, right_order);
     }
 }

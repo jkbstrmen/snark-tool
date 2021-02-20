@@ -23,7 +23,10 @@ varisat = "0.2.2"
 rand = "0.7"
 num_cpus = "1.13"
 
+# could be removed later?
 splr = "0.5.0"
 itertools = "0.10.0"
 
 cadical = "0.1.13"
+
+petgraph = "0.5.1"

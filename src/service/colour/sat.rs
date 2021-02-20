@@ -2,8 +2,10 @@ use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
 use crate::service::colour::colouriser::Colouriser;
+use crate::service::colour::sat_new_2::ELAPSED;
 use std::collections::HashMap;
 use std::iter::FromIterator;
+use std::time::Instant;
 use varisat::solver::Solver;
 use varisat::{CnfFormula, ExtendFormula, Lit};
 
@@ -14,8 +16,14 @@ impl Colouriser for SATColourizer {
     where
         G: Graph,
     {
+        // let begin = Instant::now();
+
         let mut solver = Self::graph_to_cnf_sat(graph);
-        solver.solve().unwrap()
+
+        // unsafe { ELAPSED += begin.elapsed().as_micros(); }
+
+        // solver.solve().unwrap()
+        false
     }
 
     fn new() -> Self {

@@ -1,23 +1,22 @@
 use crate::graph::graph::Graph;
-use serde::export::Option::Some;
 use std::collections::VecDeque;
 
 #[derive(Debug, Clone)]
-pub struct DfsVertex {
+pub struct BfsVertex {
     index: usize,
     visited: bool,
     discovered_from: usize,
     distance_from_root: usize,
 }
 
-impl DfsVertex {
+impl BfsVertex {
     pub fn new(
         index: usize,
         visited: bool,
         discovered_from: usize,
         distance_from_root: usize,
     ) -> Self {
-        DfsVertex {
+        BfsVertex {
             index,
             visited,
             discovered_from,
@@ -41,24 +40,28 @@ impl DfsVertex {
 }
 
 #[derive(Debug, Clone)]
-pub struct DfsOfGraph<'a, G: Graph + Clone> {
+pub struct BfsOfGraph<'a, G: Graph + Clone> {
     graph: &'a G,
-    visited: Vec<Option<DfsVertex>>,
-    to_visit: VecDeque<DfsVertex>,
+    visited: Vec<Option<BfsVertex>>,
+    to_visit: VecDeque<BfsVertex>,
+
+    // TODO pub is temp
+    pub discovery_order: Vec<usize>,
 }
 
-impl<'a, G: Graph + Clone> DfsOfGraph<'a, G> {
+impl<'a, G: Graph + Clone> BfsOfGraph<'a, G> {
     pub fn new(graph: &'a G, start: usize) -> Self {
         let visited = vec![None; graph.size()];
         let mut to_visit = VecDeque::new();
-        to_visit.push_back(DfsVertex::new(start, false, start, 0));
+        to_visit.push_back(BfsVertex::new(start, true, start, 0));
 
         let mut bfs = Self {
             graph,
             visited,
             to_visit,
+            discovery_order: vec![],
         };
-        let start_vertex = DfsVertex::new(start, false, start, 0);
+        let start_vertex = BfsVertex::new(start, true, start, 0);
         bfs.visited[start] = Some(start_vertex);
         bfs
     }
@@ -71,26 +74,29 @@ impl<'a, G: Graph + Clone> DfsOfGraph<'a, G> {
     ///
     /// if true, visited for the first time
     ///
-    fn visit_from(&mut self, vertex: usize, visited_from: usize) -> bool {
-        if let Some(from) = &self.visited[visited_from] {
-            let visited_vertex =
-                DfsVertex::new(vertex, true, from.index, from.distance_from_root + 1);
+    fn visit_from(&mut self, vertex: usize, visited_from: &BfsVertex) -> bool {
+        let vert = &self.visited[vertex];
+        let mut already_visited = false;
+        if vert.is_some() && vert.as_ref().unwrap().visited() {
+            already_visited = true;
+        }
+        if !already_visited {
+            let visited_vertex = BfsVertex::new(
+                vertex,
+                true,
+                visited_from.index,
+                visited_from.distance_from_root + 1,
+            );
             self.visited[vertex] = Some(visited_vertex);
         }
-        true
+        !already_visited
     }
 
-    pub fn next(&mut self) -> Option<DfsVertex> {
-        if let Some(vertex) = self.to_visit.pop_back() {
-            if let Some(vert) = &self.visited[vertex.index] {
-                if vert.visited {
-                    return self.next();
-                }
-            }
-
+    pub fn next(&mut self) -> Option<BfsVertex> {
+        if let Some(vertex) = self.to_visit.pop_front() {
             for neighbor in self.graph.neighbors_of_vertex(vertex.index) {
-                if self.visited[neighbor].is_none() {
-                    self.to_visit.push_back(DfsVertex::new(
+                if self.visit_from(neighbor, &vertex) {
+                    self.to_visit.push_back(BfsVertex::new(
                         neighbor,
                         false,
                         vertex.index,
@@ -98,13 +104,22 @@ impl<'a, G: Graph + Clone> DfsOfGraph<'a, G> {
                     ));
                 }
             }
-            self.visit_from(vertex.index, vertex.discovered_from);
+            self.discovery_order.push(vertex.index);
             return Some(vertex);
         }
         None
     }
 
-    pub fn visited_vertex(&self, index: usize) -> Option<&DfsVertex> {
+    pub fn back(&mut self) {
+        if let Some(last) = self.discovery_order.pop() {
+            if let Some(mut last_vertex) = self.visited[last].clone() {
+                last_vertex.visited = false;
+                self.to_visit.push_front(last_vertex);
+            }
+        }
+    }
+
+    pub fn visited_vertex(&self, index: usize) -> Option<&BfsVertex> {
         let vert = self.visited.get(index);
         if let Some(result) = vert {
             return result.as_ref();

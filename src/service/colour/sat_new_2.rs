@@ -4,26 +4,26 @@ use crate::graph::vertex::Vertex;
 use crate::service::colour::colouriser::Colouriser;
 use std::collections::HashMap;
 use std::iter::FromIterator;
-use varisat::solver::Solver;
-use varisat::{CnfFormula, ExtendFormula, Lit};
 use std::slice;
 use std::time::Instant;
+use varisat::solver::Solver;
+use varisat::{CnfFormula, ExtendFormula, Lit};
 
 pub static mut ELAPSED: u128 = 0;
 
+// TODO - try for chromatic properties testing
 pub struct SATColourizerNew2 {}
 
 impl Colouriser for SATColourizerNew2 {
     fn is_colorable<G>(graph: &G) -> bool
-        where
-            G: Graph,
+    where
+        G: Graph,
     {
-        let begin = Instant::now();
+        // let begin = Instant::now();
 
         let mut solver = Self::graph_to_cnf_sat(graph);
 
-        unsafe { ELAPSED += begin.elapsed().as_micros(); }
-
+        // unsafe { ELAPSED += begin.elapsed().as_micros(); }
 
         solver.solve().unwrap()
     }
@@ -74,51 +74,259 @@ impl SATColourizerNew2 {
             let mut formula = CnfFormula::new();
 
             // first edge color 1
-            formula.add_clause(&[!lits_first.0, lits_first.1, lits_first.2, !lits_second.0, lits_second.1, lits_second.2, !lits_third.0, lits_third.1, lits_third.2]);
-            formula.add_clause(&[!lits_first.0, lits_first.1, lits_first.2, !lits_second.0, lits_second.1, lits_second.2, lits_third.0, !lits_third.1, lits_third.2]);
-            formula.add_clause(&[!lits_first.0, lits_first.1, lits_first.2, !lits_second.0, lits_second.1, lits_second.2, lits_third.0, lits_third.1, !lits_third.2]);
+            formula.add_clause(&[
+                !lits_first.0,
+                lits_first.1,
+                lits_first.2,
+                !lits_second.0,
+                lits_second.1,
+                lits_second.2,
+                !lits_third.0,
+                lits_third.1,
+                lits_third.2,
+            ]);
+            formula.add_clause(&[
+                !lits_first.0,
+                lits_first.1,
+                lits_first.2,
+                !lits_second.0,
+                lits_second.1,
+                lits_second.2,
+                lits_third.0,
+                !lits_third.1,
+                lits_third.2,
+            ]);
+            formula.add_clause(&[
+                !lits_first.0,
+                lits_first.1,
+                lits_first.2,
+                !lits_second.0,
+                lits_second.1,
+                lits_second.2,
+                lits_third.0,
+                lits_third.1,
+                !lits_third.2,
+            ]);
 
-            formula.add_clause(&[!lits_first.0, lits_first.1, lits_first.2, lits_second.0, !lits_second.1, lits_second.2, !lits_third.0, lits_third.1, lits_third.2]);
-            formula.add_clause(&[!lits_first.0, lits_first.1, lits_first.2, lits_second.0, !lits_second.1, lits_second.2, lits_third.0, !lits_third.1, lits_third.2]);
+            formula.add_clause(&[
+                !lits_first.0,
+                lits_first.1,
+                lits_first.2,
+                lits_second.0,
+                !lits_second.1,
+                lits_second.2,
+                !lits_third.0,
+                lits_third.1,
+                lits_third.2,
+            ]);
+            formula.add_clause(&[
+                !lits_first.0,
+                lits_first.1,
+                lits_first.2,
+                lits_second.0,
+                !lits_second.1,
+                lits_second.2,
+                lits_third.0,
+                !lits_third.1,
+                lits_third.2,
+            ]);
             // this
             // formula.add_clause(&[!lits_first.0, lits_first.1, lits_first.2, lits_second.0, !lits_second.1, lits_second.2, lits_third.0, lits_third.1, !lits_third.2]);
 
-            formula.add_clause(&[!lits_first.0, lits_first.1, lits_first.2, lits_second.0, lits_second.1, !lits_second.2, !lits_third.0, lits_third.1, lits_third.2]);
+            formula.add_clause(&[
+                !lits_first.0,
+                lits_first.1,
+                lits_first.2,
+                lits_second.0,
+                lits_second.1,
+                !lits_second.2,
+                !lits_third.0,
+                lits_third.1,
+                lits_third.2,
+            ]);
             // this
             // formula.add_clause(&[!lits_first.0, lits_first.1, lits_first.2, lits_second.0, lits_second.1, !lits_second.2, lits_third.0, !lits_third.1, lits_third.2]);
-            formula.add_clause(&[!lits_first.0, lits_first.1, lits_first.2, lits_second.0, lits_second.1, !lits_second.2, lits_third.0, lits_third.1, !lits_third.2]);
+            formula.add_clause(&[
+                !lits_first.0,
+                lits_first.1,
+                lits_first.2,
+                lits_second.0,
+                lits_second.1,
+                !lits_second.2,
+                lits_third.0,
+                lits_third.1,
+                !lits_third.2,
+            ]);
 
             // first edge color 2
-            formula.add_clause(&[lits_first.0, !lits_first.1, lits_first.2, !lits_second.0, lits_second.1, lits_second.2, !lits_third.0, lits_third.1, lits_third.2]);
-            formula.add_clause(&[lits_first.0, !lits_first.1, lits_first.2, !lits_second.0, lits_second.1, lits_second.2, lits_third.0, !lits_third.1, lits_third.2]);
+            formula.add_clause(&[
+                lits_first.0,
+                !lits_first.1,
+                lits_first.2,
+                !lits_second.0,
+                lits_second.1,
+                lits_second.2,
+                !lits_third.0,
+                lits_third.1,
+                lits_third.2,
+            ]);
+            formula.add_clause(&[
+                lits_first.0,
+                !lits_first.1,
+                lits_first.2,
+                !lits_second.0,
+                lits_second.1,
+                lits_second.2,
+                lits_third.0,
+                !lits_third.1,
+                lits_third.2,
+            ]);
             // this
             // formula.add_clause(&[lits_first.0, !lits_first.1, lits_first.2, !lits_second.0, lits_second.1, lits_second.2, lits_third.0, lits_third.1, !lits_third.2]);
 
-            formula.add_clause(&[lits_first.0, !lits_first.1, lits_first.2, lits_second.0, !lits_second.1, lits_second.2, !lits_third.0, lits_third.1, lits_third.2]);
-            formula.add_clause(&[lits_first.0, !lits_first.1, lits_first.2, lits_second.0, !lits_second.1, lits_second.2, lits_third.0, !lits_third.1, lits_third.2]);
-            formula.add_clause(&[lits_first.0, !lits_first.1, lits_first.2, lits_second.0, !lits_second.1, lits_second.2, lits_third.0, lits_third.1, !lits_third.2]);
+            formula.add_clause(&[
+                lits_first.0,
+                !lits_first.1,
+                lits_first.2,
+                lits_second.0,
+                !lits_second.1,
+                lits_second.2,
+                !lits_third.0,
+                lits_third.1,
+                lits_third.2,
+            ]);
+            formula.add_clause(&[
+                lits_first.0,
+                !lits_first.1,
+                lits_first.2,
+                lits_second.0,
+                !lits_second.1,
+                lits_second.2,
+                lits_third.0,
+                !lits_third.1,
+                lits_third.2,
+            ]);
+            formula.add_clause(&[
+                lits_first.0,
+                !lits_first.1,
+                lits_first.2,
+                lits_second.0,
+                !lits_second.1,
+                lits_second.2,
+                lits_third.0,
+                lits_third.1,
+                !lits_third.2,
+            ]);
 
             // this
             // formula.add_clause(&[lits_first.0, !lits_first.1, lits_first.2, lits_second.0, lits_second.1, !lits_second.2, !lits_third.0, lits_third.1, lits_third.2]);
-            formula.add_clause(&[lits_first.0, !lits_first.1, lits_first.2, lits_second.0, lits_second.1, !lits_second.2, lits_third.0, !lits_third.1, lits_third.2]);
-            formula.add_clause(&[lits_first.0, !lits_first.1, lits_first.2, lits_second.0, lits_second.1, !lits_second.2, lits_third.0, lits_third.1, !lits_third.2]);
+            formula.add_clause(&[
+                lits_first.0,
+                !lits_first.1,
+                lits_first.2,
+                lits_second.0,
+                lits_second.1,
+                !lits_second.2,
+                lits_third.0,
+                !lits_third.1,
+                lits_third.2,
+            ]);
+            formula.add_clause(&[
+                lits_first.0,
+                !lits_first.1,
+                lits_first.2,
+                lits_second.0,
+                lits_second.1,
+                !lits_second.2,
+                lits_third.0,
+                lits_third.1,
+                !lits_third.2,
+            ]);
 
             // first edge color 3
-            formula.add_clause(&[lits_first.0, lits_first.1, !lits_first.2, !lits_second.0, lits_second.1, lits_second.2, !lits_third.0, lits_third.1, lits_third.2]);
+            formula.add_clause(&[
+                lits_first.0,
+                lits_first.1,
+                !lits_first.2,
+                !lits_second.0,
+                lits_second.1,
+                lits_second.2,
+                !lits_third.0,
+                lits_third.1,
+                lits_third.2,
+            ]);
             // this
             // formula.add_clause(&[lits_first.0, lits_first.1, !lits_first.2, !lits_second.0, lits_second.1, lits_second.2, lits_third.0, !lits_third.1, lits_third.2]);
-            formula.add_clause(&[lits_first.0, lits_first.1, !lits_first.2, !lits_second.0, lits_second.1, lits_second.2, lits_third.0, lits_third.1, !lits_third.2]);
+            formula.add_clause(&[
+                lits_first.0,
+                lits_first.1,
+                !lits_first.2,
+                !lits_second.0,
+                lits_second.1,
+                lits_second.2,
+                lits_third.0,
+                lits_third.1,
+                !lits_third.2,
+            ]);
 
             // this
             // formula.add_clause(&[lits_first.0, lits_first.1, !lits_first.2, lits_second.0, !lits_second.1, lits_second.2, !lits_third.0, lits_third.1, lits_third.2]);
-            formula.add_clause(&[lits_first.0, lits_first.1, !lits_first.2, lits_second.0, !lits_second.1, lits_second.2, lits_third.0, !lits_third.1, lits_third.2]);
-            formula.add_clause(&[lits_first.0, lits_first.1, !lits_first.2, lits_second.0, !lits_second.1, lits_second.2, lits_third.0, lits_third.1, !lits_third.2]);
+            formula.add_clause(&[
+                lits_first.0,
+                lits_first.1,
+                !lits_first.2,
+                lits_second.0,
+                !lits_second.1,
+                lits_second.2,
+                lits_third.0,
+                !lits_third.1,
+                lits_third.2,
+            ]);
+            formula.add_clause(&[
+                lits_first.0,
+                lits_first.1,
+                !lits_first.2,
+                lits_second.0,
+                !lits_second.1,
+                lits_second.2,
+                lits_third.0,
+                lits_third.1,
+                !lits_third.2,
+            ]);
 
-            formula.add_clause(&[lits_first.0, lits_first.1, !lits_first.2, lits_second.0, lits_second.1, !lits_second.2, !lits_third.0, lits_third.1, lits_third.2]);
-            formula.add_clause(&[lits_first.0, lits_first.1, !lits_first.2, lits_second.0, lits_second.1, !lits_second.2, lits_third.0, !lits_third.1, lits_third.2]);
-            formula.add_clause(&[lits_first.0, lits_first.1, !lits_first.2, lits_second.0, lits_second.1, !lits_second.2, lits_third.0, lits_third.1, !lits_third.2]);
-
-
+            formula.add_clause(&[
+                lits_first.0,
+                lits_first.1,
+                !lits_first.2,
+                lits_second.0,
+                lits_second.1,
+                !lits_second.2,
+                !lits_third.0,
+                lits_third.1,
+                lits_third.2,
+            ]);
+            formula.add_clause(&[
+                lits_first.0,
+                lits_first.1,
+                !lits_first.2,
+                lits_second.0,
+                lits_second.1,
+                !lits_second.2,
+                lits_third.0,
+                !lits_third.1,
+                lits_third.2,
+            ]);
+            formula.add_clause(&[
+                lits_first.0,
+                lits_first.1,
+                !lits_first.2,
+                lits_second.0,
+                lits_second.1,
+                !lits_second.2,
+                lits_third.0,
+                lits_third.1,
+                !lits_third.2,
+            ]);
 
             // // 0, 1 - edges 0 and 1 of vertex cannot have same colour
             // formula.add_clause(&[!lits_first.0, !lits_second.0]);
@@ -142,7 +350,4 @@ impl SATColourizerNew2 {
         }
         solver
     }
-
 }
-
-

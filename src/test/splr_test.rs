@@ -9,8 +9,8 @@ pub mod colour_tests {
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::io::reader_s6::S6Reader;
     use crate::test::test_data::test_data;
-    use {splr::*, std::convert::TryFrom};
     use std::time::Instant;
+    use {splr::*, std::convert::TryFrom};
 
     // #[test]
     // fn test() {
@@ -60,12 +60,11 @@ pub mod colour_tests {
         println!("{}", begin.elapsed().as_millis())
     }
 
-    use itertools::Itertools;
     use crate::service::colour::sat_new_2::SATColourizerNew2;
+    use itertools::Itertools;
 
     #[test]
     fn temp() {
-
         // let it = (1..4).combinations_with_replacement(3);
         // for i in it {
         //     println!("{:?}", i);
@@ -75,6 +74,5 @@ pub mod colour_tests {
         for i in it {
             println!("{:?}", i);
         }
-
     }
 }

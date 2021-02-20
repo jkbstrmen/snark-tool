@@ -3,16 +3,21 @@ pub mod measurement_tests {
     use crate::graph::graph::Graph;
     use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
+    use crate::service::colour::bfs_basic::{BFSColouriserBasic, ELAPSED};
+    use crate::service::colour::bfs_basic_improved::BFSColourizerImproved;
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::cvd;
     use crate::service::colour::cvd_dfs::CvdDfsColourizer;
+    use crate::service::colour::dfs_basic::{DFSColouriserBasic, ELAPSED_DFS};
     use crate::service::colour::dfs_improved::DFSColourizer;
     use crate::service::colour::dfs_orig::DFSColourizerOriginal;
     use crate::service::colour::sat::SATColourizer;
+    use crate::service::graph_traversal::bfs_temp::BfsOfGraph;
     use crate::service::io::reader::Reader;
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::io::reader_s6::S6Reader;
     use crate::service::io::writer_s6::S6Writer;
+    use crate::test::test_data::test_data;
     use std::io::Write;
     use std::{fs, time};
 
@@ -22,8 +27,9 @@ pub mod measurement_tests {
     fn dfs_colouriser_performance() {
         // let path = "resources/measurement_samples/graph.g6";
         // let path = "resources/measurement_samples/10_28vert_snarks.g6";
+        // let path = "resources/measurement_samples/10_36vert_snarks.g6";
         // let path = "resources/measurement_samples/Generated_graphs.28.04.sn.cyc4.10K.g6";
-        // let path = "resources/measurement_samples/Generated_graphs.30.04.sn.cyc4.10K.g6";
+        let path = "resources/measurement_samples/Generated_graphs.30.04.sn.cyc4.10K.g6";
         // let path = "resources/measurement_samples/Generated_graphs.30.04.sn.cyc4.g6";
         // let path = "resources/measurement_samples/Generated_graphs.32.04.sn.cyc4.10K.g6";
         // let path = "resources/measurement_samples/Generated_graphs.34.04.sn.cyc4.10K.g6";
@@ -36,15 +42,21 @@ pub mod measurement_tests {
         // let path = "resources/measurement_samples/100K.Generated_graphs.32.04.sn.cyc4.g6";
         // let path = "resources/measurement_samples/100K.Generated_graphs.34.04.sn.cyc4.g6";
         // let path = "resources/measurement_samples/100K.Generated_graphs.36.04.sn.cyc4.g6";
-        let path = "resources/measurement_samples/100K.Generated_graphs.38.05.sn.cyc4.g6";
+        // let path = "resources/measurement_samples/100K.Generated_graphs.38.05.sn.cyc4.g6";
+
+        // colourable
+        // let path = "resources/measurement_samples/python-smallest-1st/cvd_measurement_graphs_30.s6";
+        // let path = "resources/measurement_samples/python-smallest-1st/cvd_measurement_graphs_40.s6";
+        // let path = "resources/measurement_samples/python-smallest-1st/cvd_measurement_graphs_50.s6";
 
         let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
-        let mut temp_file = fs::OpenOptions::new()
-            .create(true)
-            .write(true)
-            .open("temp")
-            .unwrap();
+        // let mut temp_file = fs::OpenOptions::new()
+        //     .create(true)
+        //     .write(true)
+        //     .open("temp")
+        //     .unwrap();
         let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
+        // let mut reader = S6Reader::<SimpleGraph>::new(&file_result);
 
         let begin = time::Instant::now();
 
@@ -57,18 +69,131 @@ pub mod measurement_tests {
 
             // let colourable = DFSColourizerSimple::is_colorable(&graph);
             // let colourable = DFSColourizerOriginal::is_colorable(&graph);
-            let colourable = DFSColourizer::is_colorable(&graph);
+            // let colourable = DFSColourizer::is_colorable(&graph);
+
+            // let colourable = BFSColouriserBasic::is_colorable(&graph);
+            let colourable = BFSColourizerImproved::is_colorable(&graph);
+            // let colourable = DFSColouriserBasic::is_colorable(&graph);
 
             // let colourable = DFSColourizerNaive::is_colorable(&graph);
             // let colourable = SATColourizer::is_colorable(&graph);
-            if colourable {
-                all_false = false;
-            }
 
-            writeln!(temp_file, "{}", counter);
-            counter += 1;
+            assert_eq!(colourable, false);
+            // assert_eq!(colourable, true);
+            // writeln!(temp_file, "{}", counter);
+            // counter += 1;
         }
-        println!("all false: {}", all_false);
+        // println!("all false: {}", all_false);
+        println!("elapsed: {}", begin.elapsed().as_millis());
+
+        unsafe {
+            println!("elapsed partial: {}", ELAPSED / 1000000);
+        }
+        // unsafe { println!("elapsed partial: {}", ELAPSED_DFS / 1000000); }
+    }
+
+    #[test]
+    fn dfs_colouriser_performance_temp() {
+        // let path = "resources/measurement_samples/100K.Generated_graphs.30.04.sn.cyc4.g6";
+        // let path = "resources/measurement_samples/100K.Generated_graphs.32.04.sn.cyc4.g6";
+        // let path = "resources/measurement_samples/100K.Generated_graphs.34.04.sn.cyc4.g6";
+        // let path = "resources/measurement_samples/100K.Generated_graphs.36.04.sn.cyc4.g6";
+        // let path = "resources/measurement_samples/100K.Generated_graphs.38.05.sn.cyc4.g6";
+
+        let path = "resources/measurement_samples/100K.Generated_graphs.28.04.sn.cyc4.g6";
+        let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
+        let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
+        let begin = time::Instant::now();
+
+        while let Some(graph_result) = reader.next() {
+            let mut graph = graph_result.unwrap();
+
+            // let colourable = BFSColouriserBasic::is_colorable(&graph);
+            let colourable = BFSColourizerImproved::is_colorable(&graph);
+            // let colourable = DFSColouriserBasic::is_colorable(&graph);
+
+            assert_eq!(colourable, false);
+        }
+        println!("elapsed: {}", begin.elapsed().as_millis());
+
+        let path = "resources/measurement_samples/100K.Generated_graphs.30.04.sn.cyc4.g6";
+        let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
+        let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
+        let begin = time::Instant::now();
+
+        while let Some(graph_result) = reader.next() {
+            let mut graph = graph_result.unwrap();
+
+            // let colourable = BFSColouriserBasic::is_colorable(&graph);
+            let colourable = BFSColourizerImproved::is_colorable(&graph);
+            // let colourable = DFSColouriserBasic::is_colorable(&graph);
+
+            assert_eq!(colourable, false);
+        }
+        println!("elapsed: {}", begin.elapsed().as_millis());
+
+        let path = "resources/measurement_samples/100K.Generated_graphs.32.04.sn.cyc4.g6";
+        let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
+        let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
+        let begin = time::Instant::now();
+
+        while let Some(graph_result) = reader.next() {
+            let mut graph = graph_result.unwrap();
+
+            // let colourable = BFSColouriserBasic::is_colorable(&graph);
+            let colourable = BFSColourizerImproved::is_colorable(&graph);
+            // let colourable = DFSColouriserBasic::is_colorable(&graph);
+
+            assert_eq!(colourable, false);
+        }
+        println!("elapsed: {}", begin.elapsed().as_millis());
+
+        let path = "resources/measurement_samples/100K.Generated_graphs.34.04.sn.cyc4.g6";
+        let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
+        let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
+        let begin = time::Instant::now();
+
+        while let Some(graph_result) = reader.next() {
+            let mut graph = graph_result.unwrap();
+
+            // let colourable = BFSColouriserBasic::is_colorable(&graph);
+            let colourable = BFSColourizerImproved::is_colorable(&graph);
+            // let colourable = DFSColouriserBasic::is_colorable(&graph);
+
+            assert_eq!(colourable, false);
+        }
+        println!("elapsed: {}", begin.elapsed().as_millis());
+
+        let path = "resources/measurement_samples/100K.Generated_graphs.36.04.sn.cyc4.g6";
+        let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
+        let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
+        let begin = time::Instant::now();
+
+        while let Some(graph_result) = reader.next() {
+            let mut graph = graph_result.unwrap();
+
+            // let colourable = BFSColouriserBasic::is_colorable(&graph);
+            let colourable = BFSColourizerImproved::is_colorable(&graph);
+            // let colourable = DFSColouriserBasic::is_colorable(&graph);
+
+            assert_eq!(colourable, false);
+        }
+        println!("elapsed: {}", begin.elapsed().as_millis());
+
+        let path = "resources/measurement_samples/100K.Generated_graphs.38.05.sn.cyc4.g6";
+        let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
+        let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
+        let begin = time::Instant::now();
+
+        while let Some(graph_result) = reader.next() {
+            let mut graph = graph_result.unwrap();
+
+            // let colourable = BFSColouriserBasic::is_colorable(&graph);
+            let colourable = BFSColourizerImproved::is_colorable(&graph);
+            // let colourable = DFSColouriserBasic::is_colorable(&graph);
+
+            assert_eq!(colourable, false);
+        }
         println!("elapsed: {}", begin.elapsed().as_millis());
     }
 
@@ -88,8 +213,8 @@ pub mod measurement_tests {
 
         // let path = "resources/measurement_samples/100_28vert_snarks.g6";
         // let path = "resources/measurement_samples/100_30vert_snarks.g6";
-        // let path = "resources/measurement_samples/100_32vert_snarks.g6";
-        let path = "resources/measurement_samples/100_34vert_snarks.g6";
+        let path = "resources/measurement_samples/100_32vert_snarks.g6";
+        // let path = "resources/measurement_samples/100_34vert_snarks.g6";
         // let path = "resources/measurement_samples/100_36vert_snarks.g6";
         // let path = "resources/measurement_samples/100_38vert_snarks.g6";
         let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
@@ -108,8 +233,9 @@ pub mod measurement_tests {
 
             let mut props =
                 // StableAndCriticalProperties::of_graph_with_colourizer(&graph, CvdDfsColourizer::new());
-            StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerOriginal::new());
-            // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizer::new());
+            // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerOriginal::new());
+            StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizer::new());
+            // StableAndCriticalProperties::of_graph_with_colourizer(&graph, BFSColourizerImproved::new());
             // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerSimple::new());
             // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DfsDfsColourizer::new());
             let crit = props.is_critical();
@@ -284,6 +410,9 @@ pub mod sat_measurement_tests {
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::dfs_improved::DFSColourizer;
     use crate::service::colour::sat::SATColourizer;
+    use crate::service::colour::sat_cadical::SATColourizerCadical;
+    use crate::service::colour::sat_new::SATColourizerNew;
+    use crate::service::colour::sat_new_2::{SATColourizerNew2, ELAPSED};
     use crate::service::colour::sat_splr::SATSplrColourizer;
     use crate::service::component_analysis::edge_pairs::PairsOfNonAdjacentEdges;
     use crate::service::component_analysis::vertex_pairs::PairsOfAdjacentVertices;
@@ -298,8 +427,6 @@ pub mod sat_measurement_tests {
     use std::iter::FromIterator;
     use std::ops::Add;
     use std::{fs, time};
-    use crate::service::colour::sat_new::SATColourizerNew;
-    use crate::service::colour::sat_new_2::{SATColourizerNew2, ELAPSED};
 
     #[test]
     fn sat_prepare_graphs() {
@@ -385,12 +512,12 @@ pub mod sat_measurement_tests {
     fn sat_colouriser_performance() {
         // let path = "resources/measurement_samples/dfs-vs-sat/10K.dot_product.56.g6";
         // let path = "resources/measurement_samples/dfs-vs-sat/10K.dot_product.58.g6";
-        let path = "resources/measurement_samples/dfs-vs-sat/2K.dot_product.58.g6";
+        // let path = "resources/measurement_samples/dfs-vs-sat/2K.dot_product.58.g6";
         // let path = "resources/measurement_samples/dfs-vs-sat/100K.dot_product.46.g6";
         // let path = "resources/measurement_samples/dfs-vs-sat/5K.dot_product.46.g6";
         // let path = "resources/measurement_samples/dfs-vs-sat/5K.dot_product.58.g6";
         // let path = "resources/measurement_samples/dfs-vs-sat/10K.dot_product.56.g6";
-        // let path = "resources/measurement_samples/dfs-vs-sat/temp_dir/5K.dot_product.62.g6";
+        let path = "resources/measurement_samples/dfs-vs-sat/temp_dir/5K.dot_product.64.g6";
         // let path =
         //     "resources/measurement_samples/dfs-vs-sat/dot_product_36+(18-34)/5K.dot_product.66.g6";
         // let path =
@@ -407,23 +534,24 @@ pub mod sat_measurement_tests {
             // let colourable = DFSColourizer::is_colorable(&graph);
             // let colourable = SATColourizer::is_colorable(&graph);
             // let colourable = SATColourizerNew::is_colorable(&graph);
-            let colourable = SATColourizerNew2::is_colorable(&graph);
+            // let colourable = SATColourizerNew2::is_colorable(&graph);
             // let colourable = SATSplrColourizer::is_colorable(&graph);
+            let colourable = SATColourizerCadical::is_colorable(&graph);
             assert_eq!(colourable, false);
 
             // assert_eq!(graph.size(), 56);
         }
         println!("elapsed: {}", begin.elapsed().as_millis());
 
-        unsafe { println!("elapsed formula: {}", ELAPSED / 1000); }
-
+        unsafe {
+            println!("elapsed formula: {}", ELAPSED / 1000);
+        }
     }
 
     fn dfs_vs_sat_sizes() -> Vec<usize> {
-        // let mut size = 44;
-        let mut size = 60;
+        let mut size = 44;
+        // let mut size = 60;
         let mut sizes = vec![];
-        // while size < 58 {
         while size < 64 {
             size += 2;
             sizes.push(size)
@@ -440,10 +568,13 @@ pub mod sat_measurement_tests {
             .open(out_file_path)
             .unwrap();
 
-        let dir_path = "resources/measurement_samples/dfs-vs-sat/dot_product_36+(18-34)";
+        // let dir_path = "resources/measurement_samples/dfs-vs-sat/dot_product_36+(18-34)";
         // let dir_path = "resources/measurement_samples/dfs-vs-sat/dot_product_30+(18-34)";
+        let dir_path = "resources/measurement_samples/dfs-vs-sat/temp_dir";
 
         let mut tex_string: String = "".to_string();
+        let mut tex_string_formula: String = "".to_string();
+
         for size in dfs_vs_sat_sizes() {
             let path = format!("{}/5K.dot_product.{}.g6", dir_path, size);
 
@@ -456,57 +587,28 @@ pub mod sat_measurement_tests {
                 let mut graph = graph_result.unwrap();
 
                 // let colourable = DFSColourizer::is_colorable(&graph);
-                let colourable = SATColourizer::is_colorable(&graph);
-                // let colourable = SATSplrColourizer::is_colorable(&graph);
-                assert_eq!(colourable, false);
-                assert_eq!(graph.size(), size);
-            }
-            let elapsed = begin.elapsed().as_millis();
-            writeln!(out_file, "size: {}, elapsed: {} ms", size, elapsed);
-            tex_string =
-                tex_string.add(format!("({}, {})", size, (elapsed as f64) / 1000 as f64).as_ref());
-        }
-
-        writeln!(out_file, "{}", tex_string);
-    }
-
-    // TODO - remove
-    #[test]
-    fn sat_colouriser_performance_set_of_files_dfs() {
-        let out_file_path = "resources/measurement_samples/dfs-vs-sat/results_dfs.txt";
-        let mut out_file = fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(out_file_path)
-            .unwrap();
-        let dir_path = "resources/measurement_samples/dfs-vs-sat/dot_product_36+(18-34)";
-        // let dir_path = "resources/measurement_samples/dfs-vs-sat/dot_product_30+(18-34)";
-
-        let mut tex_string: String = "".to_string();
-        for size in dfs_vs_sat_sizes() {
-            let path = format!("{}/5K.dot_product.{}.g6", dir_path, size);
-
-            let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
-            let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
-
-            let begin = time::Instant::now();
-
-            while let Some(graph_result) = reader.next() {
-                let mut graph = graph_result.unwrap();
-
-                let colourable = DFSColourizer::is_colorable(&graph);
                 // let colourable = SATColourizer::is_colorable(&graph);
-                // let colourable = SATSplrColourizer::is_colorable(&graph);
+                let colourable = SATSplrColourizer::is_colorable(&graph);
+                // let colourable = SATColourizerNew2::is_colorable(&graph);
+                // let colourable = SATColourizerCadical::is_colorable(&graph);
                 assert_eq!(colourable, false);
                 assert_eq!(graph.size(), size);
             }
             let elapsed = begin.elapsed().as_millis();
+            // println!("size: {}, elapsed: {} ms", size, elapsed);
             writeln!(out_file, "size: {}, elapsed: {} ms", size, elapsed);
             tex_string =
                 tex_string.add(format!("({}, {})", size, (elapsed as f64) / 1000 as f64).as_ref());
+
+            // unsafe {
+            //     let elapsed_formula = ELAPSED / 1000;
+            //     tex_string_formula = tex_string_formula.add(format!("({}, {})", size, (elapsed_formula as f64) / 1000 as f64).as_ref());
+            // }
         }
 
         writeln!(out_file, "{}", tex_string);
+        // write!(out_file, "formula: ");
+        // writeln!(out_file, "{}", tex_string_formula);
     }
 
     #[test]

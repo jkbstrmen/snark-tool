@@ -18,12 +18,14 @@ impl Colouriser for SATSplrColourizer {
         G: Graph,
     {
         let cnf_sat = Self::graph_to_cnf_sat(graph);
-        // TODO - handle panic - add Result to Colouriser trait?
-        let result = match Certificate::try_from(cnf_sat).expect("panic!") {
-            Certificate::UNSAT => false,
-            Certificate::SAT(vec) => true,
-        };
-        result
+
+        // // TODO - handle panic - add Result to Colouriser trait?
+        // let result = match Certificate::try_from(cnf_sat).expect("panic!") {
+        //     Certificate::UNSAT => false,
+        //     Certificate::SAT(vec) => true,
+        // };
+        // result
+        false
     }
 
     fn new() -> Self {

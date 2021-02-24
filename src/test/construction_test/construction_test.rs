@@ -157,9 +157,4 @@ pub mod constructions_tests {
 
     #[test]
     fn two_i_extension_test() {}
-
-    #[test]
-    fn isomorphism_test() {
-        // petgraph::algo::is_isomorphic();
-    }
 }

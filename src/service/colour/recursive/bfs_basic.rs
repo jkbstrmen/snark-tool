@@ -1,34 +1,31 @@
-use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
-use crate::graph::vertex::Vertex;
+use crate::service::graph_traversal::bfs::BfsOfGraph;
 use crate::service::colour::colouriser::Colouriser;
-use crate::service::graph_traversal::bfs_temp::BfsOfGraph;
-use crate::service::graph_traversal::dfs::DfsOfGraph;
-use serde::export::Option::Some;
-use std::time::Instant;
+use crate::graph::vertex::Vertex;
+use crate::graph::edge::Edge;
 
-pub static mut ELAPSED_DFS: u128 = 0;
+///
+/// Works only for cubic graphs
+///
+pub struct BFSColouriserBasic {}
 
-pub struct DFSColouriserBasic {}
-
-#[derive(Debug, Clone)]
-struct DFSColouriserGraph<'a, G: Graph + Clone> {
+struct BFSColouriserGraph<'a, G: Graph> {
     vertices: Vec<[(usize, usize); 3]>,
-    dfs: DfsOfGraph<'a, G>,
+    bfs: BfsOfGraph<'a, G>,
 }
 
-impl DFSColouriserBasic {
-    pub fn is_colorable<G: Graph + Clone>(graph: &G) -> bool {
-        let mut color_graph = DFSColouriserGraph::new(graph);
+impl Colouriser for BFSColouriserBasic {
+    fn is_colorable<G: Graph>(graph: &G) -> bool {
+        let mut color_graph = BFSColouriserGraph::new(graph);
         color_graph.color()
     }
 
     fn new() -> Self {
-        DFSColouriserBasic {}
+        BFSColouriserBasic {}
     }
 }
 
-impl<'a, G: Graph + Clone> DFSColouriserGraph<'a, G> {
+impl<'a, G: Graph> BFSColouriserGraph<'a, G> {
     pub fn new(graph: &'a G) -> Self {
         let mut vertices = Vec::with_capacity(graph.size());
         // create local graph
@@ -50,12 +47,12 @@ impl<'a, G: Graph + Clone> DFSColouriserGraph<'a, G> {
         }
         let first_vertex = 0;
         let colors = vec![3, 4, 5];
-        let bfs = DfsOfGraph::new(graph, first_vertex);
+        let bfs = BfsOfGraph::new(graph, first_vertex);
 
-        let mut color_graph = DFSColouriserGraph { vertices, dfs: bfs };
+        let mut color_graph = BFSColouriserGraph { vertices, bfs };
 
         // pre color edges of first vertex
-        color_graph.dfs.next();
+        color_graph.bfs.next();
         color_graph.set_edge_color(
             first_vertex,
             color_graph.vertices[first_vertex][0].0,
@@ -76,19 +73,8 @@ impl<'a, G: Graph + Clone> DFSColouriserGraph<'a, G> {
     }
 
     fn color(&mut self) -> bool {
-        let begin = Instant::now();
-
-        let local_copy = self.clone();
-        let next = self.dfs.next();
-
-        unsafe {
-            ELAPSED_DFS += begin.elapsed().as_nanos();
-        }
-
-        // if let Some(next) = self.dfs.next() {
-        if let Some(next) = next {
+        if let Some(next) = self.bfs.next() {
             let actual = next.index();
-            // println!("{}", actual);
 
             // compute actual sum of colors of edges of next
             let mut color_sum = 0;
@@ -120,6 +106,8 @@ impl<'a, G: Graph + Clone> DFSColouriserGraph<'a, G> {
                             return true;
                         }
                     }
+                    self.set_edge_color(actual, first_neighbor, 0);
+                    self.set_edge_color(actual, second_neighbor, 0);
                 }
                 4 => {
                     self.set_edge_color(actual, first_neighbor, 3);
@@ -136,6 +124,8 @@ impl<'a, G: Graph + Clone> DFSColouriserGraph<'a, G> {
                             return true;
                         }
                     }
+                    self.set_edge_color(actual, first_neighbor, 0);
+                    self.set_edge_color(actual, second_neighbor, 0);
                 }
                 5 => {
                     self.set_edge_color(actual, first_neighbor, 3);
@@ -152,6 +142,8 @@ impl<'a, G: Graph + Clone> DFSColouriserGraph<'a, G> {
                             return true;
                         }
                     }
+                    self.set_edge_color(actual, first_neighbor, 0);
+                    self.set_edge_color(actual, second_neighbor, 0);
                 }
                 // two already colored edges
                 7 => {
@@ -161,6 +153,7 @@ impl<'a, G: Graph + Clone> DFSColouriserGraph<'a, G> {
                             return true;
                         }
                     }
+                    self.set_edge_color(actual, first_neighbor, 0);
                 }
                 8 => {
                     self.set_edge_color(actual, first_neighbor, 4);
@@ -169,6 +162,7 @@ impl<'a, G: Graph + Clone> DFSColouriserGraph<'a, G> {
                             return true;
                         }
                     }
+                    self.set_edge_color(actual, first_neighbor, 0);
                 }
                 9 => {
                     self.set_edge_color(actual, first_neighbor, 3);
@@ -177,6 +171,7 @@ impl<'a, G: Graph + Clone> DFSColouriserGraph<'a, G> {
                             return true;
                         }
                     }
+                    self.set_edge_color(actual, first_neighbor, 0);
                 }
 
                 12 => {
@@ -187,15 +182,7 @@ impl<'a, G: Graph + Clone> DFSColouriserGraph<'a, G> {
                 _ => panic!("unknown color sum: {}", color_sum),
             }
 
-            let begin = Instant::now();
-
-            self.dfs = local_copy.dfs;
-            self.vertices = local_copy.vertices;
-
-            unsafe {
-                ELAPSED_DFS += begin.elapsed().as_nanos();
-            }
-
+            self.bfs.back();
             return false;
         }
         true
@@ -216,7 +203,6 @@ impl<'a, G: Graph + Clone> DFSColouriserGraph<'a, G> {
         }
     }
 
-    // ttt2
     fn is_vertex_without_conflict(&self, neighbors: &[(usize, usize); 3]) -> bool {
         is_without_conflict(neighbors[0].1, neighbors[1].1, neighbors[2].1)
     }
@@ -228,7 +214,6 @@ impl<'a, G: Graph + Clone> DFSColouriserGraph<'a, G> {
 }
 
 fn is_without_conflict(color1: usize, color2: usize, color3: usize) -> bool {
-    // ttt
     if (color1 == color2) && (color1 > 1) {
         return false;
     }

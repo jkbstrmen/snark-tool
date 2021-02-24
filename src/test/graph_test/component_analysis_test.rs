@@ -3,7 +3,7 @@ mod graph_component_analysis_tests {
     use crate::graph::edge::Edge;
     use crate::graph::graph::Graph;
     use crate::service::colour::colouriser::Colouriser;
-    use crate::service::colour::dfs_improved::DFSColourizer;
+    use crate::service::colour::recursive::dfs_improved::DFSColourizer;
     use crate::service::component_analysis::edge_pairs::{
         PairsOfNonAdjacentEdges, RemovablePairsOfEdges,
     };

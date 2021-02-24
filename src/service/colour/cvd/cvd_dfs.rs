@@ -1,25 +1,26 @@
 use crate::graph::graph::Graph;
 use crate::service::colour::colouriser::Colouriser;
-use crate::service::colour::cvd;
-use crate::service::colour::sat::SATColourizer;
+use crate::service::colour::cvd::cvd;
+use crate::service::colour::recursive::dfs_improved::DFSColourizer;
 
 // Colorizer for (sub)cubic graphs only
-pub struct CvdSatColourizer {}
+pub struct CvdDfsColourizer {}
 
-impl Colouriser for CvdSatColourizer {
+impl Colouriser for CvdDfsColourizer {
     fn is_colorable<G>(graph: &G) -> bool
     where
         G: Graph,
     {
         let result_cvd = cvd::is_colorable(graph);
+
         if result_cvd.is_none() {
-            let result = SATColourizer::is_colorable(graph);
+            let result = DFSColourizer::is_colorable(graph);
             return result;
         }
         result_cvd.unwrap()
     }
 
     fn new() -> Self {
-        CvdSatColourizer {}
+        CvdDfsColourizer {}
     }
 }

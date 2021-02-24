@@ -2,10 +2,8 @@ use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
 use crate::service::colour::colouriser::Colouriser;
-use crate::service::colour::sat_new_2::ELAPSED;
 use std::collections::HashMap;
 use std::iter::FromIterator;
-use std::time::Instant;
 use varisat::solver::Solver;
 use varisat::{CnfFormula, ExtendFormula, Lit};
 

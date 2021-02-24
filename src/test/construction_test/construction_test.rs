@@ -5,7 +5,7 @@ pub mod constructions_tests {
     use crate::graph::undirected::edge::UndirectedEdge;
     use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::service::colour::colouriser::Colouriser;
-    use crate::service::colour::dfs_improved::DFSColourizer;
+    use crate::service::colour::recursive::dfs_improved::DFSColourizer;
     use crate::service::constructions::dot_product::DotProducts;
     use crate::service::constructions::i_extension::{i_extension, IExtensions};
     use crate::service::constructions::y_extension::{y_extension, YExtensions};

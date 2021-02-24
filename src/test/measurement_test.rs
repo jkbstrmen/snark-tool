@@ -3,16 +3,14 @@ pub mod measurement_tests {
     use crate::graph::graph::Graph;
     use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
-    use crate::service::colour::bfs_basic::{BFSColouriserBasic, ELAPSED};
-    use crate::service::colour::bfs_basic_improved::BFSColourizerImproved;
+    use crate::service::colour::recursive::bfs_basic::BFSColouriserBasic;
+    use crate::service::colour::recursive::bfs_improved::BFSColourizerImproved;
     use crate::service::colour::colouriser::Colouriser;
-    use crate::service::colour::cvd;
-    use crate::service::colour::cvd_dfs::CvdDfsColourizer;
-    use crate::service::colour::dfs_basic::{DFSColouriserBasic, ELAPSED_DFS};
-    use crate::service::colour::dfs_improved::DFSColourizer;
-    use crate::service::colour::dfs_orig::DFSColourizerOriginal;
-    use crate::service::colour::sat::SATColourizer;
-    use crate::service::graph_traversal::bfs_temp::BfsOfGraph;
+    use crate::service::colour::cvd::cvd;
+    use crate::service::colour::cvd::cvd_dfs::CvdDfsColourizer;
+    use crate::service::colour::recursive::dfs_improved::DFSColourizer;
+    use crate::service::colour::recursive::dfs_orig::DFSColourizerOriginal;
+    use crate::service::colour::sat::sat::SATColourizer;
     use crate::service::io::reader::Reader;
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::io::reader_s6::S6Reader;
@@ -86,9 +84,6 @@ pub mod measurement_tests {
         // println!("all false: {}", all_false);
         println!("elapsed: {}", begin.elapsed().as_millis());
 
-        unsafe {
-            println!("elapsed partial: {}", ELAPSED / 1000000);
-        }
         // unsafe { println!("elapsed partial: {}", ELAPSED_DFS / 1000000); }
     }
 
@@ -213,10 +208,17 @@ pub mod measurement_tests {
 
         // let path = "resources/measurement_samples/100_28vert_snarks.g6";
         // let path = "resources/measurement_samples/100_30vert_snarks.g6";
-        let path = "resources/measurement_samples/100_32vert_snarks.g6";
+        // let path = "resources/measurement_samples/100_32vert_snarks.g6";
         // let path = "resources/measurement_samples/100_34vert_snarks.g6";
         // let path = "resources/measurement_samples/100_36vert_snarks.g6";
         // let path = "resources/measurement_samples/100_38vert_snarks.g6";
+
+        // let path = "resources/measurement_samples/cvd-dfs-cvd-sat/10.dot_product.46.g6";
+        // let path = "resources/measurement_samples/cvd-dfs-cvd-sat/10.dot_product.54.g6";
+        // let path = "resources/measurement_samples/cvd-dfs-cvd-sat/10.dot_product.62.g6";
+        // let path = "resources/measurement_samples/cvd-dfs-cvd-sat/10.dot_product.68.g6";
+
+        let path = "resources/measurement_samples/cvd-dfs-cvd-sat/1.dot_product.62.g6";
         let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
         let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
 
@@ -232,12 +234,13 @@ pub mod measurement_tests {
             let graph = graph_result.unwrap();
 
             let mut props =
-                // StableAndCriticalProperties::of_graph_with_colourizer(&graph, CvdDfsColourizer::new());
+                StableAndCriticalProperties::of_graph_with_colourizer(&graph, CvdDfsColourizer::new());
             // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerOriginal::new());
-            StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizer::new());
+            // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizer::new());
             // StableAndCriticalProperties::of_graph_with_colourizer(&graph, BFSColourizerImproved::new());
             // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerSimple::new());
             // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DfsDfsColourizer::new());
+
             let crit = props.is_critical();
             let cocrit = props.is_cocritical();
             let e_subcrit = props.is_edge_subcritical();
@@ -408,12 +411,9 @@ pub mod sat_measurement_tests {
     use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
     use crate::service::colour::colouriser::Colouriser;
-    use crate::service::colour::dfs_improved::DFSColourizer;
-    use crate::service::colour::sat::SATColourizer;
-    use crate::service::colour::sat_cadical::SATColourizerCadical;
-    use crate::service::colour::sat_new::SATColourizerNew;
-    use crate::service::colour::sat_new_2::{SATColourizerNew2, ELAPSED};
-    use crate::service::colour::sat_splr::SATSplrColourizer;
+    use crate::service::colour::recursive::dfs_improved::DFSColourizer;
+    use crate::service::colour::sat::sat::SATColourizer;
+    use crate::service::colour::sat::sat_cadical::SATColourizerCadical;
     use crate::service::component_analysis::edge_pairs::PairsOfNonAdjacentEdges;
     use crate::service::component_analysis::vertex_pairs::PairsOfAdjacentVertices;
     use crate::service::constructions::dot_product::DotProducts;
@@ -517,11 +517,11 @@ pub mod sat_measurement_tests {
         // let path = "resources/measurement_samples/dfs-vs-sat/5K.dot_product.46.g6";
         // let path = "resources/measurement_samples/dfs-vs-sat/5K.dot_product.58.g6";
         // let path = "resources/measurement_samples/dfs-vs-sat/10K.dot_product.56.g6";
-        let path = "resources/measurement_samples/dfs-vs-sat/temp_dir/5K.dot_product.64.g6";
+        // let path = "resources/measurement_samples/dfs-vs-sat/temp_dir/5K.dot_product.64.g6";
         // let path =
         //     "resources/measurement_samples/dfs-vs-sat/dot_product_36+(18-34)/5K.dot_product.66.g6";
-        // let path =
-        //     "resources/measurement_samples/dfs-vs-sat/dot_product_36+(18-34)/5K.dot_product.64.g6";
+        let path =
+            "resources/measurement_samples/dfs-vs-sat/dot_product_36+(18-34)/5K.dot_product.64.g6";
 
         let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
         let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
@@ -532,20 +532,14 @@ pub mod sat_measurement_tests {
             let mut graph = graph_result.unwrap();
 
             // let colourable = DFSColourizer::is_colorable(&graph);
-            // let colourable = SATColourizer::is_colorable(&graph);
-            // let colourable = SATColourizerNew::is_colorable(&graph);
-            // let colourable = SATColourizerNew2::is_colorable(&graph);
-            // let colourable = SATSplrColourizer::is_colorable(&graph);
-            let colourable = SATColourizerCadical::is_colorable(&graph);
+            let colourable = SATColourizer::is_colorable(&graph);
+            // let colourable = SATColourizerCadical::is_colorable(&graph);
             assert_eq!(colourable, false);
 
             // assert_eq!(graph.size(), 56);
         }
         println!("elapsed: {}", begin.elapsed().as_millis());
 
-        unsafe {
-            println!("elapsed formula: {}", ELAPSED / 1000);
-        }
     }
 
     fn dfs_vs_sat_sizes() -> Vec<usize> {
@@ -587,9 +581,7 @@ pub mod sat_measurement_tests {
                 let mut graph = graph_result.unwrap();
 
                 // let colourable = DFSColourizer::is_colorable(&graph);
-                // let colourable = SATColourizer::is_colorable(&graph);
-                let colourable = SATSplrColourizer::is_colorable(&graph);
-                // let colourable = SATColourizerNew2::is_colorable(&graph);
+                let colourable = SATColourizer::is_colorable(&graph);
                 // let colourable = SATColourizerCadical::is_colorable(&graph);
                 assert_eq!(colourable, false);
                 assert_eq!(graph.size(), size);
@@ -692,6 +684,15 @@ pub mod cvd_measurement_tests {
     use crate::service::io::reader::Reader;
     use crate::service::io::reader_s6::S6Reader;
     use std::{fs, thread, time};
+    use crate::service::colour::colouriser::Colouriser;
+    use crate::service::colour::cvd::cvd;
+    use crate::service::colour::cvd::cvd_dfs::CvdDfsColourizer;
+    use crate::service::colour::recursive::dfs_improved::DFSColourizer;
+    use crate::service::colour::sat::sat::SATColourizer;
+    use std::io::Write;
+    use std::ops::Add;
+    use std::sync::mpsc;
+
 
     #[test]
     fn temp() {
@@ -833,15 +834,6 @@ pub mod cvd_measurement_tests {
 
         println!("{}", measurement_string);
     }
-
-    use crate::service::colour::colouriser::Colouriser;
-    use crate::service::colour::cvd;
-    use crate::service::colour::cvd_dfs::CvdDfsColourizer;
-    use crate::service::colour::dfs_improved::DFSColourizer;
-    use crate::service::colour::sat::SATColourizer;
-    use std::io::Write;
-    use std::ops::Add;
-    use std::sync::mpsc;
 
     fn perform_measurements_parallel() {
         let sizes = small_sizes();

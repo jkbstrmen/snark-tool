@@ -4,9 +4,9 @@ use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
 use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
 use crate::service::colour::colouriser::Colouriser;
-use crate::service::colour::cvd_dfs::CvdDfsColourizer;
-use crate::service::colour::dfs_improved::DFSColourizer;
-use crate::service::colour::sat::SATColourizer;
+use crate::service::colour::cvd::cvd_dfs::CvdDfsColourizer;
+use crate::service::colour::recursive::dfs_improved::DFSColourizer;
+use crate::service::colour::sat::sat::SATColourizer;
 use std::collections::HashMap;
 use std::marker;
 

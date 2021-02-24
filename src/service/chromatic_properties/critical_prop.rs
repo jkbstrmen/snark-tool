@@ -3,7 +3,7 @@ use crate::graph::graph::Graph;
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::simple_graph::graph::SimpleGraph;
 use crate::service::colour::colouriser::Colouriser;
-use crate::service::colour::dfs_improved::DFSColourizer;
+use crate::service::colour::recursive::dfs_improved::DFSColourizer;
 
 pub struct CriticalProperties<C>
 where

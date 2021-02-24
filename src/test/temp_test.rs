@@ -18,8 +18,8 @@ mod matchings_performance {
     use std::time::Instant;
     use std::{fs, time};
     use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
-    use crate::service::colour::sat::SATColourizer;
-    use crate::service::colour::dfs_improved::DFSColourizer;
+    use crate::service::colour::sat::sat::SATColourizer;
+    use crate::service::colour::recursive::dfs_improved::DFSColourizer;
     use crate::graph::undirected::simple_graph::graph::SimpleSparseGraph;
     use crate::service::property::cyclic_connectivity::cyclic_edge_connectivity;
 

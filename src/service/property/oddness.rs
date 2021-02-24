@@ -1,6 +1,6 @@
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
-use crate::service::colour::matching_col::CycleDiscovery;
+use crate::service::colour::matchings::matching_col::CycleDiscovery;
 use crate::service::matching::perfect_matchings::MatchingGraph;
 
 pub struct Oddness {}

@@ -5,7 +5,7 @@ use crate::procedure::procedure;
 use crate::procedure::procedure::{GraphProperties, Procedure};
 use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
 use crate::service::colour::colouriser::Colouriser;
-use crate::service::colour::dfs_improved::DFSColourizer;
+use crate::service::colour::recursive::dfs_improved::DFSColourizer;
 use crate::service::constructions::dot_product::DotProducts;
 use crate::service::constructions::error::ConstructionError;
 use crate::service::constructions::i_extension::IExtensions;

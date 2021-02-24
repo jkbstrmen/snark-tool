@@ -1,8 +1,9 @@
-use crate::graph::edge::Edge;
+
+use std::collections::VecDeque;
+use crate::service::colour::colouriser::Colouriser;
 use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
-use crate::service::colour::colouriser::Colouriser;
-use std::collections::VecDeque;
+use crate::graph::edge::Edge;
 
 ///
 /// Colorizer for (sub)cubic graphs only
@@ -154,20 +155,20 @@ impl BFSColourizerImprovedGraph {
 
                 // TODO - not working for subcubic graphs
 
-                // if self.non_colored_edges[neighbor1 as usize] == 1 {
-                //     next_vertex = neighbor1;
-                // } else if !self.one_edge_vert.is_empty() {
-                //     next_vertex = self.one_edge_vert.pop().unwrap();
-                //     self.to_visit.push_back(neighbor1);
-                //     from_one_vert = true;
-                // } else {
-                //     self.to_visit.push_back(neighbor1);
-                //     next_vertex = self.to_visit.pop_front().unwrap();
-                //     from_to_visit = true;
-                // }
+                if self.non_colored_edges[neighbor1 as usize] == 1 {
+                    next_vertex = neighbor1;
+                } else if !self.one_edge_vert.is_empty() {
+                    next_vertex = self.one_edge_vert.pop().unwrap();
+                    self.to_visit.push_back(neighbor1);
+                    from_one_vert = true;
+                } else {
+                    self.to_visit.push_back(neighbor1);
+                    next_vertex = self.to_visit.pop_front().unwrap();
+                    from_to_visit = true;
+                }
 
-                self.to_visit.push_back(neighbor1);
-                next_vertex = self.to_visit.pop_front().unwrap();
+                // self.to_visit.push_back(neighbor1);
+                // next_vertex = self.to_visit.pop_front().unwrap();
 
 
                 match colored_sum {
@@ -219,16 +220,16 @@ impl BFSColourizerImprovedGraph {
                     }
                 }
                 // revert changes
-                // if from_to_visit {
-                //     self.to_visit.pop_back();
-                //     self.to_visit.push_front(next_vertex);
-                // }
-                // if from_one_vert {
-                //     self.to_visit.pop_back();
-                //     self.one_edge_vert.push(next_vertex);
-                // }
-                self.to_visit.pop_back();
-                self.one_edge_vert.push(next_vertex);
+                if from_to_visit {
+                    self.to_visit.pop_back();
+                    self.to_visit.push_front(next_vertex);
+                }
+                if from_one_vert {
+                    self.to_visit.pop_back();
+                    self.one_edge_vert.push(next_vertex);
+                }
+                // self.to_visit.pop_back();
+                // self.one_edge_vert.push(next_vertex);
 
                 self.non_colored_edges_of_graph += 1;
                 self.non_colored_edges[vertex as usize] += 1;
@@ -247,33 +248,43 @@ impl BFSColourizerImprovedGraph {
 
                 // TODO - what if not added to neither one edge neither to visit?
 
-                // if self.non_colored_edges[neighbor1 as usize] == 1 {
-                //     if self.vertices[neighbor1 as usize][2].1 != 0 {
-                //         one_edge_neighbors += 1;
-                //         self.one_edge_vert.push(neighbor1);
-                //     }
-                // } else {
-                //     self.to_visit.push_back(neighbor1);
-                // }
-                // if self.non_colored_edges[neighbor2 as usize] == 1 {
-                //     if self.vertices[neighbor2 as usize][2].1 != 0 {
-                //         one_edge_neighbors += 1;
-                //         self.one_edge_vert.push(neighbor2);
-                //     }
-                // } else {
-                //     self.to_visit.push_back(neighbor2);
-                // }
-                // if !self.one_edge_vert.is_empty() {
-                //     next_from_queue = true;
-                //     next_vertex = self.one_edge_vert.pop().unwrap();
-                // } else {
-                //     next_vertex = self.to_visit.pop_front().unwrap();
-                // }
+                if self.non_colored_edges[neighbor1 as usize] == 1 {
+                    if self.vertices[neighbor1 as usize][2].1 != 0 {
+                        one_edge_neighbors += 1;
+                        self.one_edge_vert.push(neighbor1);
+                    } else {
+                        self.to_visit.push_back(neighbor1);
+                    }
+                } else {
+                    self.to_visit.push_back(neighbor1);
+                }
+                if self.non_colored_edges[neighbor2 as usize] == 1 {
+                    if self.vertices[neighbor2 as usize][2].1 != 0 {
+                        one_edge_neighbors += 1;
+                        self.one_edge_vert.push(neighbor2);
+                    } else {
+                        self.to_visit.push_back(neighbor2);
+                    }
+                } else {
+                    self.to_visit.push_back(neighbor2);
+                }
+                if !self.one_edge_vert.is_empty() {
+                    next_from_queue = true;
+                    next_vertex = self.one_edge_vert.pop().unwrap();
+                } else {
+                    if let Some(next) = self.to_visit.pop_front() {
+                        next_vertex = next;
+                    } else {
+                        panic!("here");
+                    }
+
+                    // next_vertex = self.to_visit.pop_front().unwrap();
+                }
 
 
-                self.to_visit.push_back(neighbor1);
-                self.to_visit.push_back(neighbor2);
-                next_vertex = self.to_visit.pop_front().unwrap();
+                // self.to_visit.push_back(neighbor1);
+                // self.to_visit.push_back(neighbor2);
+                // next_vertex = self.to_visit.pop_front().unwrap();
 
                 match colored_sum {
                     0 => {
@@ -314,26 +325,26 @@ impl BFSColourizerImprovedGraph {
                     }
                 }
                 // revert changes
-                // if one_edge_neighbors == 2 {
-                //     self.one_edge_vert.pop();
-                // }
-                // if one_edge_neighbors == 1 {
-                //     self.to_visit.pop_back();
-                // }
-                // if next_from_queue && one_edge_neighbors == 0 {
-                //     self.one_edge_vert.push(next_vertex);
-                //     self.to_visit.pop_back();
-                //     self.to_visit.pop_back();
-                // }
-                // if !next_from_queue && one_edge_neighbors == 0 {
-                //     self.to_visit.push_front(next_vertex);
-                //     self.to_visit.pop_back();
-                //     self.to_visit.pop_back();
-                // }
+                if one_edge_neighbors == 2 {
+                    self.one_edge_vert.pop();
+                }
+                if one_edge_neighbors == 1 {
+                    self.to_visit.pop_back();
+                }
+                if next_from_queue && one_edge_neighbors == 0 {
+                    self.one_edge_vert.push(next_vertex);
+                    self.to_visit.pop_back();
+                    self.to_visit.pop_back();
+                }
+                if !next_from_queue && one_edge_neighbors == 0 {
+                    self.to_visit.push_front(next_vertex);
+                    self.to_visit.pop_back();
+                    self.to_visit.pop_back();
+                }
 
-                self.to_visit.push_front(next_vertex);
-                self.to_visit.pop_back();
-                self.to_visit.pop_back();
+                // self.to_visit.push_front(next_vertex);
+                // self.to_visit.pop_back();
+                // self.to_visit.pop_back();
 
                 self.non_colored_edges_of_graph += 2;
                 self.non_colored_edges[vertex as usize] += 2;

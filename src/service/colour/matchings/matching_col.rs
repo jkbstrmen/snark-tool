@@ -1,9 +1,7 @@
-use crate::graph::edge::Edge;
-use crate::graph::graph::Graph;
 use crate::service::colour::colouriser::Colouriser;
-use crate::service::matching::perfect_matchings::{
-    Matching, MatchingGraph, MatchingGraphVerticesIter,
-};
+use crate::graph::graph::Graph;
+use crate::service::matching::perfect_matchings::{MatchingGraph, Matching, MatchingGraphVerticesIter};
+use crate::graph::edge::Edge;
 
 // TODO - add to procedures
 

@@ -1,21 +1,14 @@
 use crate::graph::graph::Graph;
-use petgraph::graph::{UnGraph, NodeIndex};
 use crate::graph::vertex::Vertex;
+use petgraph::graph::{NodeIndex, UnGraph};
 
 pub fn is_isomorphic<G: Graph>(first: &G, second: &G) -> bool {
     let first_petgraph = to_petgraph(first);
     let second_petgraph = to_petgraph(second);
     petgraph::algo::is_isomorphic(&first_petgraph, &second_petgraph)
-
-    // if first_petgraph.contains_edge(NodeIndex::new(0), NodeIndex::new(1)) &&
-    //     second_petgraph.contains_edge(NodeIndex::new(0), NodeIndex::new(1))
-    // {
-    //     return false;
-    // }
-    // true
 }
 
-fn to_petgraph<G: Graph>(graph: &G) -> UnGraph<usize, usize>{
+fn to_petgraph<G: Graph>(graph: &G) -> UnGraph<usize, usize> {
     let mut petgraph = UnGraph::new_undirected();
     for _vertex in graph.vertices() {
         petgraph.add_node(0);

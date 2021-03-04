@@ -3,11 +3,13 @@ pub mod measurement_tests {
     use crate::graph::graph::Graph;
     use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
-    use crate::service::colour::recursive::bfs_basic::BFSColouriserBasic;
-    use crate::service::colour::recursive::bfs_improved::BFSColourizerImproved;
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::cvd::cvd;
     use crate::service::colour::cvd::cvd_dfs::CvdDfsColourizer;
+    use crate::service::colour::matchings::matching_col::MatchingColouriser;
+    use crate::service::colour::matchings::matching_col_2::MatchingColouriser2;
+    use crate::service::colour::recursive::bfs_basic::BFSColouriserBasic;
+    use crate::service::colour::recursive::bfs_improved::BFSColourizerImproved;
     use crate::service::colour::recursive::dfs_improved::DFSColourizer;
     use crate::service::colour::recursive::dfs_orig::DFSColourizerOriginal;
     use crate::service::colour::sat::sat::SATColourizer;
@@ -15,6 +17,7 @@ pub mod measurement_tests {
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::io::reader_s6::S6Reader;
     use crate::service::io::writer_s6::S6Writer;
+    use crate::service::matching::perfect_matchings::MatchingGraph;
     use crate::test::test_data::test_data;
     use std::io::Write;
     use std::{fs, time};
@@ -70,7 +73,9 @@ pub mod measurement_tests {
             // let colourable = DFSColourizer::is_colorable(&graph);
 
             // let colourable = BFSColouriserBasic::is_colorable(&graph);
-            let colourable = BFSColourizerImproved::is_colorable(&graph);
+            // let colourable = BFSColourizerImproved::is_colorable(&graph);
+            let colourable = MatchingColouriser::is_colorable(&graph);
+            // let colourable = MatchingColouriser2::is_colorable(&graph);
             // let colourable = DFSColouriserBasic::is_colorable(&graph);
 
             // let colourable = DFSColourizerNaive::is_colorable(&graph);
@@ -85,6 +90,18 @@ pub mod measurement_tests {
         println!("elapsed: {}", begin.elapsed().as_millis());
 
         // unsafe { println!("elapsed partial: {}", ELAPSED_DFS / 1000000); }
+    }
+
+    #[test]
+    fn temp() {
+        // let graph = test_data::get_petersen_graph();
+        // let colourable = MatchingColouriser2::is_colorable(&graph);
+        // assert_eq!(colourable, false);
+
+        let graph = test_data::get_falcon_graph();
+        let mut match_graph = MatchingGraph::from_graph(&graph);
+        let perf_match = match_graph.perfect_matchings();
+        println!("{}", perf_match.len());
     }
 
     #[test]
@@ -198,6 +215,7 @@ pub mod measurement_tests {
         // let path = "resources/measurement_samples/10_30vert_snarks.g6";
         // let path = "resources/measurement_samples/10_32vert_snarks.g6";
         // let path = "resources/measurement_samples/10_34vert_snarks.g6";
+        let path = "resources/measurement_samples/10_36vert_snarks.g6";
         // let path = "resources/measurement_samples/10_38vert_snarks.g6";
         // let path = "resources/measurement_samples/10_40vert_snarks.g6";
         // let path = "resources/measurement_samples/10_44vert_snarks.g6";
@@ -218,7 +236,7 @@ pub mod measurement_tests {
         // let path = "resources/measurement_samples/cvd-dfs-cvd-sat/10.dot_product.62.g6";
         // let path = "resources/measurement_samples/cvd-dfs-cvd-sat/10.dot_product.68.g6";
 
-        let path = "resources/measurement_samples/cvd-dfs-cvd-sat/1.dot_product.62.g6";
+        // let path = "resources/measurement_samples/cvd-dfs-cvd-sat/1.dot_product.62.g6";
         let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
         let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
 
@@ -234,9 +252,10 @@ pub mod measurement_tests {
             let graph = graph_result.unwrap();
 
             let mut props =
-                StableAndCriticalProperties::of_graph_with_colourizer(&graph, CvdDfsColourizer::new());
+                // StableAndCriticalProperties::of_graph_with_colourizer(&graph, MatchingColouriser::new());
+                // StableAndCriticalProperties::of_graph_with_colourizer(&graph, CvdDfsColourizer::new());
             // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerOriginal::new());
-            // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizer::new());
+            StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizer::new());
             // StableAndCriticalProperties::of_graph_with_colourizer(&graph, BFSColourizerImproved::new());
             // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerSimple::new());
             // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DfsDfsColourizer::new());
@@ -539,7 +558,6 @@ pub mod sat_measurement_tests {
             // assert_eq!(graph.size(), 56);
         }
         println!("elapsed: {}", begin.elapsed().as_millis());
-
     }
 
     fn dfs_vs_sat_sizes() -> Vec<usize> {
@@ -681,18 +699,17 @@ pub mod sat_measurement_tests {
 pub mod cvd_measurement_tests {
     use crate::graph::graph::Graph;
     use crate::graph::undirected::simple_graph::graph::SimpleGraph;
-    use crate::service::io::reader::Reader;
-    use crate::service::io::reader_s6::S6Reader;
-    use std::{fs, thread, time};
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::cvd::cvd;
     use crate::service::colour::cvd::cvd_dfs::CvdDfsColourizer;
     use crate::service::colour::recursive::dfs_improved::DFSColourizer;
     use crate::service::colour::sat::sat::SATColourizer;
+    use crate::service::io::reader::Reader;
+    use crate::service::io::reader_s6::S6Reader;
     use std::io::Write;
     use std::ops::Add;
     use std::sync::mpsc;
-
+    use std::{fs, thread, time};
 
     #[test]
     fn temp() {

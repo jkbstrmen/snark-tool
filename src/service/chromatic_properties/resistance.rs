@@ -35,6 +35,8 @@ where
         None
     }
 
+    // TODO - optimize - do not copy graph - take as mutable
+    // use mutable pointer
     fn edge_resistance_recursive(&self, graph: &G, max_nesting: usize) -> Option<usize> {
         if max_nesting == 0 {
             let colourable = C::is_colorable(graph);

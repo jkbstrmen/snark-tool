@@ -4,3 +4,4 @@ pub mod oddness;
 pub mod order;
 
 pub mod max_flow;
+pub mod perfect_matching_index;

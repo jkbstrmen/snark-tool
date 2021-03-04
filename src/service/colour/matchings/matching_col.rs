@@ -1,7 +1,9 @@
-use crate::service::colour::colouriser::Colouriser;
-use crate::graph::graph::Graph;
-use crate::service::matching::perfect_matchings::{MatchingGraph, Matching, MatchingGraphVerticesIter};
 use crate::graph::edge::Edge;
+use crate::graph::graph::Graph;
+use crate::service::colour::colouriser::Colouriser;
+use crate::service::matching::perfect_matchings::{
+    Matching, MatchingGraph, MatchingGraphVerticesIter,
+};
 
 // TODO - add to procedures
 
@@ -47,6 +49,8 @@ impl MatchingColouriser {
         }
         false
     }
+
+    //     TODO - maybe try to find colouring by comparing edge sets of each pair of perfect matchings of graph
 }
 
 ///

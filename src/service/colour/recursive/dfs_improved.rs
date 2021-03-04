@@ -1,7 +1,7 @@
-use crate::service::colour::colouriser::Colouriser;
+use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
-use crate::graph::edge::Edge;
+use crate::service::colour::colouriser::Colouriser;
 
 ///
 /// Colorizer for (sub)cubic graphs only

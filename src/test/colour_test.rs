@@ -1,17 +1,17 @@
 #[cfg(test)]
 pub mod colour_tests {
     use crate::graph::undirected::simple_graph::graph::SimpleGraph;
-    use crate::service::colour::recursive::bfs_basic::BFSColouriserBasic;
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::cvd::cvd;
     use crate::service::colour::cvd::cvd_dfs::CvdDfsColourizer;
-    use crate::service::colour::recursive::dfs_improved::DFSColourizer;
     use crate::service::colour::matchings::matching_col::MatchingColouriser;
+    use crate::service::colour::recursive::bfs_basic::BFSColouriserBasic;
+    use crate::service::colour::recursive::bfs_improved::BFSColourizerImproved;
+    use crate::service::colour::recursive::dfs_improved::DFSColourizer;
     use crate::service::colour::sat::sat::SATColourizer;
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::io::reader_s6::S6Reader;
     use crate::test::test_data::test_data;
-    use crate::service::colour::recursive::bfs_improved::BFSColourizerImproved;
 
     #[test]
     fn should_be_snark_bfs() {

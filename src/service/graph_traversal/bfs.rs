@@ -78,7 +78,7 @@ impl<'a, G: Graph> BfsOfGraph<'a, G> {
             graph,
             visited,
             to_visit,
-            discovery_order: vec![]
+            discovery_order: vec![],
         };
         let start_vertex = BfsVertex::new(start, true, start, 0);
         bfs.visited[start] = Some(start_vertex);

@@ -1,6 +1,6 @@
-use crate::service::colour::colouriser::Colouriser;
-use crate::graph::graph::Graph;
 use crate::graph::edge::Edge;
+use crate::graph::graph::Graph;
+use crate::service::colour::colouriser::Colouriser;
 
 ///
 /// Should be true copy of C++ implementation

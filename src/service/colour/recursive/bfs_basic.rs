@@ -1,8 +1,8 @@
-use crate::graph::graph::Graph;
-use crate::service::graph_traversal::bfs::BfsOfGraph;
-use crate::service::colour::colouriser::Colouriser;
-use crate::graph::vertex::Vertex;
 use crate::graph::edge::Edge;
+use crate::graph::graph::Graph;
+use crate::graph::vertex::Vertex;
+use crate::service::colour::colouriser::Colouriser;
+use crate::service::graph_traversal::bfs::BfsOfGraph;
 
 ///
 /// Works only for cubic graphs

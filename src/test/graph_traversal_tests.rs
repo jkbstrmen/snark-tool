@@ -107,9 +107,6 @@ pub mod graph_traversal_tests {
         assert_eq!(bfs.discovery_order(), &right_order);
     }
 
-
-
-
     #[test]
     fn should_traverse_using_dfs() {
         // TODO - finish assert

@@ -1,9 +1,8 @@
-
-use std::collections::VecDeque;
-use crate::service::colour::colouriser::Colouriser;
+use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
-use crate::graph::edge::Edge;
+use crate::service::colour::colouriser::Colouriser;
+use std::collections::VecDeque;
 
 ///
 /// Colorizer for (sub)cubic graphs only
@@ -18,7 +17,7 @@ struct BFSColourizerImprovedGraph {
     non_colored_edges: Vec<usize>,
     non_colored_edges_of_graph: usize,
 
-    to_visit: VecDeque<usize>
+    to_visit: VecDeque<usize>,
 }
 
 impl Colouriser for BFSColourizerImproved {
@@ -44,7 +43,7 @@ impl Colouriser for BFSColourizerImproved {
             one_edge_vert: vec![],
             non_colored_edges: vec![],
             non_colored_edges_of_graph: 0,
-            to_visit: VecDeque::new()
+            to_visit: VecDeque::new(),
         };
 
         // precolor
@@ -129,8 +128,10 @@ impl BFSColourizerImprovedGraph {
                     // if let Some(next) = self.to_visit.pop_front(){
                     //     return self.color(next);
                     // }
-                    while let Some(next) = self.to_visit.pop_front(){
-                        if (self.non_colored_edges[next] == 1) || (self.non_colored_edges[next] == 2) {
+                    while let Some(next) = self.to_visit.pop_front() {
+                        if (self.non_colored_edges[next] == 1)
+                            || (self.non_colored_edges[next] == 2)
+                        {
                             return self.color(next);
                         }
                     }
@@ -169,7 +170,6 @@ impl BFSColourizerImprovedGraph {
 
                 // self.to_visit.push_back(neighbor1);
                 // next_vertex = self.to_visit.pop_front().unwrap();
-
 
                 match colored_sum {
                     0 => {
@@ -280,7 +280,6 @@ impl BFSColourizerImprovedGraph {
 
                     // next_vertex = self.to_visit.pop_front().unwrap();
                 }
-
 
                 // self.to_visit.push_back(neighbor1);
                 // self.to_visit.push_back(neighbor2);

@@ -1,6 +1,7 @@
 use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::Graph;
 use crate::graph::undirected::edge::UndirectedEdge;
+use serde::export::Option::Some;
 use std::collections::VecDeque;
 use std::slice;
 
@@ -253,25 +254,27 @@ impl MatchingGraph {
             return matchings;
         }
         if !self.has_odd_size_component() {
-            let vertex = self.first_vertex().unwrap().clone();
-            for neighbor in vertex.neighbors.iter() {
-                // remove vertices
-                let mut removed_vertices = vec![];
-                removed_vertices.push(self.vertices[vertex.index].clone());
-                removed_vertices.push(self.vertices[*neighbor].clone());
+            if let Some(vertex) = self.first_vertex() {
+                let vertex = vertex.clone();
+                for neighbor in vertex.neighbors.iter() {
+                    // remove vertices
+                    let mut removed_vertices = vec![];
+                    removed_vertices.push(self.vertices[vertex.index].clone());
+                    removed_vertices.push(self.vertices[*neighbor].clone());
 
-                self.remove_vertex(vertex.index);
-                self.remove_vertex(*neighbor);
-                let mut matchings_local = self.perfect_matchings();
-                for matching in matchings_local.iter_mut() {
-                    matching
-                        .edges
-                        .push(UndirectedEdge::new(vertex.index, *neighbor));
-                }
-                matchings.append(&mut matchings_local);
-                // recover removed vertices
-                for removed_vertex in removed_vertices {
-                    self.add_vertex(removed_vertex);
+                    self.remove_vertex(vertex.index);
+                    self.remove_vertex(*neighbor);
+                    let mut matchings_local = self.perfect_matchings();
+                    for matching in matchings_local.iter_mut() {
+                        matching
+                            .edges
+                            .push(UndirectedEdge::new(vertex.index, *neighbor));
+                    }
+                    matchings.append(&mut matchings_local);
+                    // recover removed vertices
+                    for removed_vertex in removed_vertices {
+                        self.add_vertex(removed_vertex);
+                    }
                 }
             }
         }

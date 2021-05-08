@@ -1,5 +1,6 @@
 use crate::graph::undirected::simple_graph::graph::SimpleGraph;
 use crate::graph::undirected::UndirectedGraph;
+use crate::procedure::basic_procedures::colour::ColouriserType;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::helpers::serialize_helper;
 use crate::procedure::procedure;
@@ -56,7 +57,7 @@ struct ChromaticPropsProcedure<G> {
 }
 
 pub struct ChromaticPropsProcedureConfig {
-    colouriser_type: String,
+    colouriser_type: ColouriserType,
     parallel: bool,
     properties_to_compute: ChromaticPropertiesToCompute,
 }
@@ -124,7 +125,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
     fn chromatic_properties_parallel(
         &self,
         graphs: &mut Vec<(G, GraphProperties)>,
-        colouriser_type: &String,
+        colouriser_type: &ColouriserType,
     ) -> Result<()> {
         let mut threads = HashMap::new();
         let mut index = 0;
@@ -147,7 +148,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
             let handle = Self::spawn_thread_for_graph(
                 graph_local,
                 index,
-                colouriser_type.clone(),
+                (*colouriser_type).clone(),
                 (*to_compute).clone(),
                 tx_cloned,
             );
@@ -229,7 +230,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
     fn spawn_thread_for_graph(
         graph: SimpleGraph,
         index: usize,
-        colouriser_type: String,
+        colouriser_type: ColouriserType,
         properties_to_compute: ChromaticPropertiesToCompute,
         sender: mpsc::Sender<Result<GraphProperties>>,
     ) -> thread::JoinHandle<()> {
@@ -255,7 +256,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
     fn chromatic_properties_sequential(
         &self,
         graphs: &mut Vec<(G, GraphProperties)>,
-        colouriser_type: &String,
+        colouriser_type: &ColouriserType,
     ) -> Result<()> {
         let mut index = 0;
         for graph in graphs {
@@ -273,13 +274,13 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
 
     fn compute_properties_by_colouriser<Gr: UndirectedGraph + Clone>(
         graph: &Gr,
-        colouriser_type: &String,
+        colouriser_type: &ColouriserType,
         graph_index: usize,
         properties_to_compute: &ChromaticPropertiesToCompute,
     ) -> Result<GraphProperties> {
         // to do - change colouriser type according to graph size ...
-        match colouriser_type.as_str() {
-            SAT_COLOURISER => {
+        match colouriser_type {
+            ColouriserType::Sat => {
                 return Self::compute_properties(
                     graph,
                     SATColourizer::new(),
@@ -287,7 +288,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
                     &properties_to_compute,
                 );
             }
-            DFS_COLOURISER => {
+            ColouriserType::Dfs => {
                 return Self::compute_properties(
                     graph,
                     DFSColourizer::new(),
@@ -297,10 +298,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
             }
             _ => {
                 return Err(ChromaticPropertiesError {
-                    message: format!(
-                        "unknown colourizer: {} to compute chromatic properties, did you mean {} or {}?",
-                        colouriser_type, DFS_COLOURISER, SAT_COLOURISER
-                    ),
+                    message: format!("unknown colourizer to compute chromatic properties"),
                 });
             }
         }
@@ -538,7 +536,7 @@ impl ChromaticPropsProcedureConfig {
         let properties = config_helper::resolve_value(&config, PROPERTIES, Self::PROC_TYPE)?;
         let properties_to_compute = ChromaticPropertiesToCompute::new();
         let mut result = ChromaticPropsProcedureConfig {
-            colouriser_type,
+            colouriser_type: ColouriserType::from_string(&colouriser_type)?,
             parallel,
             properties_to_compute,
         };
@@ -593,7 +591,7 @@ impl ChromaticPropsProcedureConfig {
         }
     }
 
-    pub fn colouriser_type(&self) -> &String {
+    pub fn colouriser_type(&self) -> &ColouriserType {
         &self.colouriser_type
     }
 

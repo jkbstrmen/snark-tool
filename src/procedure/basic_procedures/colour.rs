@@ -1,4 +1,5 @@
 use crate::graph::undirected::UndirectedGraph;
+use crate::procedure::basic_procedures::colour::ColouriserType::CvdDfs;
 use crate::procedure::error::Error;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
@@ -10,14 +11,52 @@ use crate::service::colour::sat::sat::SATColourizer;
 use std::collections::HashMap;
 use std::marker;
 
+// coloriser types
+const DFS: &str = "dfs";
+const SAT: &str = "sat";
+const CVD_DFS: &str = "cvd-dfs";
+const CVD_SAT: &str = "cvd-sat";
+const MATCHING: &str = "matching";
+const AUTO: &str = "auto";
+
+#[derive(Clone)]
+pub enum ColouriserType {
+    Dfs,
+    Sat,
+    CvdDfs,
+    CvdSat,
+    Matching,
+    Auto,
+}
+
+impl ColouriserType {
+    pub fn from_string(string: &String) -> Result<ColouriserType> {
+        let col_type;
+        match string.as_str() {
+            DFS => col_type = ColouriserType::Dfs,
+            SAT => col_type = ColouriserType::Sat,
+            CVD_DFS => col_type = ColouriserType::CvdDfs,
+            CVD_SAT => col_type = ColouriserType::CvdSat,
+            MATCHING => col_type = ColouriserType::Matching,
+            AUTO => col_type = ColouriserType::Auto,
+            &_ => {
+                return Err(Error::ConfigError(String::from(format!(
+                    "unknown colouriser type: {}, did you mean {}, {}, {}, {}, {} or {}",
+                    string, DFS, SAT, MATCHING, CVD_DFS, CVD_SAT, AUTO
+                ))));
+            }
+        }
+        Ok(col_type)
+    }
+}
+
 struct ColourProcedure<G: UndirectedGraph> {
     config: ColourProcedureConfig,
     _ph: marker::PhantomData<G>,
 }
 
 pub struct ColourProcedureConfig {
-    // TODO - use enum
-    colouriser_type: String,
+    colouriser_type: ColouriserType,
 }
 
 pub struct ColourProcedureBuilder {}
@@ -32,14 +71,14 @@ impl<G: UndirectedGraph> Procedure<G> for ColourProcedure<G> {
 impl<G: UndirectedGraph> ColourProcedure<G> {
     pub fn colour_graph(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         let colouriser_type = self.config.colouriser_type();
-        match colouriser_type.as_str() {
-            "bfs" => {
+        match colouriser_type {
+            ColouriserType::Dfs => {
                 Self::color_by_colourizer::<DFSColourizer>(graphs);
             }
-            "sat" => {
+            ColouriserType::Sat => {
                 Self::color_by_colourizer::<SATColourizer>(graphs);
             }
-            "cvd-dfs" => {
+            ColouriserType::CvdDfs => {
                 Self::color_by_colourizer::<CvdDfsColourizer>(graphs);
             }
             _ => {
@@ -64,7 +103,7 @@ impl<G: UndirectedGraph> ColourProcedure<G> {
 impl ColourProcedureConfig {
     pub const PROC_TYPE: &'static str = "colour";
 
-    pub fn colouriser_type(&self) -> &String {
+    pub fn colouriser_type(&self) -> &ColouriserType {
         &self.colouriser_type
     }
 
@@ -75,7 +114,10 @@ impl ColourProcedureConfig {
             "bfs".to_string(),
             Self::PROC_TYPE,
         )?;
-        let result = ColourProcedureConfig { colouriser_type };
+
+        let result = ColourProcedureConfig {
+            colouriser_type: ColouriserType::from_string(&colouriser_type)?,
+        };
         Ok(result)
     }
 }

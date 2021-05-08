@@ -69,13 +69,17 @@ impl<G: UndirectedGraph + GraphConstructor> ReadProcedure<G> {
         let mut graph_opt = reader.next();
         while graph_opt.is_some() {
             let graph = graph_opt.unwrap()?;
-            graphs.push((graph, GraphProperties::new()));
+            let mut properties = GraphProperties::new();
+            properties.insert(
+                "size".to_string(),
+                serde_json::to_value(graph.size())?
+            );
+            graphs.push((graph, properties));
             counter += 1;
 
             if graphs_count.is_some() && graphs_count.unwrap() < counter {
                 break;
             }
-
             graph_opt = reader.next();
         }
         if graphs_count.is_some() && graphs_count.unwrap() > counter {

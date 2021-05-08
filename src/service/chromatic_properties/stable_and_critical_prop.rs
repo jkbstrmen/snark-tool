@@ -138,6 +138,8 @@ where
                     colourable = C::is_colorable(graph);
 
                     self.colourings[first_vertex * graph.size() + second_vertex] = Some(colourable);
+                    self.colourings[second_vertex * graph.size() + first_vertex] = Some(colourable);
+
                     critical_prop::restore_edges_of_vertex_except_for(
                         &self.untouched_graph,
                         graph,

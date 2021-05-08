@@ -19,7 +19,7 @@ pub fn resolve_value_or_default<V: serde::de::DeserializeOwned, T: AsRef<str>>(
             serde_json::from_value(val.clone());
         if field_value_result.is_err() {
             return Err(Error::ConfigError(format!(
-                "field: {} for procedure: {} is in wrong format: {}",
+                "field '{}' for procedure '{}' is in wrong format: {}",
                 field.as_ref(),
                 procedure.as_ref(),
                 field_value_result.err().unwrap()
@@ -39,7 +39,7 @@ pub fn resolve_value<V: serde::de::DeserializeOwned, T: AsRef<str>>(
     let field_value;
     if field_value_opt.is_none() {
         return Err(Error::ConfigError(format!(
-            "field: {} for procedure: {} is missing",
+            "field '{}' for procedure '{}' is missing",
             field.as_ref(),
             procedure.as_ref()
         )));
@@ -49,7 +49,7 @@ pub fn resolve_value<V: serde::de::DeserializeOwned, T: AsRef<str>>(
             serde_json::from_value(val.clone());
         if field_value_result.is_err() {
             return Err(Error::ConfigError(format!(
-                "field: {} for procedure: {} is in wrong format: {}",
+                "field '{}' for procedure '{}' is in wrong format: {}",
                 field.as_ref(),
                 procedure.as_ref(),
                 field_value_result.err().unwrap()

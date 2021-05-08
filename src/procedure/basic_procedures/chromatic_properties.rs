@@ -50,6 +50,7 @@ const EDGE_RESISTIBILITY_INDEX: &str = "edge-resistibility-index";
 const COLOURISER_TYPE: &str = "colouriser-type";
 const PARALLEL: &str = "parallel";
 const PROPERTIES: &str = "properties";
+const GRAPH_INDEX: &str = "graph-index";
 
 struct ChromaticPropsProcedure<G> {
     config: ChromaticPropsProcedureConfig,
@@ -164,7 +165,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         // receive results and create new threads while next graphs exists
         for received in &rx {
             let received_result = received.borrow().as_ref();
-            let index_value = received_result.unwrap().get("graph_index").unwrap();
+            let index_value = received_result.unwrap().get(GRAPH_INDEX).unwrap();
             let received_index: usize = serde_json::from_value(index_value.clone())?;
 
             // end/join thread which sent received results
@@ -215,7 +216,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         result: Result<GraphProperties>,
     ) -> Result<()> {
         let result_props = result?;
-        let graph_index_opt_value = result_props.get("graph_index");
+        let graph_index_opt_value = result_props.get(GRAPH_INDEX);
         if graph_index_opt_value.is_some() {
             let graph_index_value = graph_index_opt_value.unwrap();
             let graph_index: usize = serde_json::from_value(graph_index_value.clone())?;
@@ -312,10 +313,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
     ) -> Result<GraphProperties> {
         let to_compute = properties_to_compute;
         let mut properties = GraphProperties::new();
-        properties.insert(
-            "graph_index".to_string(),
-            serde_json::to_value(graph_index)?,
-        );
+        properties.insert(GRAPH_INDEX.to_string(), serde_json::to_value(graph_index)?);
 
         if to_compute.stable || to_compute.costable {
             Self::critical_and_stable_properties(

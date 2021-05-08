@@ -70,10 +70,7 @@ impl<G: UndirectedGraph + GraphConstructor> ReadProcedure<G> {
         while graph_opt.is_some() {
             let graph = graph_opt.unwrap()?;
             let mut properties = GraphProperties::new();
-            properties.insert(
-                "size".to_string(),
-                serde_json::to_value(graph.size())?
-            );
+            properties.insert("size".to_string(), serde_json::to_value(graph.size())?);
             graphs.push((graph, properties));
             counter += 1;
 

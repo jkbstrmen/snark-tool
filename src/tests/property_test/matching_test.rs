@@ -4,7 +4,7 @@ pub mod matching_tests {
     use crate::graph::graph::Graph;
     use crate::graph::undirected::edge::UndirectedEdge;
     use crate::service::matching::perfect_matchings::{BfsGraph, MatchingGraph};
-    use crate::test::test_data::test_data;
+    use crate::tests::test_data::test_data;
 
     #[test]
     fn should_traverse_using_bfs() {

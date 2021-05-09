@@ -5,7 +5,7 @@ pub mod resistance_tests {
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::recursive::dfs_improved::DFSColourizer;
     use crate::service::io::reader_g6::G6Reader;
-    use crate::test::test_data::test_data;
+    use crate::tests::test_data::test_data;
 
     #[test]
     fn should_have_resistance_zero() {

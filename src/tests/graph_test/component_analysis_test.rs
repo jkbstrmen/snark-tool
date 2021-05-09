@@ -9,7 +9,7 @@ mod graph_component_analysis_tests {
     };
     use crate::service::component_analysis::edge_triplets::RemovableTripletsOfEdges;
     use crate::service::component_analysis::vertex_pairs::PairsOfAdjacentVertices;
-    use crate::test::test_data::test_data;
+    use crate::tests::test_data::test_data;
 
     #[test]
     fn should_produce_pairs_of_non_adjacent_edges() {

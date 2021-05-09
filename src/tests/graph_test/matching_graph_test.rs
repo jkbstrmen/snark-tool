@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod matching_graph_tests {
     use crate::service::matching::perfect_matchings::{MatchingGraph, Vertex};
-    use crate::test::test_data::test_data;
+    use crate::tests::test_data::test_data;
 
     #[test]
     fn should_create_from_graph_mg() {

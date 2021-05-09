@@ -2,7 +2,7 @@
 pub mod graph_traversal_tests {
     use crate::service::graph_traversal::bfs::BfsOfGraph;
     use crate::service::graph_traversal::dfs::DfsOfGraph;
-    use crate::test::test_data::test_data;
+    use crate::tests::test_data::test_data;
 
     #[test]
     fn should_traverse_using_bfs() {

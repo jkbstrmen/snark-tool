@@ -11,7 +11,7 @@ pub mod colour_tests {
     use crate::service::colour::sat::sat::SATColourizer;
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::io::reader_s6::S6Reader;
-    use crate::test::test_data::test_data;
+    use crate::tests::test_data::test_data;
 
     #[test]
     fn should_be_snark_bfs() {

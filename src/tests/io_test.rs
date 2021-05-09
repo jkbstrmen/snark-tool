@@ -11,7 +11,7 @@ mod io_tests {
     use crate::service::io::writer_ba::BaWriter;
     use crate::service::io::writer_g6::G6Writer;
     use crate::service::io::writer_s6::S6Writer;
-    use crate::test::test_data::test_data;
+    use crate::tests::test_data::test_data;
 
     /// READERS
     #[test]

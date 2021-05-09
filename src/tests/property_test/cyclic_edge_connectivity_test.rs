@@ -8,7 +8,7 @@ pub mod cyclic_edge_connectivity_tests {
     use crate::service::property::cyclic_connectivity::{
         contract_sub_graph, cyclic_edge_connectivity, full_tree, vertex_disjoint_graphs,
     };
-    use crate::test::test_data::test_data;
+    use crate::tests::test_data::test_data;
     use std::fs;
 
     #[test]

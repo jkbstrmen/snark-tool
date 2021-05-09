@@ -2,7 +2,9 @@
 pub mod measurement_tests {
     use crate::graph::graph::Graph;
     use crate::graph::undirected::simple_graph::graph::SimpleGraph;
-    use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
+    use crate::service::chromatic_properties::stable_and_critical_prop::{
+        StableAndCriticalProperties, COUNT, ELAPSED,
+    };
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::cvd::cvd;
     use crate::service::colour::cvd::cvd_dfs::CvdDfsColourizer;
@@ -18,7 +20,7 @@ pub mod measurement_tests {
     use crate::service::io::reader_s6::S6Reader;
     use crate::service::io::writer_s6::S6Writer;
     use crate::service::matching::perfect_matchings::MatchingGraph;
-    use crate::test::test_data::test_data;
+    use crate::tests::test_data::test_data;
     use std::io::Write;
     use std::{fs, time};
 
@@ -30,7 +32,7 @@ pub mod measurement_tests {
         // let path = "resources/measurement_samples/10_28vert_snarks.g6";
         // let path = "resources/measurement_samples/10_36vert_snarks.g6";
         // let path = "resources/measurement_samples/Generated_graphs.28.04.sn.cyc4.10K.g6";
-        let path = "resources/measurement_samples/Generated_graphs.30.04.sn.cyc4.10K.g6";
+        // let path = "resources/measurement_samples/Generated_graphs.30.04.sn.cyc4.10K.g6";
         // let path = "resources/measurement_samples/Generated_graphs.30.04.sn.cyc4.g6";
         // let path = "resources/measurement_samples/Generated_graphs.32.04.sn.cyc4.10K.g6";
         // let path = "resources/measurement_samples/Generated_graphs.34.04.sn.cyc4.10K.g6";
@@ -42,7 +44,7 @@ pub mod measurement_tests {
         // let path = "resources/measurement_samples/100K.Generated_graphs.30.04.sn.cyc4.g6";
         // let path = "resources/measurement_samples/100K.Generated_graphs.32.04.sn.cyc4.g6";
         // let path = "resources/measurement_samples/100K.Generated_graphs.34.04.sn.cyc4.g6";
-        // let path = "resources/measurement_samples/100K.Generated_graphs.36.04.sn.cyc4.g6";
+        let path = "resources/measurement_samples/various/100K.Generated_graphs.36.04.sn.cyc4.g6";
         // let path = "resources/measurement_samples/100K.Generated_graphs.38.05.sn.cyc4.g6";
 
         // colourable
@@ -65,23 +67,24 @@ pub mod measurement_tests {
         let mut all_false = true;
         while let Some(graph_result) = reader.next() {
             let mut graph = graph_result.unwrap();
-            // graph.remove_edges_of_vertex(2);
-            // graph.remove_edges_of_vertex(15);
+            graph.remove_edges_of_vertex(2);
+            graph.remove_edges_of_vertex(15);
 
             // let colourable = DFSColourizerSimple::is_colorable(&graph);
             // let colourable = DFSColourizerOriginal::is_colorable(&graph);
-            // let colourable = DFSColourizer::is_colorable(&graph);
+            let colourable = DFSColourizer::is_colorable(&graph);
 
             // let colourable = BFSColouriserBasic::is_colorable(&graph);
             // let colourable = BFSColourizerImproved::is_colorable(&graph);
-            let colourable = MatchingColouriser::is_colorable(&graph);
+            // let colourable = MatchingColouriser::is_colorable(&graph);
             // let colourable = MatchingColouriser2::is_colorable(&graph);
             // let colourable = DFSColouriserBasic::is_colorable(&graph);
 
             // let colourable = DFSColourizerNaive::is_colorable(&graph);
             // let colourable = SATColourizer::is_colorable(&graph);
 
-            assert_eq!(colourable, false);
+            // assert_eq!(colourable, false);
+
             // assert_eq!(colourable, true);
             // writeln!(temp_file, "{}", counter);
             // counter += 1;
@@ -215,7 +218,7 @@ pub mod measurement_tests {
         // let path = "resources/measurement_samples/10_30vert_snarks.g6";
         // let path = "resources/measurement_samples/10_32vert_snarks.g6";
         // let path = "resources/measurement_samples/10_34vert_snarks.g6";
-        let path = "resources/measurement_samples/10_36vert_snarks.g6";
+        // let path = "resources/measurement_samples/10_36vert_snarks.g6";
         // let path = "resources/measurement_samples/10_38vert_snarks.g6";
         // let path = "resources/measurement_samples/10_40vert_snarks.g6";
         // let path = "resources/measurement_samples/10_44vert_snarks.g6";
@@ -230,6 +233,13 @@ pub mod measurement_tests {
         // let path = "resources/measurement_samples/100_34vert_snarks.g6";
         // let path = "resources/measurement_samples/100_36vert_snarks.g6";
         // let path = "resources/measurement_samples/100_38vert_snarks.g6";
+
+        // let path = "resources/measurement_samples/various/10K.Generated_graphs.28.04.sn.cyc4.g6";
+        // let path = "resources/measurement_samples/various/10K.Generated_graphs.30.04.sn.cyc4.g6";
+        // let path = "resources/measurement_samples/various/10K.Generated_graphs.32.04.sn.cyc4.g6";
+        // let path = "resources/measurement_samples/various/10K.Generated_graphs.34.04.sn.cyc4.g6";
+        // let path = "resources/measurement_samples/various/10K.Generated_graphs.36.04.sn.cyc4.g6";
+        let path = "resources/measurement_samples/various/10K.Generated_graphs.38.05.sn.cyc4.g6";
 
         // let path = "resources/measurement_samples/cvd-dfs-cvd-sat/10.dot_product.46.g6";
         // let path = "resources/measurement_samples/cvd-dfs-cvd-sat/10.dot_product.54.g6";
@@ -254,8 +264,8 @@ pub mod measurement_tests {
             let mut props =
                 // StableAndCriticalProperties::of_graph_with_colourizer(&graph, MatchingColouriser::new());
                 // StableAndCriticalProperties::of_graph_with_colourizer(&graph, CvdDfsColourizer::new());
-            // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerOriginal::new());
-            StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizer::new());
+            StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerOriginal::new());
+            // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizer::new());
             // StableAndCriticalProperties::of_graph_with_colourizer(&graph, BFSColourizerImproved::new());
             // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerSimple::new());
             // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DfsDfsColourizer::new());
@@ -320,6 +330,173 @@ pub mod measurement_tests {
         //     unsafe { COUNTER_2 },
         //     unsafe { COUNTER_3 }
         // )
+    }
+
+    #[test]
+    fn dfs_colouriser_critical_stable_properties_performance_temp() {
+        // let path = "resources/measurement_samples/various/10K.Generated_graphs.28.04.sn.cyc4.g6";
+        // let path = "resources/measurement_samples/various/10K.Generated_graphs.30.04.sn.cyc4.g6";
+        // let path = "resources/measurement_samples/various/10K.Generated_graphs.32.04.sn.cyc4.g6";
+        // let path = "resources/measurement_samples/various/10K.Generated_graphs.34.04.sn.cyc4.g6";
+        // let path = "resources/measurement_samples/various/10K.Generated_graphs.36.04.sn.cyc4.g6";
+        // let path = "resources/measurement_samples/various/10K.Generated_graphs.38.05.sn.cyc4.g6";
+
+        let out_file_path = "resources/measurement_samples/results";
+        let mut out_file = fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(out_file_path)
+            .unwrap();
+
+        let sizes = vec![28, 30, 32, 34, 36, 38];
+        for size in sizes.iter() {
+            let mut path = format!(
+                "resources/measurement_samples/various/10K.Generated_graphs.{}.04.sn.cyc4.g6",
+                size
+            );
+            if *size == 38 {
+                path = format!(
+                    "resources/measurement_samples/various/10K.Generated_graphs.{}.05.sn.cyc4.g6",
+                    size
+                );
+            }
+
+            let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
+            let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
+
+            let begin = time::Instant::now();
+
+            let mut crit_count = 0;
+            let mut cocrit_count = 0;
+            let mut v_sub_count = 0;
+            let mut e_sub_count = 0;
+            let mut stab_count = 0;
+            let mut costab_count = 0;
+            while let Some(graph_result) = reader.next() {
+                let graph = graph_result.unwrap();
+
+                let mut props =
+                    // StableAndCriticalProperties::of_graph_with_colourizer(&graph, MatchingColouriser::new());
+                    // StableAndCriticalProperties::of_graph_with_colourizer(&graph, CvdDfsColourizer::new());
+                    StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerOriginal::new());
+                // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizer::new());
+                // StableAndCriticalProperties::of_graph_with_colourizer(&graph, BFSColourizerImproved::new());
+                // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerSimple::new());
+                // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DfsDfsColourizer::new());
+
+                let crit = props.is_critical();
+                let cocrit = props.is_cocritical();
+                let e_subcrit = props.is_edge_subcritical();
+                let v_subcrit = props.is_vertex_subcritical();
+                let stable = props.is_stable();
+                let costable = props.is_costable();
+
+                if crit {
+                    crit_count += 1;
+                }
+                if cocrit {
+                    cocrit_count += 1;
+                }
+                if v_subcrit {
+                    v_sub_count += 1;
+                }
+                if e_subcrit {
+                    e_sub_count += 1;
+                }
+                if stable {
+                    stab_count += 1;
+                }
+                if costable {
+                    costab_count += 1;
+                }
+            }
+
+            writeln!(out_file, "size: {}", size);
+
+            writeln!(out_file, "CRITICAL: {}", crit_count);
+            writeln!(out_file, "COCRITICAL: {}", cocrit_count);
+            writeln!(out_file, "V subCRITICAL: {}", v_sub_count);
+            writeln!(out_file, "E subCRITICAL: {}", e_sub_count);
+            writeln!(out_file, "STABLE: {}", stab_count);
+            writeln!(out_file, "COSTABLE: {}", costab_count);
+
+            writeln!(out_file, "elapsed: {} ms", begin.elapsed().as_millis());
+        }
+
+        // DFS improved
+        for size in sizes.iter() {
+            let mut path = format!(
+                "resources/measurement_samples/various/10K.Generated_graphs.{}.04.sn.cyc4.g6",
+                size
+            );
+            if *size == 38 {
+                path = format!(
+                    "resources/measurement_samples/various/10K.Generated_graphs.{}.05.sn.cyc4.g6",
+                    size
+                );
+            }
+
+            let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
+            let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
+
+            let begin = time::Instant::now();
+
+            let mut crit_count = 0;
+            let mut cocrit_count = 0;
+            let mut v_sub_count = 0;
+            let mut e_sub_count = 0;
+            let mut stab_count = 0;
+            let mut costab_count = 0;
+            while let Some(graph_result) = reader.next() {
+                let graph = graph_result.unwrap();
+
+                let mut props =
+                    // StableAndCriticalProperties::of_graph_with_colourizer(&graph, MatchingColouriser::new());
+                    // StableAndCriticalProperties::of_graph_with_colourizer(&graph, CvdDfsColourizer::new());
+                    // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerOriginal::new());
+                StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizer::new());
+                // StableAndCriticalProperties::of_graph_with_colourizer(&graph, BFSColourizerImproved::new());
+                // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerSimple::new());
+                // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DfsDfsColourizer::new());
+
+                let crit = props.is_critical();
+                let cocrit = props.is_cocritical();
+                let e_subcrit = props.is_edge_subcritical();
+                let v_subcrit = props.is_vertex_subcritical();
+                let stable = props.is_stable();
+                let costable = props.is_costable();
+
+                if crit {
+                    crit_count += 1;
+                }
+                if cocrit {
+                    cocrit_count += 1;
+                }
+                if v_subcrit {
+                    v_sub_count += 1;
+                }
+                if e_subcrit {
+                    e_sub_count += 1;
+                }
+                if stable {
+                    stab_count += 1;
+                }
+                if costable {
+                    costab_count += 1;
+                }
+            }
+
+            writeln!(out_file, "size: {}", size);
+
+            writeln!(out_file, "CRITICAL: {}", crit_count);
+            writeln!(out_file, "COCRITICAL: {}", cocrit_count);
+            writeln!(out_file, "V subCRITICAL: {}", v_sub_count);
+            writeln!(out_file, "E subCRITICAL: {}", e_sub_count);
+            writeln!(out_file, "STABLE: {}", stab_count);
+            writeln!(out_file, "COSTABLE: {}", costab_count);
+
+            writeln!(out_file, "elapsed: {} ms", begin.elapsed().as_millis());
+        }
     }
 
     ///
@@ -440,7 +617,7 @@ pub mod sat_measurement_tests {
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::io::writer_g6::G6Writer;
     use crate::service::io::writer_s6::S6Writer;
-    use crate::test::test_data::test_data;
+    use crate::tests::test_data::test_data;
     use rand::Rng;
     use std::io::Write;
     use std::iter::FromIterator;
@@ -939,5 +1116,36 @@ pub mod cvd_measurement_tests {
     #[test]
     fn cvd_measurements() {
         perform_measurements();
+    }
+}
+
+#[cfg(test)]
+pub mod perfect_matching_tests {
+    use crate::graph::undirected::simple_graph::graph::SimpleGraph;
+    use crate::service::colour::sat::sat::SATColourizer;
+    use crate::service::io::reader::Reader;
+    use crate::service::io::reader_g6::G6Reader;
+    use crate::service::matching::perfect_matchings::MatchingGraph;
+    use std::{fs, time};
+
+    #[test]
+    fn all_perfect_matchings() {
+        //     "resources/measurement_samples/dfs-vs-sat/dot_product_36+(18-34)/5K.dot_product.66.g6";
+        // let path =
+        //     "resources/measurement_samples/dfs-vs-sat/dot_product_36+(18-34)/5K.dot_product.64.g6";
+        let path = "resources/measurement_samples/100_38vert_snarks.g6";
+
+        let file_result = fs::OpenOptions::new().read(true).open(&path).unwrap();
+        let mut reader = G6Reader::<SimpleGraph>::new(&file_result);
+
+        let begin = time::Instant::now();
+
+        while let Some(graph_result) = reader.next() {
+            let mut graph = graph_result.unwrap();
+
+            let mut match_graph = MatchingGraph::from_graph(&graph);
+            let pms = match_graph.perfect_matchings();
+        }
+        println!("elapsed: {}", begin.elapsed().as_millis());
     }
 }

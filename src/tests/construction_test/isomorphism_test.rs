@@ -6,7 +6,7 @@ pub mod isomorphism_tests {
     use crate::service::constructions::isomorphism::is_isomorphic;
     use crate::service::io::reader::Reader;
     use crate::service::io::reader_g6::G6Reader;
-    use crate::test::test_data::test_data;
+    use crate::tests::test_data::test_data;
     use petgraph::graph::{NodeIndex, UnGraph};
     use petgraph::stable_graph::StableGraph;
     use petgraph::Undirected;

@@ -2,16 +2,19 @@
 pub mod perfect_matching_index_tests {
     use crate::graph::edge::{Edge, EdgeConstructor};
     use crate::graph::undirected::edge::UndirectedEdge;
+    use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::matchings::matching_col::MatchingColouriser;
     use crate::service::colour::matchings::matching_col_2::MatchingColouriser2;
     use crate::service::colour::recursive::bfs_improved::BFSColourizerImproved;
-    use crate::service::matching::perfect_matchings::{Matching, MatchingGraph};
-    use crate::service::property::perfect_matching_index::{compute_matching_similarity, distinct_edges, perfect_matching_index, perfect_matching_index_1, perfect_matching_index_2};
-    use crate::test::test_data::test_data;
-    use serde::export::Option::Some;
     use crate::service::io::reader_g6::G6Reader;
-    use crate::graph::undirected::simple_graph::graph::SimpleGraph;
+    use crate::service::matching::perfect_matchings::{Matching, MatchingGraph};
+    use crate::service::property::perfect_matching_index::{
+        compute_matching_similarity, distinct_edges, perfect_matching_index,
+        perfect_matching_index_1, perfect_matching_index_2,
+    };
+    use crate::tests::test_data::test_data;
+    use serde::export::Option::Some;
     use std::time::Instant;
 
     #[test]
@@ -54,21 +57,19 @@ pub mod perfect_matching_index_tests {
         // assert_eq!(colorable, true);
     }
 
-
     #[test]
     fn measurement() {
         let begin = Instant::now();
 
-        let gr = test_data::SNARK_IN_G6_22;
+        let gr = test_data::SNARK_IN_G6_32;
         let graph: SimpleGraph = G6Reader::read_graph(gr).unwrap();
-        // let pmi = perfect_matching_index(&graph);
-        let pmi = perfect_matching_index_1(&graph);
+        let pmi = perfect_matching_index(&graph);
+        // let pmi = perfect_matching_index_1(&graph);
         // let pmi = perfect_matching_index_2(&graph);
         assert_eq!(pmi, 4);
 
         println!("elapsed: {}", begin.elapsed().as_millis());
     }
-
 
     #[test]
     fn should_have_pmi_five() {

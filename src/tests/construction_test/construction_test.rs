@@ -10,7 +10,7 @@ pub mod constructions_tests {
     use crate::service::constructions::i_extension::{i_extension, IExtensions};
     use crate::service::constructions::y_extension::{y_extension, YExtensions};
     use crate::service::io::reader_g6::G6Reader;
-    use crate::test::test_data::test_data;
+    use crate::tests::test_data::test_data;
 
     #[test]
     fn dot_product_test() {

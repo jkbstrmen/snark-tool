@@ -144,7 +144,7 @@ impl ReadProcedureConfig {
         let file_path = config_helper::resolve_value_or_default(
             &config,
             "file",
-            "write-procedure-output-file".to_string(),
+            "read-procedure-input-file.g6".to_string(),
             Self::PROC_TYPE,
         )?;
         let graph_format = config_helper::resolve_value_or_default(

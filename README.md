@@ -5,6 +5,7 @@ Snark tool is simple tool for snarks analysis.
 To run snark-tool first we have to have configuration file in YAML format. Here we can specify what we 
 want to do. 
 
+```yaml
     procedures:
       - proc-type: read
         config:
@@ -14,13 +15,14 @@ want to do.
     
       - proc-type: colour
         config:
-          colouriser-type: bfs
+          colouriser-type: dfs
     
       - proc-type: write
         config:
           file: output.s6
           graph-format: s6
-    
+```
+ 
 Basic usage is that snark-tool takes input file, read graphs from specified format. Then applies/perform 
 specified procedures over graphs and at the end writes graphs to output file.
 
@@ -39,7 +41,7 @@ _*optional configurations:*_
 #### colour
 _*required configurations:*_ 
 - colouriser-type  
-(available: bfs)
+(available: dfs)
 
 #### write
 _*optional configurations:*_

@@ -26,6 +26,8 @@ impl<G: UndirectedGraph + GraphConstructor + Clone + 'static> ProcedureChain<G> 
         })
     }
 
+    // TODO add impl to create chain from procedure objects
+
     pub fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         for procedure in self.procedures.iter() {
             procedure.run(graphs)?;

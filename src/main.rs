@@ -11,7 +11,7 @@ use crate::procedure::procedure_registry::ProcedureRegistry;
 mod graph;
 mod procedure;
 mod service;
-mod test;
+mod tests;
 
 /// Simple tool for snark analysis. For more information visit https://github.com/jstrmen/snark-tool
 #[derive(StructOpt)]

@@ -77,6 +77,10 @@ where
         return self.is_edge_subcritical;
     }
 
+    pub fn is_acritical(&mut self) -> bool {
+        !self.is_vertex_subcritical()
+    }
+
     fn compute_properties(&mut self) {
         self.compute_vertex_properties();
 
@@ -130,6 +134,8 @@ where
                     colourable = C::is_colorable(graph);
 
                     self.colourings[first_vertex * graph.size() + second_vertex] = Some(colourable);
+                    self.colourings[second_vertex * graph.size() + first_vertex] = Some(colourable);
+
                     restore_edges_of_vertex_except_for(
                         &self.untouched_graph,
                         graph,
@@ -161,6 +167,9 @@ where
     pub fn compute_edge_subcriticality(graph: &mut SimpleGraph) -> bool {
         let local_graph = SimpleGraph::from_graph(graph);
         let mut edge_subcritical = true;
+
+        // TODO - optimization
+        // TODO - avoid computing for repeating pairs - pair (0, 1), (3, 4) is the same as (3, 4), (0, 1)
 
         for first_edge in local_graph.edges() {
             graph.remove_edge(first_edge.from(), first_edge.to());

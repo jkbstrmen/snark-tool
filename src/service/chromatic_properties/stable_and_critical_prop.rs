@@ -100,6 +100,10 @@ where
         return self.is_costable;
     }
 
+    pub fn is_acritical(&mut self) -> bool {
+        !self.is_vertex_subcritical()
+    }
+
     fn compute_properties(&mut self) {
         self.compute_vertex_properties();
 

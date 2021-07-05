@@ -1,8 +1,7 @@
 use crate::graph::graph::GraphConstructor;
 use crate::graph::undirected::UndirectedGraph;
-use crate::procedure::basic_procedures::chromatic_properties::{
-    ChromaticPropsProcedureBuilder, ChromaticPropsProcedureConfig,
-};
+use crate::procedure::basic_procedures::chrom_props::chromatic_properties::ChromaticPropsProcedureBuilder;
+use crate::procedure::basic_procedures::chrom_props::config::ChromaticPropsProcedureConfig;
 use crate::procedure::basic_procedures::colour::{ColourProcedureBuilder, ColourProcedureConfig};
 use crate::procedure::basic_procedures::constructions::{
     ConstructionProcedureBuilder, ConstructionProcedureConfig,
@@ -70,11 +69,10 @@ impl<G: UndirectedGraph + GraphConstructor + Clone + 'static> ProcedureRegistry<
             conf_map = config.config.unwrap();
         }
 
-        for proc_type in self.registry.iter() {
-            if config.proc_type.eq(proc_type.0) {
-                let proc = proc_type.1.build(conf_map);
-                return proc;
-            }
+        let proc_builder = self.registry.get(&config.proc_type);
+        if let Some(builder) = proc_builder {
+            let proc = builder.build(conf_map);
+            return proc;
         }
 
         // or just println right now

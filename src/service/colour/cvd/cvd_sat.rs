@@ -4,6 +4,7 @@ use crate::service::colour::cvd::cvd;
 use crate::service::colour::sat::sat::SATColourizer;
 
 // Colorizer for (sub)cubic graphs only
+#[derive(Debug, Clone)]
 pub struct CvdSatColourizer {}
 
 impl Colouriser for CvdSatColourizer {

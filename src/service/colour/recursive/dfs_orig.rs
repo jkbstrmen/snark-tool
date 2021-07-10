@@ -5,6 +5,7 @@ use crate::service::colour::colouriser::Colouriser;
 ///
 /// Should be true copy of C++ implementation
 ///
+#[derive(Debug, Clone)]
 pub struct DFSColourizerOriginal {}
 
 struct DFSColourizerOriginalGraph {

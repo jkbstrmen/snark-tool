@@ -1,7 +1,8 @@
 #[cfg(test)]
 pub mod critical_prop_tests {
     use crate::graph::undirected::simple_graph::graph::SimpleGraph;
-    use crate::service::chromatic_properties::critical_prop::CriticalProperties;
+    use crate::service::chromatic_properties::critical_prop::CriticalPropertiesSolver;
+    use crate::service::chromatic_properties::CriticalProperties;
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::cvd::cvd_dfs::CvdDfsColourizer;
     use crate::service::colour::matchings::matching_col::MatchingColouriser;
@@ -12,7 +13,7 @@ pub mod critical_prop_tests {
     fn should_be_critical() {
         let graph: SimpleGraph =
             G6Reader::read_graph(test_data::SNARK_IN_G6_26_CRITICAL_1).unwrap();
-        let mut props = CriticalProperties::of_graph(&graph);
+        let mut props = CriticalPropertiesSolver::of_graph(&graph);
         assert_eq!(props.is_critical(), true);
         assert_eq!(props.is_cocritical(), true);
         assert_eq!(props.is_vertex_subcritical(), true);
@@ -20,7 +21,7 @@ pub mod critical_prop_tests {
 
         let graph: SimpleGraph =
             G6Reader::read_graph(test_data::SNARK_IN_G6_26_CRITICAL_2).unwrap();
-        let mut props = CriticalProperties::of_graph(&graph);
+        let mut props = CriticalPropertiesSolver::of_graph(&graph);
         assert_eq!(props.is_critical(), true);
         assert_eq!(props.is_cocritical(), true);
         assert_eq!(props.is_vertex_subcritical(), true);
@@ -31,7 +32,7 @@ pub mod critical_prop_tests {
     fn should_be_strictly_cocritical() {
         let graph: SimpleGraph =
             G6Reader::read_graph(test_data::SNARK_IN_G6_26_SCOCRITICAL_1).unwrap();
-        let mut props = CriticalProperties::of_graph(&graph);
+        let mut props = CriticalPropertiesSolver::of_graph(&graph);
         assert_eq!(props.is_critical(), false);
         assert_eq!(props.is_cocritical(), true);
         assert_eq!(props.is_vertex_subcritical(), true);
@@ -39,7 +40,7 @@ pub mod critical_prop_tests {
 
         let graph: SimpleGraph =
             G6Reader::read_graph(test_data::SNARK_IN_G6_26_SCOCRITICAL_2).unwrap();
-        let mut props = CriticalProperties::of_graph(&graph);
+        let mut props = CriticalPropertiesSolver::of_graph(&graph);
         assert_eq!(props.is_critical(), false);
         assert_eq!(props.is_cocritical(), true);
         assert_eq!(props.is_vertex_subcritical(), true);
@@ -49,14 +50,14 @@ pub mod critical_prop_tests {
     #[test]
     fn should_be_acritical() {
         let graph: SimpleGraph = G6Reader::read_graph(test_data::SNARK_IN_G6_34_STABLE_1).unwrap();
-        let mut props = CriticalProperties::of_graph(&graph);
+        let mut props = CriticalPropertiesSolver::of_graph(&graph);
         assert_eq!(props.is_critical(), false);
         assert_eq!(props.is_cocritical(), false);
         assert_eq!(props.is_vertex_subcritical(), false);
         assert_eq!(props.is_edge_subcritical(), false);
 
         let graph: SimpleGraph = G6Reader::read_graph(test_data::SNARK_IN_G6_34_STABLE_2).unwrap();
-        let mut props = CriticalProperties::of_graph(&graph);
+        let mut props = CriticalPropertiesSolver::of_graph(&graph);
         assert_eq!(props.is_critical(), false);
         assert_eq!(props.is_cocritical(), false);
         assert_eq!(props.is_vertex_subcritical(), false);
@@ -64,7 +65,7 @@ pub mod critical_prop_tests {
 
         let graph: SimpleGraph =
             G6Reader::read_graph(test_data::SNARK_IN_G6_30_ACRITICAL_1).unwrap();
-        let mut props = CriticalProperties::of_graph(&graph);
+        let mut props = CriticalPropertiesSolver::of_graph(&graph);
         assert_eq!(props.is_critical(), false);
         assert_eq!(props.is_cocritical(), false);
         assert_eq!(props.is_vertex_subcritical(), false);
@@ -72,7 +73,7 @@ pub mod critical_prop_tests {
 
         let graph: SimpleGraph =
             G6Reader::read_graph(test_data::SNARK_IN_G6_30_ACRITICAL_2).unwrap();
-        let mut props = CriticalProperties::of_graph(&graph);
+        let mut props = CriticalPropertiesSolver::of_graph(&graph);
         assert_eq!(props.is_critical(), false);
         assert_eq!(props.is_cocritical(), false);
         assert_eq!(props.is_vertex_subcritical(), false);
@@ -83,7 +84,7 @@ pub mod critical_prop_tests {
     fn should_be_acritical_cvd_dfs() {
         let colourizer = CvdDfsColourizer::new();
         let graph: SimpleGraph = G6Reader::read_graph(test_data::SNARK_IN_G6_34_STABLE_1).unwrap();
-        let mut props = CriticalProperties::of_graph_with_colourizer(&graph, colourizer);
+        let mut props = CriticalPropertiesSolver::of_graph_with_colourizer(&graph, colourizer);
         assert_eq!(props.is_critical(), false);
         assert_eq!(props.is_cocritical(), false);
         assert_eq!(props.is_vertex_subcritical(), false);
@@ -91,7 +92,7 @@ pub mod critical_prop_tests {
 
         let colourizer = CvdDfsColourizer::new();
         let graph: SimpleGraph = G6Reader::read_graph(test_data::SNARK_IN_G6_34_STABLE_2).unwrap();
-        let mut props = CriticalProperties::of_graph_with_colourizer(&graph, colourizer);
+        let mut props = CriticalPropertiesSolver::of_graph_with_colourizer(&graph, colourizer);
         assert_eq!(props.is_critical(), false);
         assert_eq!(props.is_cocritical(), false);
         assert_eq!(props.is_vertex_subcritical(), false);
@@ -100,7 +101,7 @@ pub mod critical_prop_tests {
         let colourizer = CvdDfsColourizer::new();
         let graph: SimpleGraph =
             G6Reader::read_graph(test_data::SNARK_IN_G6_30_ACRITICAL_1).unwrap();
-        let mut props = CriticalProperties::of_graph_with_colourizer(&graph, colourizer);
+        let mut props = CriticalPropertiesSolver::of_graph_with_colourizer(&graph, colourizer);
         assert_eq!(props.is_critical(), false);
         assert_eq!(props.is_cocritical(), false);
         assert_eq!(props.is_vertex_subcritical(), false);
@@ -109,7 +110,7 @@ pub mod critical_prop_tests {
         let colourizer = CvdDfsColourizer::new();
         let graph: SimpleGraph =
             G6Reader::read_graph(test_data::SNARK_IN_G6_30_ACRITICAL_2).unwrap();
-        let mut props = CriticalProperties::of_graph_with_colourizer(&graph, colourizer);
+        let mut props = CriticalPropertiesSolver::of_graph_with_colourizer(&graph, colourizer);
         assert_eq!(props.is_critical(), false);
         assert_eq!(props.is_cocritical(), false);
         assert_eq!(props.is_vertex_subcritical(), false);
@@ -121,7 +122,7 @@ pub mod critical_prop_tests {
         let graph: SimpleGraph =
             G6Reader::read_graph(test_data::SNARK_IN_G6_26_CRITICAL_1).unwrap();
         let mut props =
-            CriticalProperties::of_graph_with_colourizer(&graph, MatchingColouriser::new());
+            CriticalPropertiesSolver::of_graph_with_colourizer(&graph, MatchingColouriser::new());
         assert_eq!(props.is_critical(), true);
         assert_eq!(props.is_cocritical(), true);
         assert_eq!(props.is_vertex_subcritical(), true);
@@ -130,7 +131,7 @@ pub mod critical_prop_tests {
         let graph: SimpleGraph =
             G6Reader::read_graph(test_data::SNARK_IN_G6_26_CRITICAL_2).unwrap();
         let mut props =
-            CriticalProperties::of_graph_with_colourizer(&graph, MatchingColouriser::new());
+            CriticalPropertiesSolver::of_graph_with_colourizer(&graph, MatchingColouriser::new());
         assert_eq!(props.is_critical(), true);
         assert_eq!(props.is_cocritical(), true);
         assert_eq!(props.is_vertex_subcritical(), true);
@@ -141,7 +142,7 @@ pub mod critical_prop_tests {
     fn should_be_acritical_matching() {
         let colourizer = MatchingColouriser::new();
         let graph: SimpleGraph = G6Reader::read_graph(test_data::SNARK_IN_G6_34_STABLE_1).unwrap();
-        let mut props = CriticalProperties::of_graph_with_colourizer(&graph, colourizer);
+        let mut props = CriticalPropertiesSolver::of_graph_with_colourizer(&graph, colourizer);
         assert_eq!(props.is_critical(), false);
         assert_eq!(props.is_cocritical(), false);
         assert_eq!(props.is_vertex_subcritical(), false);
@@ -149,7 +150,7 @@ pub mod critical_prop_tests {
 
         let colourizer = MatchingColouriser::new();
         let graph: SimpleGraph = G6Reader::read_graph(test_data::SNARK_IN_G6_34_STABLE_2).unwrap();
-        let mut props = CriticalProperties::of_graph_with_colourizer(&graph, colourizer);
+        let mut props = CriticalPropertiesSolver::of_graph_with_colourizer(&graph, colourizer);
         assert_eq!(props.is_critical(), false);
         assert_eq!(props.is_cocritical(), false);
         assert_eq!(props.is_vertex_subcritical(), false);
@@ -158,7 +159,7 @@ pub mod critical_prop_tests {
         let colourizer = MatchingColouriser::new();
         let graph: SimpleGraph =
             G6Reader::read_graph(test_data::SNARK_IN_G6_30_ACRITICAL_1).unwrap();
-        let mut props = CriticalProperties::of_graph_with_colourizer(&graph, colourizer);
+        let mut props = CriticalPropertiesSolver::of_graph_with_colourizer(&graph, colourizer);
         assert_eq!(props.is_critical(), false);
         assert_eq!(props.is_cocritical(), false);
         assert_eq!(props.is_vertex_subcritical(), false);
@@ -167,7 +168,7 @@ pub mod critical_prop_tests {
         let colourizer = MatchingColouriser::new();
         let graph: SimpleGraph =
             G6Reader::read_graph(test_data::SNARK_IN_G6_30_ACRITICAL_2).unwrap();
-        let mut props = CriticalProperties::of_graph_with_colourizer(&graph, colourizer);
+        let mut props = CriticalPropertiesSolver::of_graph_with_colourizer(&graph, colourizer);
         assert_eq!(props.is_critical(), false);
         assert_eq!(props.is_cocritical(), false);
         assert_eq!(props.is_vertex_subcritical(), false);

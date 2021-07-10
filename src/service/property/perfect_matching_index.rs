@@ -142,7 +142,7 @@ pub fn perfect_matching_index<G: Graph>(graph: &G) -> usize {
                 matchings_ref_copy,
                 vec![],
                 common_edges,
-                vec![first_counter, second_counter]
+                vec![first_counter, second_counter],
             ));
 
             second_counter += 1;
@@ -223,7 +223,6 @@ pub fn perfect_matching_index<G: Graph>(graph: &G) -> usize {
 ///
 /// matchings has to be sorted
 ///
-/// TODO return pair (usize, Vec<UndirectedEdge>)
 pub fn compute_matching_similarity(first: &Matching, second: &Matching) -> usize {
     let mut similarity = 0;
     if first.edges.len() == 0 {
@@ -398,16 +397,13 @@ impl<'a> PerfectMatchingIndex<'a> {
 pub fn perfect_matching_index_2<G: Graph>(graph: &G) -> usize {
     let mut matching_graph = MatchingGraph::from_graph(graph);
     let perfect_matchings = matching_graph.perfect_matchings();
-    let mut pmi = PerfectMatchingIndex2{
-        matchings: vec![]
-    };
+    let mut pmi = PerfectMatchingIndex2 { matchings: vec![] };
     for perfect_matching in perfect_matchings {
         pmi.matchings.push((perfect_matching, false));
     }
     let mut graph_copy = SimpleGraph::from_graph(graph);
 
     for max_nesting in 3..graph.size() {
-
         let mut temp = "".to_string();
 
         // println!("{}", max_nesting);
@@ -425,7 +421,12 @@ pub struct PerfectMatchingIndex2 {
 }
 
 impl PerfectMatchingIndex2 {
-    fn pmi_recursive(&mut self, graph: &mut SimpleGraph, max_nesting: usize, mut temp: &mut String) -> Option<usize> {
+    fn pmi_recursive(
+        &mut self,
+        graph: &mut SimpleGraph,
+        max_nesting: usize,
+        mut temp: &mut String,
+    ) -> Option<usize> {
         // println!("{}", temp);
 
         if max_nesting == 0 {
@@ -478,9 +479,7 @@ impl PerfectMatchingIndex2 {
 pub fn perfect_matching_index_1<G: Graph>(graph: &G) -> usize {
     let mut matching_graph = MatchingGraph::from_graph(graph);
     let perfect_matchings = matching_graph.perfect_matchings();
-    let mut pmi = PerfectMatchingIndex1{
-        matchings: vec![]
-    };
+    let mut pmi = PerfectMatchingIndex1 { matchings: vec![] };
     for perfect_matching in perfect_matchings {
         pmi.matchings.push((perfect_matching, false));
     }

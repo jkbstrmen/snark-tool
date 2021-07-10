@@ -2,9 +2,9 @@
 pub mod measurement_tests {
     use crate::graph::graph::Graph;
     use crate::graph::undirected::simple_graph::graph::SimpleGraph;
-    use crate::service::chromatic_properties::stable_and_critical_prop::{
-        StableAndCriticalProperties, COUNT, ELAPSED,
-    };
+    use crate::service::chromatic_properties::critical_prop::CriticalPropertiesSolver;
+    use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
+    use crate::service::chromatic_properties::CriticalProperties;
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::cvd::cvd;
     use crate::service::colour::cvd::cvd_dfs::CvdDfsColourizer;
@@ -214,6 +214,8 @@ pub mod measurement_tests {
 
     #[test]
     fn dfs_colouriser_critical_stable_properties_performance() {
+        let path = "resources/graphs/Generated_graphs.28.05.sn.cyc4.g6";
+
         // let path = "resources/measurement_samples/10_28vert_snarks.g6";
         // let path = "resources/measurement_samples/10_30vert_snarks.g6";
         // let path = "resources/measurement_samples/10_32vert_snarks.g6";
@@ -239,7 +241,7 @@ pub mod measurement_tests {
         // let path = "resources/measurement_samples/various/10K.Generated_graphs.32.04.sn.cyc4.g6";
         // let path = "resources/measurement_samples/various/10K.Generated_graphs.34.04.sn.cyc4.g6";
         // let path = "resources/measurement_samples/various/10K.Generated_graphs.36.04.sn.cyc4.g6";
-        let path = "resources/measurement_samples/various/10K.Generated_graphs.38.05.sn.cyc4.g6";
+        // let path = "resources/measurement_samples/various/10K.Generated_graphs.38.05.sn.cyc4.g6";
 
         // let path = "resources/measurement_samples/cvd-dfs-cvd-sat/10.dot_product.46.g6";
         // let path = "resources/measurement_samples/cvd-dfs-cvd-sat/10.dot_product.54.g6";
@@ -264,7 +266,8 @@ pub mod measurement_tests {
             let mut props =
                 // StableAndCriticalProperties::of_graph_with_colourizer(&graph, MatchingColouriser::new());
                 // StableAndCriticalProperties::of_graph_with_colourizer(&graph, CvdDfsColourizer::new());
-            StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerOriginal::new());
+            // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerOriginal::new());
+            CriticalPropertiesSolver::of_graph_with_colourizer(&graph, DFSColourizer::new());
             // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizer::new());
             // StableAndCriticalProperties::of_graph_with_colourizer(&graph, BFSColourizerImproved::new());
             // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerSimple::new());
@@ -274,8 +277,10 @@ pub mod measurement_tests {
             let cocrit = props.is_cocritical();
             let e_subcrit = props.is_edge_subcritical();
             let v_subcrit = props.is_vertex_subcritical();
-            let stable = props.is_stable();
-            let costable = props.is_costable();
+            // let stable = props.is_stable();
+            // let costable = props.is_costable();
+            let stable = false;
+            let costable = false;
 
             if crit {
                 crit_count += 1;
@@ -609,7 +614,8 @@ pub mod sat_measurement_tests {
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::recursive::dfs_improved::DFSColourizer;
     use crate::service::colour::sat::sat::SATColourizer;
-    use crate::service::colour::sat::sat_cadical::SATColourizerCadical;
+    // use crate::service::colour::sat::sat_cadical::SATColourizerCadical;
+    use crate::service::chromatic_properties::CriticalProperties;
     use crate::service::component_analysis::edge_pairs::PairsOfNonAdjacentEdges;
     use crate::service::component_analysis::vertex_pairs::PairsOfAdjacentVertices;
     use crate::service::constructions::dot_product::DotProducts;
@@ -1126,6 +1132,7 @@ pub mod perfect_matching_tests {
     use crate::service::io::reader::Reader;
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::matching::perfect_matchings::MatchingGraph;
+    use std::collections::HashMap;
     use std::{fs, time};
 
     #[test]

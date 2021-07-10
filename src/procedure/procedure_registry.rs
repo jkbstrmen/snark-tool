@@ -1,5 +1,7 @@
 use crate::graph::graph::GraphConstructor;
 use crate::graph::undirected::UndirectedGraph;
+use crate::procedure::basic_procedures::chrom_props::chromatic_properties::ChromaticPropsProcedureBuilder;
+use crate::procedure::basic_procedures::chrom_props::config::ChromaticPropsProcedureConfig;
 use crate::procedure::basic_procedures::colour::{ColourProcedureBuilder, ColourProcedureConfig};
 use crate::procedure::basic_procedures::constructions::{
     ConstructionProcedureBuilder, ConstructionProcedureConfig,
@@ -12,7 +14,6 @@ use crate::procedure::configuration::ProcedureConfig;
 use crate::procedure::procedure::{Procedure, Result};
 use crate::procedure::procedure_builder::ProcedureBuilder;
 use std::collections::HashMap;
-use crate::procedure::basic_procedures::chromatic_properties::{ChromaticPropsProcedureConfig, ChromaticPropsProcedureBuilder};
 
 pub struct ProcedureRegistry<G: UndirectedGraph> {
     registry: HashMap<String, Box<dyn ProcedureBuilder<G>>>,

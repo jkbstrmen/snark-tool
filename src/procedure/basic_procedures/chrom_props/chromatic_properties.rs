@@ -1,16 +1,24 @@
 use crate::graph::undirected::simple_graph::graph::SimpleGraph;
 use crate::graph::undirected::UndirectedGraph;
+use crate::procedure::basic_procedures::chrom_props::config::{
+    ChromaticPropertiesToCompute, ChromaticPropsProcedureConfig, ParallelizationType, ACRITICAL,
+    COCRITICAL, COSTABLE, CRITICAL, CYCLIC_EDGE_CONNECTIVITY, EDGE_RESISTIBILITIES,
+    EDGE_RESISTIBILITY_INDEX, EDGE_SUBCRITICAL, GIRTH, GRAPH_INDEX, ODDNESS, RESISTANCE, STABLE,
+    VERTEX_RESISTIBILITIES, VERTEX_RESISTIBILITY_INDEX, VERTEX_SUBCRITICAL,
+};
 use crate::procedure::basic_procedures::colour::ColouriserType;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::helpers::serialize_helper;
 use crate::procedure::procedure;
 use crate::procedure::procedure::{GraphProperties, Procedure};
 use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
-use crate::service::chromatic_properties::critical_prop::CriticalProperties;
+use crate::service::chromatic_properties::critical_prop::CriticalPropertiesSolver;
+use crate::service::chromatic_properties::critical_prop_parallel::CriticalPropertiesParallelSolver;
 use crate::service::chromatic_properties::error::ChromaticPropertiesError;
 use crate::service::chromatic_properties::resistance::Resistance;
 use crate::service::chromatic_properties::resistibility::Resistibility;
 use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
+use crate::service::chromatic_properties::CriticalProperties;
 use crate::service::colour::colouriser::Colouriser;
 use crate::service::colour::recursive::dfs_improved::DFSColourizer;
 use crate::service::colour::sat::sat::SATColourizer;
@@ -23,85 +31,13 @@ use std::sync::mpsc;
 use std::{marker, result, thread};
 
 pub type Result<T> = result::Result<T, ChromaticPropertiesError>;
-const DFS_COLOURISER: &str = "dfs";
-const SAT_COLOURISER: &str = "sat";
-
-// property
-const CRITICAL: &str = "critical";
-const COCRITICAL: &str = "cocritical";
-const VERTEX_SUBCRITICAL: &str = "vertex-subcritical";
-const EDGE_SUBCRITICAL: &str = "edge-subcritical";
-const ACRITICAL: &str = "acritical";
-const STABLE: &str = "stable";
-const COSTABLE: &str = "costable";
-const RESISTANCE: &str = "resistance";
-const GIRTH: &str = "girth";
-const CYCLIC_EDGE_CONNECTIVITY: &str = "cyclic-edge-connectivity";
-const EDGE_RESISTIBILITY: &str = "edge-resistibility";
-const VERTEX_RESISTIBILITY: &str = "vertex-resistibility";
-const ODDNESS: &str = "oddness";
-
-const VERTEX_RESISTIBILITIES: &str = "vertex-resistibilities";
-const VERTEX_RESISTIBILITY_INDEX: &str = "vertex-resistibility-index";
-const EDGE_RESISTIBILITIES: &str = "edge-resistibilities";
-const EDGE_RESISTIBILITY_INDEX: &str = "edge-resistibility-index";
-
-// property name
-const COLOURISER_TYPE: &str = "colouriser-type";
-const PARALLEL: &str = "parallel";
-const PROPERTIES: &str = "properties";
-const GRAPH_INDEX: &str = "graph-index";
 
 struct ChromaticPropsProcedure<G> {
     config: ChromaticPropsProcedureConfig,
     _ph: marker::PhantomData<G>,
 }
 
-pub struct ChromaticPropsProcedureConfig {
-    colouriser_type: ColouriserType,
-    parallel: bool,
-    properties_to_compute: ChromaticPropertiesToCompute,
-}
-
 pub struct ChromaticPropsProcedureBuilder {}
-
-#[derive(Clone)]
-struct ChromaticPropertiesToCompute {
-    critical: bool,
-    cocritical: bool,
-    vertex_subcritical: bool,
-    edge_subcritical: bool,
-    acritical: bool,
-    stable: bool,
-    costable: bool,
-
-    resistance: bool,
-    edge_resistibility: bool,
-    vertex_resistibility: bool,
-    girth: bool,
-    cyclic_connectivity: bool,
-    oddness: bool,
-}
-
-impl ChromaticPropertiesToCompute {
-    pub fn new() -> Self {
-        ChromaticPropertiesToCompute {
-            critical: false,
-            cocritical: false,
-            vertex_subcritical: false,
-            edge_subcritical: false,
-            acritical: false,
-            stable: false,
-            costable: false,
-            resistance: false,
-            edge_resistibility: false,
-            vertex_resistibility: false,
-            girth: false,
-            cyclic_connectivity: false,
-            oddness: false,
-        }
-    }
-}
 
 impl<G: UndirectedGraph + Clone> Procedure<G> for ChromaticPropsProcedure<G> {
     fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> procedure::Result<()> {
@@ -113,17 +49,30 @@ impl<G: UndirectedGraph + Clone> Procedure<G> for ChromaticPropsProcedure<G> {
 
 impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
     fn chromatic_properties(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
-        let parallel = self.config.parallel();
+        // let parallel = self.config.parallel();
         let colouriser_type = self.config.colouriser_type();
-        if parallel {
-            self.chromatic_properties_parallel(graphs, colouriser_type)?;
-        } else {
-            self.chromatic_properties_sequential(graphs, colouriser_type)?;
+        // if parallel {
+        //     self.chromatic_properties_parallel(graphs, colouriser_type)?;
+        // } else {
+        //     self.chromatic_properties_sequential(graphs, colouriser_type)?;
+        // }
+
+        let parallelization = self.config.parallelization();
+        match parallelization {
+            ParallelizationType::BatchBased => {
+                self.chromatic_properties_batch_parallel(graphs, colouriser_type)?;
+            }
+            ParallelizationType::GraphBased => {
+                self.chromatic_properties_graph_parallel(graphs, colouriser_type)?;
+            }
+            ParallelizationType::None => {
+                self.chromatic_properties_sequential(graphs, colouriser_type)?;
+            }
         }
         Ok(())
     }
 
-    fn chromatic_properties_parallel(
+    fn chromatic_properties_batch_parallel(
         &self,
         graphs: &mut Vec<(G, GraphProperties)>,
         colouriser_type: &ColouriserType,
@@ -132,10 +81,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         let mut index = 0;
         let (tx, rx) = mpsc::channel();
 
-        // TODO - do not user num_cpus directly - use as configurable param with default
-        //  num_cpus::get()
-        let cpus_count = num_cpus::get();
-
+        let cpus_count = self.config.max_threads;
         let to_compute = &self.config.properties_to_compute;
 
         // init first threads
@@ -208,6 +154,114 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
             thread.1.join().unwrap();
         }
         Ok(())
+    }
+
+    fn chromatic_properties_graph_parallel(
+        &self,
+        graphs: &mut Vec<(G, GraphProperties)>,
+        colouriser_type: &ColouriserType,
+    ) -> Result<()> {
+        // TODO - rewrite for graph parallelism
+        // foreach property to compute - spawn onw thread?
+        // in case of critical and stable props - in separate thread spawn another threads
+        //
+
+        let mut index = 0;
+        for graph in graphs {
+            let properties = Self::compute_properties_by_colouriser_parallel(
+                &graph.0,
+                colouriser_type,
+                index,
+                &self.config.properties_to_compute,
+                self.config.max_threads
+            )?;
+            self.write_properties(graph, properties)?;
+            index += 1;
+        }
+        Ok(())
+
+        // unimplemented!()
+
+        // let mut threads = HashMap::new();
+        // let mut index = 0;
+        // let (tx, rx) = mpsc::channel();
+        //
+        // // TODO - do not user num_cpus directly - use as configurable param with default
+        // //  num_cpus::get()
+        // let cpus_count = num_cpus::get();
+        //
+        // let to_compute = &self.config.properties_to_compute;
+        //
+        // // init first threads
+        // let mut graphs_iter = graphs.iter();
+        // let mut next_graph = graphs_iter.next();
+        // while next_graph.is_some() {
+        //     let graph = next_graph.unwrap();
+        //     // if graph is bigger could cause performance issues
+        //     let graph_local = SimpleGraph::from_graph(&graph.0);
+        //     let tx_cloned = mpsc::Sender::clone(&tx);
+        //     let handle = Self::spawn_thread_for_graph(
+        //         graph_local,
+        //         index,
+        //         (*colouriser_type).clone(),
+        //         (*to_compute).clone(),
+        //         tx_cloned,
+        //     );
+        //     threads.insert(index, handle);
+        //     index += 1;
+        //     if index >= cpus_count {
+        //         break;
+        //     }
+        //     next_graph = graphs_iter.next();
+        // }
+        // let mut results = Vec::with_capacity(graphs.len());
+        //
+        // // receive results and create new threads while next graphs exists
+        // for received in &rx {
+        //     let received_result = received.borrow().as_ref();
+        //     let index_value = received_result.unwrap().get(GRAPH_INDEX).unwrap();
+        //     let received_index: usize = serde_json::from_value(index_value.clone())?;
+        //
+        //     // end/join thread which sent received results
+        //     let thread_opt = threads.remove(&received_index);
+        //     if thread_opt.is_some() {
+        //         let _result = thread_opt.unwrap().join();
+        //     }
+        //     results.push(received);
+        //
+        //     next_graph = graphs_iter.next();
+        //     if next_graph.is_some() {
+        //         let graph = next_graph.unwrap();
+        //         let graph_local = SimpleGraph::from_graph(&graph.0);
+        //         let tx_cloned = mpsc::Sender::clone(&tx);
+        //         let handle = Self::spawn_thread_for_graph(
+        //             graph_local,
+        //             index,
+        //             colouriser_type.clone(),
+        //             (*to_compute).clone(),
+        //             tx_cloned,
+        //         );
+        //         threads.insert(index, handle);
+        //         index += 1;
+        //     } else {
+        //         break;
+        //     }
+        // }
+        //
+        // drop(tx);
+        //
+        // // receive remaining results
+        // for received in rx {
+        //     results.push(received);
+        // }
+        // for result in results {
+        //     self.handle_parallel_result(graphs, result)?;
+        // }
+        // // end/join remaining threads
+        // for thread in threads {
+        //     thread.1.join().unwrap();
+        // }
+        // Ok(())
     }
 
     fn handle_parallel_result(
@@ -305,6 +359,42 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         }
     }
 
+    // TODO - dedup
+    fn compute_properties_by_colouriser_parallel<Gr: UndirectedGraph + Clone>(
+        graph: &Gr,
+        colouriser_type: &ColouriserType,
+        graph_index: usize,
+        properties_to_compute: &ChromaticPropertiesToCompute,
+        max_threads: usize
+    ) -> Result<GraphProperties> {
+        // to do - change colouriser type according to graph size ...
+        match colouriser_type {
+            ColouriserType::Sat => {
+                return Self::compute_properties_parallel(
+                    graph,
+                    SATColourizer::new(),
+                    graph_index,
+                    &properties_to_compute,
+                    max_threads
+                );
+            }
+            ColouriserType::Dfs => {
+                return Self::compute_properties_parallel(
+                    graph,
+                    DFSColourizer::new(),
+                    graph_index,
+                    &properties_to_compute,
+                    max_threads
+                );
+            }
+            _ => {
+                return Err(ChromaticPropertiesError {
+                    message: format!("unknown colourizer to compute chromatic properties"),
+                });
+            }
+        }
+    }
+
     fn compute_properties<Gr: UndirectedGraph + Clone, C: Colouriser>(
         graph: &Gr,
         colouriser: C,
@@ -365,6 +455,77 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         Ok(properties)
     }
 
+    // TODO - dedup
+    fn compute_properties_parallel<Gr: UndirectedGraph + Clone, C: Colouriser + Send + 'static>(
+        graph: &Gr,
+        colouriser: C,
+        graph_index: usize,
+        properties_to_compute: &ChromaticPropertiesToCompute,
+        max_threads: usize
+    ) -> Result<GraphProperties> {
+        let to_compute = properties_to_compute;
+        let mut properties = GraphProperties::new();
+        properties.insert(GRAPH_INDEX.to_string(), serde_json::to_value(graph_index)?);
+
+        // TODO - spawn thread foreach property - and solve each property independently
+
+        if to_compute.stable || to_compute.costable {
+            Self::critical_and_stable_properties(
+                graph,
+                &colouriser,
+                properties_to_compute,
+                &mut properties,
+            )?;
+        } else if to_compute.critical
+            || to_compute.cocritical
+            || to_compute.vertex_subcritical
+            || to_compute.edge_subcritical
+        {
+            // compute critical props
+            Self::critical_properties_parallel(
+                graph,
+                &colouriser,
+                properties_to_compute,
+                &mut properties,
+                max_threads
+            )?;
+        }
+
+        if to_compute.resistance {
+            // compute resistence and add result to properties
+            Self::resistance(graph, &colouriser, &mut properties)?;
+        }
+        if to_compute.vertex_resistibility {
+            // compute vertex resistibility and add result to properties
+            Self::vertex_resistibility(graph, &colouriser, &mut properties)?;
+        }
+        if to_compute.edge_resistibility {
+            // compute edge resistibility and add result to properties
+            Self::edge_resistibility(graph, &colouriser, &mut properties)?;
+        }
+        if to_compute.girth {
+            // compute girth and add result to properties
+            let girth = girth(graph);
+            properties.insert(GIRTH.to_string(), serde_json::to_value(girth)?);
+        }
+        if to_compute.cyclic_connectivity {
+            // compute cyclic connectivity and add result to properties
+            let cyclic_edge_connectivity = cyclic_edge_connectivity(graph);
+            properties.insert(
+                CYCLIC_EDGE_CONNECTIVITY.to_string(),
+                serde_json::to_value(cyclic_edge_connectivity)?,
+            );
+        }
+        if to_compute.oddness {
+            // compute cyclic connectivity and add result to properties
+            let oddness = Oddness::of_graph(graph);
+            properties.insert(ODDNESS.to_string(), serde_json::to_value(oddness)?);
+        }
+
+        Ok(properties)
+    }
+
+    // TODO - create parallel version
     fn critical_and_stable_properties<Gr: UndirectedGraph + Clone, C: Colouriser>(
         graph: &Gr,
         _colouriser: &C,
@@ -372,30 +533,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         properties_computed: &mut GraphProperties,
     ) -> Result<()> {
         let mut props = StableAndCriticalProperties::of_graph_with_colourizer(graph, C::new());
-        if properties_to_compute.critical {
-            properties_computed.insert(
-                CRITICAL.to_string(),
-                serde_json::Value::Bool(props.is_critical()),
-            );
-        }
-        if properties_to_compute.cocritical {
-            properties_computed.insert(
-                COCRITICAL.to_string(),
-                serde_json::Value::Bool(props.is_cocritical()),
-            );
-        }
-        if properties_to_compute.vertex_subcritical {
-            properties_computed.insert(
-                VERTEX_SUBCRITICAL.to_string(),
-                serde_json::Value::Bool(props.is_vertex_subcritical()),
-            );
-        }
-        if properties_to_compute.edge_subcritical {
-            properties_computed.insert(
-                EDGE_SUBCRITICAL.to_string(),
-                serde_json::Value::Bool(props.is_edge_subcritical()),
-            );
-        }
+        Self::add_critical_properties(properties_to_compute, properties_computed, &mut props);
         if properties_to_compute.stable {
             properties_computed.insert(
                 STABLE.to_string(),
@@ -417,7 +555,27 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         properties_to_compute: &ChromaticPropertiesToCompute,
         properties_computed: &mut GraphProperties,
     ) -> Result<()> {
-        let mut props = CriticalProperties::of_graph_with_colourizer(graph, C::new());
+        let mut props = CriticalPropertiesSolver::of_graph_with_colourizer(graph, C::new());
+        Self::add_critical_properties(properties_to_compute, properties_computed, &mut props)
+    }
+
+    fn critical_properties_parallel<Gr: UndirectedGraph + Clone, C: Colouriser + Send + 'static>(
+        graph: &Gr,
+        _colouriser: &C,
+        properties_to_compute: &ChromaticPropertiesToCompute,
+        properties_computed: &mut GraphProperties,
+        max_threads: usize
+    ) -> Result<()> {
+        let mut props = CriticalPropertiesParallelSolver::of_graph_with_colourizer(graph, C::new());
+        props.set_cpus_count(max_threads);
+        Self::add_critical_properties(properties_to_compute, properties_computed, &mut props)
+    }
+
+    fn add_critical_properties(
+        properties_to_compute: &ChromaticPropertiesToCompute,
+        properties_computed: &mut GraphProperties,
+        props: &mut impl CriticalProperties,
+    ) -> Result<()> {
         if properties_to_compute.critical {
             properties_computed.insert(
                 CRITICAL.to_string(),
@@ -440,6 +598,12 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
             properties_computed.insert(
                 EDGE_SUBCRITICAL.to_string(),
                 serde_json::Value::Bool(props.is_edge_subcritical()),
+            );
+        }
+        if properties_to_compute.acritical {
+            properties_computed.insert(
+                ACRITICAL.to_string(),
+                serde_json::Value::Bool(props.is_acritical()),
             );
         }
         Ok(())
@@ -516,85 +680,6 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
     ) -> Result<()> {
         graph.1.extend(props);
         Ok(())
-    }
-}
-
-impl ChromaticPropsProcedureConfig {
-    pub const PROC_TYPE: &'static str = "chromatic-properties";
-
-    pub fn from_proc_config(config: &HashMap<String, serde_json::Value>) -> Result<Self> {
-        let colouriser_type = config_helper::resolve_value_or_default(
-            &config,
-            COLOURISER_TYPE,
-            DFS_COLOURISER.to_string(),
-            Self::PROC_TYPE,
-        )?;
-        let parallel =
-            config_helper::resolve_value_or_default(&config, PARALLEL, true, Self::PROC_TYPE)?;
-        let properties = config_helper::resolve_value(&config, PROPERTIES, Self::PROC_TYPE)?;
-        let properties_to_compute = ChromaticPropertiesToCompute::new();
-        let mut result = ChromaticPropsProcedureConfig {
-            colouriser_type: ColouriserType::from_string(&colouriser_type)?,
-            parallel,
-            properties_to_compute,
-        };
-        result.resolve_properties_to_compute(properties);
-        Ok(result)
-    }
-
-    fn resolve_properties_to_compute(&mut self, properties: Vec<String>) {
-        for property in properties.iter() {
-            match property.as_str() {
-                CRITICAL => {
-                    self.properties_to_compute.critical = true;
-                }
-                COCRITICAL => {
-                    self.properties_to_compute.cocritical = true;
-                }
-                VERTEX_SUBCRITICAL => {
-                    self.properties_to_compute.vertex_subcritical = true;
-                }
-                EDGE_SUBCRITICAL => {
-                    self.properties_to_compute.edge_subcritical = true;
-                }
-                ACRITICAL => {
-                    self.properties_to_compute.acritical = true;
-                }
-                STABLE => {
-                    self.properties_to_compute.stable = true;
-                }
-                COSTABLE => {
-                    self.properties_to_compute.costable = true;
-                }
-                GIRTH => {
-                    self.properties_to_compute.girth = true;
-                }
-                CYCLIC_EDGE_CONNECTIVITY => {
-                    self.properties_to_compute.cyclic_connectivity = true;
-                }
-                RESISTANCE => {
-                    self.properties_to_compute.resistance = true;
-                }
-                EDGE_RESISTIBILITY => {
-                    self.properties_to_compute.edge_resistibility = true;
-                }
-                VERTEX_RESISTIBILITY => {
-                    self.properties_to_compute.vertex_resistibility = true;
-                }
-                ODDNESS => {
-                    self.properties_to_compute.oddness = true;
-                }
-                _ => {}
-            }
-        }
-    }
-
-    pub fn colouriser_type(&self) -> &ColouriserType {
-        &self.colouriser_type
-    }
-
-    pub fn parallel(&self) -> bool {
-        self.parallel
     }
 }
 

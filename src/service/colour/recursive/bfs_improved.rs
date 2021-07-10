@@ -8,6 +8,7 @@ use std::collections::VecDeque;
 /// Colorizer for (sub)cubic graphs only
 /// version 2.2
 ///
+#[derive(Debug, Clone)]
 pub struct BFSColourizerImproved {}
 
 struct BFSColourizerImprovedGraph {

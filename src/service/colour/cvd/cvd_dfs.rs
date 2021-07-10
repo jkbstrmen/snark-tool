@@ -4,6 +4,7 @@ use crate::service::colour::cvd::cvd;
 use crate::service::colour::recursive::dfs_improved::DFSColourizer;
 
 // Colorizer for (sub)cubic graphs only
+#[derive(Debug, Clone)]
 pub struct CvdDfsColourizer {}
 
 impl Colouriser for CvdDfsColourizer {

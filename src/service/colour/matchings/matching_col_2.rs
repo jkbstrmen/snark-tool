@@ -8,6 +8,7 @@ use crate::service::matching::perfect_matchings::{
 
 // TODO - add to procedures
 
+#[derive(Debug, Clone)]
 pub struct MatchingColouriser2 {}
 
 impl Colouriser for MatchingColouriser2 {
@@ -41,14 +42,14 @@ impl MatchingColouriser2 {
 
                 let second = &matchings[j];
                 if Self::are_disjoint(first, second) {
-                    for edge in first.edges.iter() {
-                        print!("({}, {}) ", edge.from(), edge.to());
-                    }
-                    println!();
-                    for edge in second.edges.iter() {
-                        print!("({}, {}) ", edge.from(), edge.to());
-                    }
-                    println!();
+                    // for edge in first.edges.iter() {
+                    //     print!("({}, {}) ", edge.from(), edge.to());
+                    // }
+                    // println!();
+                    // for edge in second.edges.iter() {
+                    //     print!("({}, {}) ", edge.from(), edge.to());
+                    // }
+                    // println!();
 
                     return true;
                 }

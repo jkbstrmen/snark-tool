@@ -7,6 +7,7 @@ use crate::service::graph_traversal::bfs::BfsOfGraph;
 ///
 /// Works only for cubic graphs
 ///
+#[derive(Debug, Clone)]
 pub struct BFSColouriserBasic {}
 
 struct BFSColouriserGraph<'a, G: Graph> {

@@ -7,6 +7,7 @@ use crate::service::colour::colouriser::Colouriser;
 /// Colorizer for (sub)cubic graphs only
 /// version 2.2
 ///
+#[derive(Debug, Clone)]
 pub struct DFSColourizer {}
 
 struct DFSColourizerGraph {

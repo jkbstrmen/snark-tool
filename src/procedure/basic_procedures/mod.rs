@@ -1,4 +1,4 @@
-pub mod chromatic_properties;
+pub mod chrom_props;
 pub mod colour;
 pub mod constructions;
 pub mod filter;

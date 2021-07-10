@@ -7,6 +7,7 @@ use crate::service::matching::perfect_matchings::{
 
 // TODO - add to procedures
 
+#[derive(Debug, Clone)]
 pub struct MatchingColouriser {}
 
 impl Colouriser for MatchingColouriser {

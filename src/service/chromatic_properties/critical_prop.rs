@@ -5,6 +5,7 @@ use crate::graph::undirected::simple_graph::graph::SimpleGraph;
 use crate::service::chromatic_properties::CriticalProperties;
 use crate::service::colour::colouriser::Colouriser;
 use crate::service::colour::recursive::dfs_improved::DFSColourizer;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct CriticalPropertiesStruct {
@@ -201,9 +202,7 @@ where
         let local_graph = SimpleGraph::from_graph(graph);
         let mut edge_subcritical = true;
 
-        // TODO - optimization
-        // TODO - avoid computing for repeating pairs - pair (0, 1), (3, 4) is the same as (3, 4), (0, 1)
-
+        let mut computed_pairs = HashMap::new();
         for first_edge in local_graph.edges() {
             graph.remove_edge(first_edge.from(), first_edge.to());
 
@@ -211,9 +210,17 @@ where
                 if first_edge.eq(second_edge) {
                     continue;
                 }
-                graph.remove_edge(second_edge.from(), second_edge.to());
-                let colourable = C::is_colorable(graph);
-                graph.add_edge(second_edge.from(), second_edge.to());
+                let colourable: bool;
+                if computed_pairs.contains_key(&(first_edge, second_edge)) {
+                    colourable = *computed_pairs.get(&(first_edge, second_edge)).unwrap();
+                } else {
+                    graph.remove_edge(second_edge.from(), second_edge.to());
+                    colourable = C::is_colorable(graph);
+                    graph.add_edge(second_edge.from(), second_edge.to());
+
+                    computed_pairs.insert((first_edge, second_edge), colourable);
+                    computed_pairs.insert((second_edge, first_edge), colourable);
+                }
                 if colourable {
                     edge_subcritical = true;
                     break;

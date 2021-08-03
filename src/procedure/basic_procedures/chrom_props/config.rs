@@ -81,7 +81,7 @@ impl ChromaticPropsProcedureConfig {
             // parallel,
             parallelization: ParallelizationType::from_string(parallelization_str)?,
             properties_to_compute,
-            max_threads: max_cpus
+            max_threads: max_cpus,
         };
         result.resolve_properties_to_compute(properties);
         Ok(result)

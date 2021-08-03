@@ -30,6 +30,12 @@ pub struct FilterProcedureConfig {
 
 pub struct FilterProcedureBuilder {}
 
+struct Comparator {
+    comparator: String,
+    filter_value: u64,
+    property_name: String,
+}
+
 impl<G: UndirectedGraph> Procedure<G> for FilterProcedure<G> {
     fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         println!("running filter procedure");
@@ -45,11 +51,18 @@ impl<G: UndirectedGraph> FilterProcedure<G> {
             for filter_property in filter_properties {
                 let mut has_property = false;
                 for graph_property in &graph.1 {
-                    if filter_property == graph_property {
+                    if filter_property.0 != graph_property.0 {
+                        continue;
+                    }
+                    if filter_property.1 == graph_property.1 {
                         has_property = true;
                     }
-                    if has_property == false && filter_property.0 == graph_property.0 {
-                        let result = compare_values(filter_property, graph_property);
+                    if has_property == false {
+                        let comparator = parse_comparator(filter_property);
+                        if comparator.is_err() {
+                            return false;
+                        }
+                        let result = compare_values(&comparator.unwrap(), graph_property);
                         if result.is_err() {
                             // TODO - return result
                             eprintln!("malformed filter property: {}", result.err().unwrap());
@@ -69,23 +82,44 @@ impl<G: UndirectedGraph> FilterProcedure<G> {
     }
 }
 
-fn compare_values(
-    filter_property: (&String, &Value),
-    graph_property: (&String, &Value),
-) -> Result<bool> {
-    let mut conditions_met = false;
-
+fn parse_comparator(filter_property: (&String, &Value)) -> Result<Comparator> {
+    let mut comparator = Comparator {
+        comparator: "".to_string(),
+        filter_value: 0,
+        property_name: "".to_string()
+    };
     let field_value_result: result::Result<HashMap<String, serde_json::Value>, serde_json::Error> =
         serde_json::from_value(filter_property.1.clone());
     let field_value = field_value_result?;
-    let comparator: String =
+    comparator.comparator =
         config_helper::resolve_value(&field_value, COMPARATOR, FilterProcedureConfig::PROC_TYPE)?;
-    let filter_value: u64 =
+    comparator.filter_value =
         config_helper::resolve_value(&field_value, VALUE, FilterProcedureConfig::PROC_TYPE)?;
+    comparator.property_name = filter_property.0.clone();
 
+    match comparator.comparator.as_str() {
+        GREATER_THAN => {}
+        LESS_THAN => {}
+        EQUALS => {}
+        NOT_EQUAL => {}
+        GREATER_THAN_OR_EQUAL_TO => {}
+        LESS_THAN_OR_EQUAL_TO => {}
+        _ => {
+            return Err(Error::ConfigError(format!(
+                "not supported comparator '{}' for filter property '{}'",
+                comparator.comparator, filter_property.0
+            )));
+        }
+    }
+    Ok(comparator)
+}
+
+fn compare_values(comparator: &Comparator, graph_property: (&String, &Value)) -> Result<bool> {
+    let mut conditions_met = false;
     let graph_property_value: u64 = serde_json::from_value(graph_property.1.clone())?;
+    let filter_value = comparator.filter_value;
 
-    match comparator.as_str() {
+    match comparator.comparator.as_str() {
         GREATER_THAN => {
             if graph_property_value > filter_value {
                 conditions_met = true;
@@ -119,7 +153,7 @@ fn compare_values(
         _ => {
             return Err(Error::ConfigError(format!(
                 "not supported comparator '{}' for filter property '{}'",
-                comparator, filter_property.0
+                comparator.comparator, comparator.property_name
             )));
         }
     }

@@ -173,7 +173,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
                 colouriser_type,
                 index,
                 &self.config.properties_to_compute,
-                self.config.max_threads
+                self.config.max_threads,
             )?;
             self.write_properties(graph, properties)?;
             index += 1;
@@ -365,7 +365,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         colouriser_type: &ColouriserType,
         graph_index: usize,
         properties_to_compute: &ChromaticPropertiesToCompute,
-        max_threads: usize
+        max_threads: usize,
     ) -> Result<GraphProperties> {
         // to do - change colouriser type according to graph size ...
         match colouriser_type {
@@ -375,7 +375,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
                     SATColourizer::new(),
                     graph_index,
                     &properties_to_compute,
-                    max_threads
+                    max_threads,
                 );
             }
             ColouriserType::Dfs => {
@@ -384,7 +384,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
                     DFSColourizer::new(),
                     graph_index,
                     &properties_to_compute,
-                    max_threads
+                    max_threads,
                 );
             }
             _ => {
@@ -461,7 +461,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         colouriser: C,
         graph_index: usize,
         properties_to_compute: &ChromaticPropertiesToCompute,
-        max_threads: usize
+        max_threads: usize,
     ) -> Result<GraphProperties> {
         let to_compute = properties_to_compute;
         let mut properties = GraphProperties::new();
@@ -487,7 +487,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
                 &colouriser,
                 properties_to_compute,
                 &mut properties,
-                max_threads
+                max_threads,
             )?;
         }
 
@@ -564,7 +564,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         _colouriser: &C,
         properties_to_compute: &ChromaticPropertiesToCompute,
         properties_computed: &mut GraphProperties,
-        max_threads: usize
+        max_threads: usize,
     ) -> Result<()> {
         let mut props = CriticalPropertiesParallelSolver::of_graph_with_colourizer(graph, C::new());
         props.set_cpus_count(max_threads);

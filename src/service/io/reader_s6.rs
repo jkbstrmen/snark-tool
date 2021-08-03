@@ -39,13 +39,18 @@ where
                 return None;
             }
             Some(line) => {
-                if line.is_ok() {
-                    let graph = S6Reader::read_graph(line.unwrap());
+                if let Ok(line_str) = line {
+                    if line_str.trim().is_empty() {
+                        return self.next();
+                    }
+                    let graph = S6Reader::read_graph(line_str);
                     return Some(graph);
+                } else {
+                    // skip error lines?
+                    return self.next();
                 }
             }
         }
-        None
     }
 }
 

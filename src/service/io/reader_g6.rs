@@ -34,20 +34,24 @@ where
 
     fn next(&mut self) -> Option<Result<G>> {
         let mut line_opt = self.lines.next();
-        while line_opt.is_some() {
-            let line_result = line_opt.unwrap();
-            if line_result.is_ok() {
-                let line = line_result.unwrap();
-                if line.trim().is_empty() {
-                    line_opt = self.lines.next();
-                    continue;
-                }
-                let graph = G6Reader::read_graph(line);
-                return Some(graph);
+        match line_opt {
+            None => {
+                // warn - file contains less graphs than specified to work with
+                return None;
             }
-            line_opt = self.lines.next();
+            Some(line) => {
+                if let Ok(line_str) = line {
+                    if line_str.trim().is_empty() {
+                        return self.next();
+                    }
+                    let graph = G6Reader::read_graph(line_str);
+                    return Some(graph);
+                } else {
+                    // skip error lines?
+                    return self.next();
+                }
+            }
         }
-        None
     }
 }
 

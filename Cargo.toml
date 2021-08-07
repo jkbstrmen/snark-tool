@@ -24,6 +24,6 @@ num_cpus = "1.13"
 
 # SAT solvers
 varisat = "0.2.2"
-#cadical = "0.1.13"
+cadical = "0.1.13"
 
 petgraph = "0.5.1"

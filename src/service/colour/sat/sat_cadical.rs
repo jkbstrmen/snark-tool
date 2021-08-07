@@ -7,6 +7,7 @@ use std::iter::FromIterator;
 use varisat::solver::Solver;
 use varisat::{CnfFormula, ExtendFormula, Lit};
 
+#[derive(Debug, Clone)]
 pub struct SATColourizerCadical {}
 
 impl Colouriser for SATColourizerCadical {

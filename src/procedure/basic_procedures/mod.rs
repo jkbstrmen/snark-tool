@@ -6,3 +6,5 @@ pub mod read;
 pub mod write;
 
 pub mod unknown_procedure;
+
+pub mod counter;

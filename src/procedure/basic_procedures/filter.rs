@@ -86,7 +86,7 @@ fn parse_comparator(filter_property: (&String, &Value)) -> Result<Comparator> {
     let mut comparator = Comparator {
         comparator: "".to_string(),
         filter_value: 0,
-        property_name: "".to_string()
+        property_name: "".to_string(),
     };
     let field_value_result: result::Result<HashMap<String, serde_json::Value>, serde_json::Error> =
         serde_json::from_value(filter_property.1.clone());

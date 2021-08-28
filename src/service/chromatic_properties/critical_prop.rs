@@ -2,6 +2,7 @@ use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::Graph;
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::simple_graph::graph::SimpleGraph;
+use crate::service::chromatic_properties::edge_subcriticality_solver::EdgeSubcriticalitySolver;
 use crate::service::chromatic_properties::CriticalProperties;
 use crate::service::colour::colouriser::Colouriser;
 use crate::service::colour::recursive::dfs_improved::DFSColourizer;
@@ -80,7 +81,7 @@ where
             return self.properties.is_edge_subcritical;
         }
         self.properties.is_edge_subcritical =
-            Self::compute_edge_subcriticality(&mut self.properties.graph);
+            EdgeSubcriticalitySolver::compute_edge_subcriticality::<C>(&mut self.properties.graph);
         self.properties.edge_property_computed = true;
 
         return self.properties.is_edge_subcritical;
@@ -196,43 +197,6 @@ where
                 return;
             }
         }
-    }
-
-    pub fn compute_edge_subcriticality(graph: &mut SimpleGraph) -> bool {
-        let local_graph = SimpleGraph::from_graph(graph);
-        let mut edge_subcritical = true;
-
-        let mut computed_pairs = HashMap::new();
-        for first_edge in local_graph.edges() {
-            graph.remove_edge(first_edge.from(), first_edge.to());
-
-            for second_edge in local_graph.edges() {
-                if first_edge.eq(second_edge) {
-                    continue;
-                }
-                let colourable: bool;
-                if computed_pairs.contains_key(&(first_edge, second_edge)) {
-                    colourable = *computed_pairs.get(&(first_edge, second_edge)).unwrap();
-                } else {
-                    graph.remove_edge(second_edge.from(), second_edge.to());
-                    colourable = C::is_colorable(graph);
-                    graph.add_edge(second_edge.from(), second_edge.to());
-
-                    computed_pairs.insert((first_edge, second_edge), colourable);
-                    computed_pairs.insert((second_edge, first_edge), colourable);
-                }
-                if colourable {
-                    edge_subcritical = true;
-                    break;
-                }
-                edge_subcritical = false;
-            }
-            graph.add_edge(first_edge.from(), first_edge.to());
-            if !edge_subcritical {
-                return false;
-            }
-        }
-        true
     }
 }
 

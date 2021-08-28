@@ -17,7 +17,8 @@ use crate::service::chromatic_properties::critical_prop_parallel::CriticalProper
 use crate::service::chromatic_properties::error::ChromaticPropertiesError;
 use crate::service::chromatic_properties::resistance::Resistance;
 use crate::service::chromatic_properties::resistibility::Resistibility;
-use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
+use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalPropertiesSolver;
+use crate::service::chromatic_properties::stable_and_critical_prop_parallel::StableAndCriticalPropertiesParallelSolver;
 use crate::service::chromatic_properties::CriticalProperties;
 use crate::service::colour::colouriser::Colouriser;
 use crate::service::colour::recursive::dfs_improved::DFSColourizer;
@@ -161,11 +162,6 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         graphs: &mut Vec<(G, GraphProperties)>,
         colouriser_type: &ColouriserType,
     ) -> Result<()> {
-        // TODO - rewrite for graph parallelism
-        // foreach property to compute - spawn onw thread?
-        // in case of critical and stable props - in separate thread spawn another threads
-        //
-
         let mut index = 0;
         for graph in graphs {
             let properties = Self::compute_properties_by_colouriser_parallel(
@@ -179,89 +175,6 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
             index += 1;
         }
         Ok(())
-
-        // unimplemented!()
-
-        // let mut threads = HashMap::new();
-        // let mut index = 0;
-        // let (tx, rx) = mpsc::channel();
-        //
-        // // TODO - do not user num_cpus directly - use as configurable param with default
-        // //  num_cpus::get()
-        // let cpus_count = num_cpus::get();
-        //
-        // let to_compute = &self.config.properties_to_compute;
-        //
-        // // init first threads
-        // let mut graphs_iter = graphs.iter();
-        // let mut next_graph = graphs_iter.next();
-        // while next_graph.is_some() {
-        //     let graph = next_graph.unwrap();
-        //     // if graph is bigger could cause performance issues
-        //     let graph_local = SimpleGraph::from_graph(&graph.0);
-        //     let tx_cloned = mpsc::Sender::clone(&tx);
-        //     let handle = Self::spawn_thread_for_graph(
-        //         graph_local,
-        //         index,
-        //         (*colouriser_type).clone(),
-        //         (*to_compute).clone(),
-        //         tx_cloned,
-        //     );
-        //     threads.insert(index, handle);
-        //     index += 1;
-        //     if index >= cpus_count {
-        //         break;
-        //     }
-        //     next_graph = graphs_iter.next();
-        // }
-        // let mut results = Vec::with_capacity(graphs.len());
-        //
-        // // receive results and create new threads while next graphs exists
-        // for received in &rx {
-        //     let received_result = received.borrow().as_ref();
-        //     let index_value = received_result.unwrap().get(GRAPH_INDEX).unwrap();
-        //     let received_index: usize = serde_json::from_value(index_value.clone())?;
-        //
-        //     // end/join thread which sent received results
-        //     let thread_opt = threads.remove(&received_index);
-        //     if thread_opt.is_some() {
-        //         let _result = thread_opt.unwrap().join();
-        //     }
-        //     results.push(received);
-        //
-        //     next_graph = graphs_iter.next();
-        //     if next_graph.is_some() {
-        //         let graph = next_graph.unwrap();
-        //         let graph_local = SimpleGraph::from_graph(&graph.0);
-        //         let tx_cloned = mpsc::Sender::clone(&tx);
-        //         let handle = Self::spawn_thread_for_graph(
-        //             graph_local,
-        //             index,
-        //             colouriser_type.clone(),
-        //             (*to_compute).clone(),
-        //             tx_cloned,
-        //         );
-        //         threads.insert(index, handle);
-        //         index += 1;
-        //     } else {
-        //         break;
-        //     }
-        // }
-        //
-        // drop(tx);
-        //
-        // // receive remaining results
-        // for received in rx {
-        //     results.push(received);
-        // }
-        // for result in results {
-        //     self.handle_parallel_result(graphs, result)?;
-        // }
-        // // end/join remaining threads
-        // for thread in threads {
-        //     thread.1.join().unwrap();
-        // }
-        // Ok(())
     }
 
     fn handle_parallel_result(
@@ -470,11 +383,12 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         // TODO - spawn thread foreach property - and solve each property independently
 
         if to_compute.stable || to_compute.costable {
-            Self::critical_and_stable_properties(
+            Self::critical_and_stable_properties_parallel(
                 graph,
                 &colouriser,
                 properties_to_compute,
                 &mut properties,
+                max_threads,
             )?;
         } else if to_compute.critical
             || to_compute.cocritical
@@ -525,14 +439,43 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         Ok(properties)
     }
 
-    // TODO - create parallel version
     fn critical_and_stable_properties<Gr: UndirectedGraph + Clone, C: Colouriser>(
         graph: &Gr,
         _colouriser: &C,
         properties_to_compute: &ChromaticPropertiesToCompute,
         properties_computed: &mut GraphProperties,
     ) -> Result<()> {
-        let mut props = StableAndCriticalProperties::of_graph_with_colourizer(graph, C::new());
+        let mut props =
+            StableAndCriticalPropertiesSolver::of_graph_with_colourizer(graph, C::new());
+        Self::add_critical_properties(properties_to_compute, properties_computed, &mut props);
+        if properties_to_compute.stable {
+            properties_computed.insert(
+                STABLE.to_string(),
+                serde_json::Value::Bool(props.is_stable()),
+            );
+        }
+        if properties_to_compute.costable {
+            properties_computed.insert(
+                COSTABLE.to_string(),
+                serde_json::Value::Bool(props.is_costable()),
+            );
+        }
+        Ok(())
+    }
+
+    fn critical_and_stable_properties_parallel<
+        Gr: UndirectedGraph + Clone,
+        C: Colouriser + Send + 'static,
+    >(
+        graph: &Gr,
+        _colouriser: &C,
+        properties_to_compute: &ChromaticPropertiesToCompute,
+        properties_computed: &mut GraphProperties,
+        max_threads: usize,
+    ) -> Result<()> {
+        let mut props =
+            StableAndCriticalPropertiesParallelSolver::of_graph_with_colourizer(graph, C::new());
+        props.set_cpus_count(max_threads);
         Self::add_critical_properties(properties_to_compute, properties_computed, &mut props);
         if properties_to_compute.stable {
             properties_computed.insert(

@@ -3,7 +3,7 @@ pub mod measurement_tests {
     use crate::graph::graph::Graph;
     use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::service::chromatic_properties::critical_prop::CriticalPropertiesSolver;
-    use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
+    use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalPropertiesSolver;
     use crate::service::chromatic_properties::CriticalProperties;
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::cvd::cvd;
@@ -383,7 +383,7 @@ pub mod measurement_tests {
                 let mut props =
                     // StableAndCriticalProperties::of_graph_with_colourizer(&graph, MatchingColouriser::new());
                     // StableAndCriticalProperties::of_graph_with_colourizer(&graph, CvdDfsColourizer::new());
-                    StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerOriginal::new());
+                    StableAndCriticalPropertiesSolver::of_graph_with_colourizer(&graph, DFSColourizerOriginal::new());
                 // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizer::new());
                 // StableAndCriticalProperties::of_graph_with_colourizer(&graph, BFSColourizerImproved::new());
                 // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerSimple::new());
@@ -459,7 +459,7 @@ pub mod measurement_tests {
                     // StableAndCriticalProperties::of_graph_with_colourizer(&graph, MatchingColouriser::new());
                     // StableAndCriticalProperties::of_graph_with_colourizer(&graph, CvdDfsColourizer::new());
                     // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerOriginal::new());
-                StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizer::new());
+                StableAndCriticalPropertiesSolver::of_graph_with_colourizer(&graph, DFSColourizer::new());
                 // StableAndCriticalProperties::of_graph_with_colourizer(&graph, BFSColourizerImproved::new());
                 // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizerSimple::new());
                 // StableAndCriticalProperties::of_graph_with_colourizer(&graph, DfsDfsColourizer::new());
@@ -610,7 +610,7 @@ pub mod sat_measurement_tests {
     use crate::graph::graph::Graph;
     use crate::graph::undirected::simple_edge_graph::graph::SimpleEdgeGraph;
     use crate::graph::undirected::simple_graph::graph::SimpleGraph;
-    use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalProperties;
+    use crate::service::chromatic_properties::stable_and_critical_prop::StableAndCriticalPropertiesSolver;
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::recursive::dfs_improved::DFSColourizer;
     use crate::service::colour::sat::sat::SATColourizer;
@@ -838,8 +838,10 @@ pub mod sat_measurement_tests {
         while let Some(graph_result) = reader.next() {
             let graph = graph_result.unwrap();
 
-            let mut props =
-                StableAndCriticalProperties::of_graph_with_colourizer(&graph, DFSColourizer::new());
+            let mut props = StableAndCriticalPropertiesSolver::of_graph_with_colourizer(
+                &graph,
+                DFSColourizer::new(),
+            );
             let crit = props.is_critical();
             let cocrit = props.is_cocritical();
             let e_subcrit = props.is_edge_subcritical();

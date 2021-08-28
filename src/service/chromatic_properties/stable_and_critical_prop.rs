@@ -4,10 +4,11 @@ use crate::graph::vertex::Vertex;
 use crate::service::chromatic_properties::critical_prop::{
     CriticalPropertiesSolver, CriticalPropertiesStruct,
 };
+use crate::service::chromatic_properties::edge_subcriticality_solver::EdgeSubcriticalitySolver;
 use crate::service::chromatic_properties::{critical_prop, CriticalProperties};
 use crate::service::colour::colouriser::Colouriser;
 
-pub struct StableAndCriticalProperties<C>
+pub struct StableAndCriticalPropertiesSolver<C>
 where
     C: Colouriser,
 {
@@ -18,7 +19,7 @@ where
     results_obtained: bool,
 }
 
-impl<C> CriticalProperties for StableAndCriticalProperties<C>
+impl<C> CriticalProperties for StableAndCriticalPropertiesSolver<C>
 where
     C: Colouriser,
 {
@@ -51,7 +52,7 @@ where
             return self.properties.is_edge_subcritical;
         }
         self.properties.is_edge_subcritical =
-            CriticalPropertiesSolver::<C>::compute_edge_subcriticality(&mut self.properties.graph);
+            EdgeSubcriticalitySolver::compute_edge_subcriticality::<C>(&mut self.properties.graph);
         self.properties.edge_property_computed = true;
 
         return self.properties.is_edge_subcritical;
@@ -62,12 +63,12 @@ where
     }
 }
 
-impl<C> StableAndCriticalProperties<C>
+impl<C> StableAndCriticalPropertiesSolver<C>
 where
     C: Colouriser,
 {
     pub fn of_graph_with_colourizer<G: Graph + Clone>(graph: &G, colourizer: C) -> Self {
-        StableAndCriticalProperties {
+        StableAndCriticalPropertiesSolver {
             _colourizer: colourizer,
             is_stable: false,
             is_costable: false,
@@ -155,6 +156,12 @@ where
                     }
 
                     let colourings = &self.properties.colourings;
+                    let colourable = Self::get_colouring(
+                        colourings,
+                        graph.size(),
+                        first_vertex,
+                        second_vertex.index(),
+                    );
 
                     if self
                         .properties
@@ -162,24 +169,14 @@ where
                         .has_edge(first_vertex, second_vertex.index())
                     {
                         // if self.get_colouring(first_vertex, second_vertex.index()) {
-                        if Self::get_colouring(
-                            colourings,
-                            graph.size(),
-                            first_vertex,
-                            second_vertex.index(),
-                        ) {
+                        if colourable {
                             self.is_stable = false;
                             vertex_subcritical_flag = true;
                         } else {
                             self.properties.is_critical = false;
                         }
                     } else {
-                        if Self::get_colouring(
-                            colourings,
-                            graph.size(),
-                            first_vertex,
-                            second_vertex.index(),
-                        ) {
+                        if colourable {
                             self.is_costable = false;
                             vertex_subcritical_flag = true;
                         } else {

@@ -43,7 +43,7 @@ where
 {
     let mut graph = create_cvd_graph(graph);
 
-    let mut l_limit = graph.vertices_to_try.len() / 2;
+    let mut l_limit = graph.vertices_to_try.len() / 4;
     l_limit = cmp::min(l_limit, L_LIMIT);
     let mut r_limit = graph.vertices_to_try.len() / 4;
     r_limit = cmp::min(r_limit, R_LIMIT);

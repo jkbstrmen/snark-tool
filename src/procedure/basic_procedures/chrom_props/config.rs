@@ -2,7 +2,7 @@ use crate::procedure::basic_procedures::colour::ColouriserType;
 use crate::procedure::error::Error;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::Result;
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::Deserialize;
 use std::collections::HashMap;
 
 pub const DFS_COLOURISER: &str = "dfs";
@@ -30,7 +30,6 @@ pub const EDGE_RESISTIBILITY_INDEX: &str = "edge-resistibility-index";
 
 // property name
 pub const COLOURISER_TYPE: &str = "colouriser-type";
-pub const PARALLEL: &str = "parallel";
 pub const PARALLELIZATION: &str = "parallelization";
 pub const PROPERTIES: &str = "properties";
 pub const GRAPH_INDEX: &str = "graph-index";
@@ -55,8 +54,6 @@ impl ChromaticPropsProcedureConfig {
             DFS_COLOURISER.to_string(),
             Self::PROC_TYPE,
         )?;
-        let parallel =
-            config_helper::resolve_value_or_default(&config, PARALLEL, true, Self::PROC_TYPE)?;
 
         let parallelization_str = config_helper::resolve_value_or_default(
             &config,
@@ -195,7 +192,7 @@ pub enum ParallelizationType {
 
 impl ParallelizationType {
     pub fn from_string(string: impl AsRef<str>) -> Result<ParallelizationType> {
-        let mut parallel_type = ParallelizationType::None;
+        let parallel_type;
         match string.as_ref() {
             PARALL_BATCH => parallel_type = ParallelizationType::BatchBased,
             PARALL_GRAPH => parallel_type = ParallelizationType::GraphBased,

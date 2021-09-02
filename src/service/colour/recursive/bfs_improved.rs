@@ -49,7 +49,7 @@ impl Colouriser for BFSColourizerImproved {
 
         // precolor
         let colors = [3, 4, 5];
-        let mut first_vertex = 0;
+        let first_vertex;
         let mut index = 0;
         for vertex in color_graph.vertices.clone() {
             // if vertex has only 2 neighbors - skip
@@ -62,7 +62,6 @@ impl Colouriser for BFSColourizerImproved {
             for neighbor in vertex.iter() {
                 if neighbor.1 == 1 {
                     color_graph.set_edge_color(index, neighbor.0, colors[i]);
-                    first_vertex = neighbor.0;
                     color_graph.to_visit.push_back(neighbor.0);
                     i += 1;
                 }

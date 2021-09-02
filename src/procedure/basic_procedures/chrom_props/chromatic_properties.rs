@@ -7,7 +7,6 @@ use crate::procedure::basic_procedures::chrom_props::config::{
     VERTEX_RESISTIBILITIES, VERTEX_RESISTIBILITY_INDEX, VERTEX_SUBCRITICAL,
 };
 use crate::procedure::basic_procedures::colour::ColouriserType;
-use crate::procedure::helpers::config_helper;
 use crate::procedure::helpers::serialize_helper;
 use crate::procedure::procedure;
 use crate::procedure::procedure::{GraphProperties, Procedure};
@@ -50,14 +49,7 @@ impl<G: UndirectedGraph + Clone> Procedure<G> for ChromaticPropsProcedure<G> {
 
 impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
     fn chromatic_properties(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
-        // let parallel = self.config.parallel();
         let colouriser_type = self.config.colouriser_type();
-        // if parallel {
-        //     self.chromatic_properties_parallel(graphs, colouriser_type)?;
-        // } else {
-        //     self.chromatic_properties_sequential(graphs, colouriser_type)?;
-        // }
-
         let parallelization = self.config.parallelization();
         match parallelization {
             ParallelizationType::BatchBased => {
@@ -177,6 +169,25 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         Ok(())
     }
 
+    fn chromatic_properties_sequential(
+        &self,
+        graphs: &mut Vec<(G, GraphProperties)>,
+        colouriser_type: &ColouriserType,
+    ) -> Result<()> {
+        let mut index = 0;
+        for graph in graphs {
+            let properties = Self::compute_properties_by_colouriser(
+                &graph.0,
+                colouriser_type,
+                index,
+                &self.config.properties_to_compute,
+            )?;
+            self.write_properties(graph, properties)?;
+            index += 1;
+        }
+        Ok(())
+    }
+
     fn handle_parallel_result(
         &self,
         graphs: &mut Vec<(G, GraphProperties)>,
@@ -221,25 +232,6 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         handle
     }
 
-    fn chromatic_properties_sequential(
-        &self,
-        graphs: &mut Vec<(G, GraphProperties)>,
-        colouriser_type: &ColouriserType,
-    ) -> Result<()> {
-        let mut index = 0;
-        for graph in graphs {
-            let properties = Self::compute_properties_by_colouriser(
-                &graph.0,
-                colouriser_type,
-                index,
-                &self.config.properties_to_compute,
-            )?;
-            self.write_properties(graph, properties)?;
-            index += 1;
-        }
-        Ok(())
-    }
-
     fn compute_properties_by_colouriser<Gr: UndirectedGraph + Clone>(
         graph: &Gr,
         colouriser_type: &ColouriserType,
@@ -272,7 +264,6 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         }
     }
 
-    // TODO - dedup
     fn compute_properties_by_colouriser_parallel<Gr: UndirectedGraph + Clone>(
         graph: &Gr,
         colouriser_type: &ColouriserType,
@@ -368,7 +359,6 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         Ok(properties)
     }
 
-    // TODO - dedup
     fn compute_properties_parallel<Gr: UndirectedGraph + Clone, C: Colouriser + Send + 'static>(
         graph: &Gr,
         colouriser: C,
@@ -447,7 +437,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
     ) -> Result<()> {
         let mut props =
             StableAndCriticalPropertiesSolver::of_graph_with_colourizer(graph, C::new());
-        Self::add_critical_properties(properties_to_compute, properties_computed, &mut props);
+        Self::add_critical_properties(properties_to_compute, properties_computed, &mut props)?;
         if properties_to_compute.stable {
             properties_computed.insert(
                 STABLE.to_string(),
@@ -476,7 +466,7 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         let mut props =
             StableAndCriticalPropertiesParallelSolver::of_graph_with_colourizer(graph, C::new());
         props.set_cpus_count(max_threads);
-        Self::add_critical_properties(properties_to_compute, properties_computed, &mut props);
+        Self::add_critical_properties(properties_to_compute, properties_computed, &mut props)?;
         if properties_to_compute.stable {
             properties_computed.insert(
                 STABLE.to_string(),

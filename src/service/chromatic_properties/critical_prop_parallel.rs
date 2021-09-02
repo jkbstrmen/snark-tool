@@ -1,13 +1,6 @@
-use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::Graph;
-use crate::graph::undirected::edge::UndirectedEdge;
-use crate::graph::undirected::simple_graph::graph::SimpleGraph;
-use crate::service::chromatic_properties::critical_prop::{
-    CriticalPropertiesSolver, CriticalPropertiesStruct,
-};
-use crate::service::chromatic_properties::edge_subcriticality_solver::{
-    EdgeSubcriticalityParallelSolver, EdgeSubcriticalitySolver,
-};
+use crate::service::chromatic_properties::critical_prop::CriticalPropertiesStruct;
+use crate::service::chromatic_properties::edge_subcriticality_solver::EdgeSubcriticalityParallelSolver;
 use crate::service::chromatic_properties::error::ChromaticPropertiesError;
 use crate::service::chromatic_properties::{critical_prop, CriticalProperties};
 use crate::service::colour::colouriser::Colouriser;
@@ -123,11 +116,11 @@ where
 
         for first_vertex in 0..graph_size {
             let mut self_copy = self.clone();
-            let mut graph = &mut self_copy.properties.graph;
+            let graph = &mut self_copy.properties.graph;
             graph.remove_edges_of_vertex(first_vertex);
 
             let tx_cloned = mpsc::Sender::clone(&tx);
-            let handle = Self::spawn_thread_for_subgraph(self_copy, first_vertex, index, tx_cloned);
+            let handle = Self::spawn_thread_for_subgraph(self_copy, first_vertex, tx_cloned);
             threads.insert(index, handle);
             index += 1;
 
@@ -153,11 +146,11 @@ where
             }
             if index < graph_size {
                 let mut self_copy = self.clone();
-                let mut graph_copy = &mut self_copy.properties.graph;
+                let graph_copy = &mut self_copy.properties.graph;
                 graph_copy.remove_edges_of_vertex(index);
 
                 let tx_cloned = mpsc::Sender::clone(&tx);
-                let handle = Self::spawn_thread_for_subgraph(self_copy, index, index, tx_cloned);
+                let handle = Self::spawn_thread_for_subgraph(self_copy, index, tx_cloned);
                 threads.insert(index, handle);
                 index += 1;
             } else {
@@ -188,7 +181,6 @@ where
     fn spawn_thread_for_subgraph(
         mut critical_props: CriticalPropertiesParallelSolver<C>,
         first_vertex: usize,
-        index: usize,
         sender: mpsc::Sender<Result<ThreadResult<C>>>,
     ) -> thread::JoinHandle<()> {
         critical_props.properties.is_vertex_subcritical = false;

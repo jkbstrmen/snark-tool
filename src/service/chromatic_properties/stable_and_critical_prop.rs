@@ -1,9 +1,6 @@
 use crate::graph::graph::Graph;
-use crate::graph::undirected::simple_graph::graph::SimpleGraph;
 use crate::graph::vertex::Vertex;
-use crate::service::chromatic_properties::critical_prop::{
-    CriticalPropertiesSolver, CriticalPropertiesStruct,
-};
+use crate::service::chromatic_properties::critical_prop::CriticalPropertiesStruct;
 use crate::service::chromatic_properties::edge_subcriticality_solver::EdgeSubcriticalitySolver;
 use crate::service::chromatic_properties::{critical_prop, CriticalProperties};
 use crate::service::colour::colouriser::Colouriser;

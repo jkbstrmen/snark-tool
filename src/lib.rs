@@ -1,4 +1,4 @@
 pub mod graph;
-mod procedure;
+pub mod procedure;
 pub mod service;
 mod tests;

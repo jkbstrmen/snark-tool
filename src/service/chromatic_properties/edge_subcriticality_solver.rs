@@ -168,7 +168,7 @@ where
     fn spawn_thread_for_subgraph(
         first_edge: UndirectedEdge,
         sender: mpsc::Sender<Result<ThreadResult<C>>>,
-        mut solver: EdgeSubcriticalityParallelSolver<C>,
+        solver: EdgeSubcriticalityParallelSolver<C>,
         index: usize,
     ) -> thread::JoinHandle<()> {
         let handle = thread::spawn(move || {
@@ -191,8 +191,8 @@ where
         index: usize,
     ) -> Result<ThreadResult<C>> {
         let mut edge_subcritical = false;
-        let mut graph = &mut solver.graph;
-        let mut computed_pairs = &mut solver.computed_pairs;
+        let graph = &mut solver.graph;
+        let computed_pairs = &mut solver.computed_pairs;
 
         for second_edge in solver.untouched_graph.edges() {
             if first_edge.eq(second_edge) {

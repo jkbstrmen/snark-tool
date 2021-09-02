@@ -1,9 +1,7 @@
 use crate::graph::graph::Graph;
 use crate::service::colour::colouriser::Colouriser;
 use crate::service::colour::cvd::cvd;
-use crate::service::colour::sat::sat::SATColourizer;
 use crate::service::colour::sat::sat_cadical::SATColourizerCadical;
-use std::time::Instant;
 
 // Colorizer for (sub)cubic graphs only
 #[derive(Debug, Clone)]

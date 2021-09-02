@@ -6,7 +6,6 @@ use crate::service::chromatic_properties::edge_subcriticality_solver::EdgeSubcri
 use crate::service::chromatic_properties::CriticalProperties;
 use crate::service::colour::colouriser::Colouriser;
 use crate::service::colour::recursive::dfs_improved::DFSColourizer;
-use std::collections::HashMap;
 
 #[derive(Debug, Clone)]
 pub struct CriticalPropertiesStruct {

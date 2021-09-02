@@ -4,15 +4,9 @@ use std::sync::mpsc;
 use std::{result, thread};
 
 use crate::graph::graph::Graph;
-use crate::graph::undirected::simple_graph::graph::SimpleGraph;
 use crate::graph::vertex::Vertex;
-use crate::service::chromatic_properties::critical_prop::{
-    CriticalPropertiesSolver, CriticalPropertiesStruct,
-};
-use crate::service::chromatic_properties::critical_prop_parallel::CriticalPropertiesParallelSolver;
-use crate::service::chromatic_properties::edge_subcriticality_solver::{
-    EdgeSubcriticalityParallelSolver, EdgeSubcriticalitySolver,
-};
+use crate::service::chromatic_properties::critical_prop::CriticalPropertiesStruct;
+use crate::service::chromatic_properties::edge_subcriticality_solver::EdgeSubcriticalityParallelSolver;
 use crate::service::chromatic_properties::error::ChromaticPropertiesError;
 use crate::service::chromatic_properties::{critical_prop, CriticalProperties};
 use crate::service::colour::colouriser::Colouriser;
@@ -140,12 +134,11 @@ where
         let mut index = 0;
         let (tx, rx) = mpsc::channel();
         let graph_size = self.properties.graph.size();
-        let graph = &mut self.properties.graph;
         let mut results_gained = false;
 
         for first_vertex in 0..graph_size {
             let mut self_copy = self.clone();
-            let mut graph_copy = &mut self_copy.properties.graph;
+            let graph_copy = &mut self_copy.properties.graph;
             graph_copy.remove_edges_of_vertex(first_vertex);
 
             let tx_cloned = mpsc::Sender::clone(&tx);
@@ -176,7 +169,7 @@ where
             }
             if index < graph_size {
                 let mut self_copy = self.clone();
-                let mut graph_copy = &mut self_copy.properties.graph;
+                let graph_copy = &mut self_copy.properties.graph;
                 graph_copy.remove_edges_of_vertex(index);
 
                 let tx_cloned = mpsc::Sender::clone(&tx);
@@ -209,7 +202,7 @@ where
     }
 
     fn spawn_thread_for_subgraph(
-        mut stable_and_critical_props: StableAndCriticalPropertiesParallelSolver<C>,
+        stable_and_critical_props: StableAndCriticalPropertiesParallelSolver<C>,
         first_vertex: usize,
         sender: mpsc::Sender<Result<ThreadResult<C>>>,
     ) -> thread::JoinHandle<()> {

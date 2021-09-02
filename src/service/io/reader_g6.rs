@@ -33,7 +33,7 @@ where
     }
 
     fn next(&mut self) -> Option<Result<G>> {
-        let mut line_opt = self.lines.next();
+        let line_opt = self.lines.next();
         match line_opt {
             None => {
                 // warn - file contains less graphs than specified to work with

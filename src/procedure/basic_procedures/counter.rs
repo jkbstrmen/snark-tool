@@ -1,8 +1,5 @@
 use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
 use std::marker;
-
-use serde::Serialize;
 
 use crate::graph::undirected::UndirectedGraph;
 use crate::procedure::helpers::config_helper;
@@ -30,16 +27,27 @@ impl<G: UndirectedGraph> Procedure<G> for CounterProcedure<G> {
                     continue;
                 }
                 let property_hash = (property.0, property.1.to_string());
-                if let Some(count) = props.get(&property_hash) {
+
+                // like this because borrow checker
+                let count_opt = props.get(&property_hash);
+                let mut count_opt_copy: Option<usize> = None;
+                if let Some(count) = count_opt {
+                    count_opt_copy = Some(*count);
+                }
+
+                // if let Some(count) = props.get(&property_hash) {
+                if let Some(count) = count_opt_copy {
                     props.insert(property_hash, count + 1);
                 } else {
                     props.insert(property_hash, 1);
                 }
             }
         }
-        println!("count: ");
-        for prop in props.iter() {
-            println!("      {:?} : {}", prop.0, prop.1);
+        if self.config.print() {
+            println!("count: ");
+            for prop in props.iter() {
+                println!("      {:?} : {}", prop.0, prop.1);
+            }
         }
         Ok(())
     }

@@ -5,7 +5,7 @@ use crate::service::colour::colouriser::Colouriser;
 use std::collections::HashMap;
 use std::iter::FromIterator;
 use varisat::solver::Solver;
-use varisat::{CnfFormula, ExtendFormula, Lit};
+use varisat::{CnfFormula, ExtendFormula};
 
 #[derive(Debug, Clone)]
 pub struct SATColourizer {}

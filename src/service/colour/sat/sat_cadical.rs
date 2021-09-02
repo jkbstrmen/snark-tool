@@ -4,8 +4,6 @@ use crate::graph::vertex::Vertex;
 use crate::service::colour::colouriser::Colouriser;
 use std::collections::HashMap;
 use std::iter::FromIterator;
-use varisat::solver::Solver;
-use varisat::{CnfFormula, ExtendFormula, Lit};
 
 #[derive(Debug, Clone)]
 pub struct SATColourizerCadical {}

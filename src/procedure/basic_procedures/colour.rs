@@ -1,5 +1,4 @@
 use crate::graph::undirected::UndirectedGraph;
-use crate::procedure::basic_procedures::colour::ColouriserType::CvdDfs;
 use crate::procedure::error::Error;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};

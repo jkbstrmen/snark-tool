@@ -22,13 +22,4 @@ pub fn vec_to_json_value<T: Serialize>(vec: Vec<T>) -> serde_json::Result<serde_
         i += 1;
     }
     serde_json::to_value(result)
-    // let mut result: HashMap<String, serde_json::Value> = HashMap::new();
-    // let mut i = 0;
-    // for item in vec.iter() {
-    //     let key = serde_json::to_string(&i)?;
-    //     let value = serde_json::to_value(item)?;
-    //     result.insert(key, value);
-    //     i += 1;
-    // }
-    // serde_json::to_value(result)
 }

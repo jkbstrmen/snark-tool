@@ -1,9 +1,7 @@
 use crate::graph::graph::Graph;
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::service::colour::colouriser::Colouriser;
-use crate::service::matching::perfect_matchings::{
-    Matching, MatchingGraph
-};
+use crate::service::matching::perfect_matchings::{Matching, MatchingGraph};
 
 #[derive(Debug, Clone)]
 pub struct MatchingColouriser2 {}

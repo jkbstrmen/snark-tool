@@ -16,9 +16,9 @@ pub trait Graph {
     fn remove_edge(&mut self, from: usize, to: usize);
 
     // TODO replace by remove_vertex
-    fn remove_edges_of_vertex(&mut self, vertex: usize);
+    fn remove_edges_of_vertex(&mut self, vertex_index: usize);
     // remove_vertex
-    // fn remove_vertex(&mut self, index: usize);
+    // fn remove_vertex(&mut self, vertex_index: usize);
 
     // fn vertices(&self) -> Vertices<V>;
     fn vertices<'a>(&'a self) -> Box<dyn Iterator<Item = &'a Self::V> + 'a>;

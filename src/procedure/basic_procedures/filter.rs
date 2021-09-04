@@ -64,7 +64,6 @@ impl<G: UndirectedGraph> FilterProcedure<G> {
                         }
                         let result = compare_values(&comparator.unwrap(), graph_property);
                         if result.is_err() {
-                            // TODO - return result
                             eprintln!("malformed filter property: {}", result.err().unwrap());
                             return false;
                         }

@@ -18,9 +18,7 @@ pub mod cyclic_edge_connectivity_tests {
         assert_eq!(cec.is_some(), true);
         assert_eq!(cec.unwrap(), 5);
 
-        let graph_string =
-            "]D?O@S??G??@??B?g??OP_G@????O?C?C_A?@?GG@?A??_`_??_?`??_AO????G@OC?????G?W";
-        let graph: SimpleGraph = G6Reader::read_graph(graph_string).unwrap();
+        let graph: SimpleGraph = G6Reader::read_graph(test_data::SNARK_IN_G6_30_CYC_5).unwrap();
         let cec = cyclic_edge_connectivity(&graph);
         assert_eq!(cec.is_some(), true);
         assert_eq!(cec.unwrap(), 5);

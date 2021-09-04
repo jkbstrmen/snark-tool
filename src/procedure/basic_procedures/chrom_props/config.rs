@@ -37,8 +37,6 @@ pub const MAX_THREADS: &str = "max-threads";
 
 pub struct ChromaticPropsProcedureConfig {
     pub colouriser_type: ColouriserType,
-    // TODO - change from bool to enum - chunk-based (for plenty of smaller graphs), graph-based (for bigger graphs)
-    // pub parallel: bool,
     pub parallelization: ParallelizationType,
     pub properties_to_compute: ChromaticPropertiesToCompute,
     pub max_threads: usize,

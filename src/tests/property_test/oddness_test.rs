@@ -31,6 +31,4 @@ pub mod oddness_tests {
         let oddness = Oddness::of_graph(&graph);
         assert_eq!(oddness, 4);
     }
-
-    //
 }

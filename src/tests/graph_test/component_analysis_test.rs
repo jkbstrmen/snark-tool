@@ -28,8 +28,7 @@ mod graph_component_analysis_tests {
         let graph = test_data::get_petersen_graph();
         let mut adjacent_vertices = PairsOfAdjacentVertices::new(&graph);
         let mut counter = 0;
-        while let Some(pair) = adjacent_vertices.next() {
-            println!("{:?}", pair);
+        while let Some(_pair) = adjacent_vertices.next() {
             counter += 1;
         }
         assert_eq!(counter, 15);

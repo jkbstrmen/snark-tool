@@ -109,20 +109,15 @@ pub mod graph_traversal_tests {
 
     #[test]
     fn should_traverse_using_dfs() {
-        // TODO - finish assert
-
         let graph = test_data::get_petersen_graph();
-
         let mut dfs = DfsOfGraph::new(&graph, 0);
 
         let mut vertices = vec![];
         while let Some(next) = dfs.next() {
-            println!("{}", next.index());
-
             vertices.push(next.index());
         }
 
-        // let right_order = vec![0, 4, 6, 8, 2, 5, 1, 7, 3, 9];
-        // assert_eq!(vertices, right_order);
+        let right_order = vec![0, 8, 9, 2, 7, 6, 1, 5, 4, 3];
+        assert_eq!(vertices, right_order);
     }
 }

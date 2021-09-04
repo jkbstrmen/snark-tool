@@ -1,6 +1,5 @@
 #[cfg(test)]
 pub mod colour_tests {
-    use crate::graph::graph::Graph;
     use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::service::colour::colouriser::Colouriser;
     use crate::service::colour::cvd::cvd;
@@ -49,11 +48,11 @@ pub mod colour_tests {
     #[test]
     fn should_be_colourable_cvd() {
         let graph = G6Reader::<SimpleGraph>::read_graph(test_data::NO_SNARK_IN_G6_18).unwrap();
-        let result = cvd::is_colorable(&graph);
+        let _result = cvd::is_colorable(&graph);
         let graph = G6Reader::<SimpleGraph>::read_graph(test_data::NO_SNARK_IN_G6_112).unwrap();
-        let result = cvd::is_colorable(&graph);
+        let _result = cvd::is_colorable(&graph);
         let graph = test_data::get_colorable_graph_20();
-        let result = cvd::is_colorable(&graph);
+        let _result = cvd::is_colorable(&graph);
     }
 
     #[test]

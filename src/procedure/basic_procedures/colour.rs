@@ -1,8 +1,11 @@
+use std::collections::HashMap;
+use std::marker;
+
 use crate::graph::undirected::UndirectedGraph;
 use crate::procedure::error::Error;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
-use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
+use crate::procedure::procedure_builder::{ConfigMap, ProcedureBuilder};
 use crate::service::colour::colouriser::Colouriser;
 use crate::service::colour::cvd::cvd;
 use crate::service::colour::cvd::cvd_dfs::CvdDfsColourizer;
@@ -10,8 +13,12 @@ use crate::service::colour::cvd::cvd_sat::CvdSatColourizer;
 use crate::service::colour::matchings::matching_col::MatchingColouriser;
 use crate::service::colour::recursive::dfs_improved::DFSColourizer;
 use crate::service::colour::sat::sat::SATColourizer;
-use std::collections::HashMap;
-use std::marker;
+
+// config params
+const COLOURISER_TYPE: &str = "colouriser-type";
+
+// result properties
+const COLOURABLE: &str = "colourable";
 
 // coloriser types
 const DFS: &str = "dfs";
@@ -109,7 +116,7 @@ impl<G: UndirectedGraph> ColourProcedure<G> {
             let result = C::is_colorable(&graph.0);
             graph
                 .1
-                .insert("colourable".to_string(), serde_json::Value::Bool(result));
+                .insert(COLOURABLE.to_string(), serde_json::Value::Bool(result));
         }
     }
 
@@ -122,7 +129,7 @@ impl<G: UndirectedGraph> ColourProcedure<G> {
             if let Some(result) = result_option {
                 graph
                     .1
-                    .insert("colourable".to_string(), serde_json::Value::Bool(result));
+                    .insert(COLOURABLE.to_string(), serde_json::Value::Bool(result));
             }
         }
     }
@@ -131,6 +138,16 @@ impl<G: UndirectedGraph> ColourProcedure<G> {
 impl ColourProcedureConfig {
     pub const PROC_TYPE: &'static str = "colour";
 
+    pub fn new(colouriser_type: ColouriserType) -> Self {
+        ColourProcedureConfig { colouriser_type }
+    }
+
+    pub fn default() -> Self {
+        ColourProcedureConfig {
+            colouriser_type: ColouriserType::Dfs,
+        }
+    }
+
     pub fn colouriser_type(&self) -> &ColouriserType {
         &self.colouriser_type
     }
@@ -138,7 +155,7 @@ impl ColourProcedureConfig {
     pub fn from_proc_config(config: &HashMap<String, serde_json::Value>) -> Result<Self> {
         let colouriser_type = config_helper::resolve_value_or_default(
             &config,
-            "colouriser-type",
+            COLOURISER_TYPE,
             DFS.to_string(),
             Self::PROC_TYPE,
         )?;
@@ -151,11 +168,22 @@ impl ColourProcedureConfig {
 }
 
 impl<G: UndirectedGraph + 'static> ProcedureBuilder<G> for ColourProcedureBuilder {
-    fn build(&self, config: Config) -> Result<Box<dyn Procedure<G>>> {
+    fn build_from_map(&self, config: ConfigMap) -> Result<Box<dyn Procedure<G>>> {
         let proc_config = ColourProcedureConfig::from_proc_config(&config)?;
         Ok(Box::new(ColourProcedure {
             config: proc_config,
             _ph: marker::PhantomData,
         }))
+    }
+}
+
+impl ColourProcedureBuilder {
+    pub fn build<G: UndirectedGraph + 'static>(
+        config: ColourProcedureConfig,
+    ) -> Box<dyn Procedure<G>> {
+        Box::new(ColourProcedure {
+            config,
+            _ph: marker::PhantomData,
+        })
     }
 }

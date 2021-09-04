@@ -175,7 +175,6 @@ where
             let result = Self::in_thread(first_edge, solver, index);
             let result = sender.send(result);
             if result.is_err() {
-                // TODO - handle somehow?
                 eprintln!(
                     "error while sending message between threads: {}",
                     result.err().unwrap()

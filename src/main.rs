@@ -3,7 +3,6 @@ use std::time::Instant;
 use structopt::StructOpt;
 
 use crate::graph::undirected::simple_graph::graph::SimpleGraph;
-use crate::procedure::basic_procedures::counter::CounterProcedureBuilder;
 use crate::procedure::configuration::Configuration;
 use crate::procedure::procedure::GraphProperties;
 use crate::procedure::procedure_chain::ProcedureChain;
@@ -43,10 +42,9 @@ fn main() {
                 std::fs::read_to_string(&args.config_file_path).expect("could not read file");
             let config = parse_yaml_config(&config_str);
 
-            let mut registry = ProcedureRegistry::new_basic();
+            let registry = ProcedureRegistry::new_basic();
             // add builder of own procedure impl to registry as shown below
             // registry.insert("read".to_string(), ReadProcedureBuilder{});
-            registry.insert("count".to_string(), CounterProcedureBuilder {});
 
             let chain = ProcedureChain::from_procedures_config(registry, config.procedures);
             if chain.is_err() {

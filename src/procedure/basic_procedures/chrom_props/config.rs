@@ -45,6 +45,20 @@ pub struct ChromaticPropsProcedureConfig {
 impl ChromaticPropsProcedureConfig {
     pub const PROC_TYPE: &'static str = "chromatic-properties";
 
+    pub fn new(
+        colouriser_type: ColouriserType,
+        parallelization: ParallelizationType,
+        properties_to_compute: ChromaticPropertiesToCompute,
+        max_threads: usize,
+    ) -> Self {
+        ChromaticPropsProcedureConfig {
+            colouriser_type,
+            parallelization,
+            properties_to_compute,
+            max_threads,
+        }
+    }
+
     pub fn from_proc_config(config: &HashMap<String, serde_json::Value>) -> Result<Self> {
         let colouriser_type = config_helper::resolve_value_or_default(
             &config,

@@ -71,6 +71,10 @@ impl Graph for SimpleEdgeGraph {
             .retain(|edge| edge.from() != vertex && edge.to() != vertex);
     }
 
+    fn remove_vertex(&mut self, vertex_index: usize) {
+        self.remove_edges_of_vertex(vertex_index)
+    }
+
     fn vertices<'a>(&'a self) -> Box<dyn Iterator<Item = &'a SimpleVertex> + 'a> {
         let iter: slice::Iter<'a, SimpleVertex> = self.vertices.iter();
         Box::new(iter)

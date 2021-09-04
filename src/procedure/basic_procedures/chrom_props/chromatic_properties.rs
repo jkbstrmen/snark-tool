@@ -10,7 +10,7 @@ use crate::procedure::basic_procedures::colour::ColouriserType;
 use crate::procedure::helpers::serialize_helper;
 use crate::procedure::procedure;
 use crate::procedure::procedure::{GraphProperties, Procedure};
-use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
+use crate::procedure::procedure_builder::{ConfigMap, ProcedureBuilder};
 use crate::service::chromatic_properties::critical_prop::CriticalPropertiesSolver;
 use crate::service::chromatic_properties::critical_prop_parallel::CriticalPropertiesParallelSolver;
 use crate::service::chromatic_properties::error::ChromaticPropertiesError;
@@ -222,7 +222,6 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
             );
             let result = sender.send(result);
             if result.is_err() {
-                // TODO - handle somehow?
                 eprintln!(
                     "error while sending message between threads: {}",
                     result.err().unwrap()
@@ -617,11 +616,22 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
 }
 
 impl<G: UndirectedGraph + Clone + 'static> ProcedureBuilder<G> for ChromaticPropsProcedureBuilder {
-    fn build(&self, config: Config) -> procedure::Result<Box<dyn Procedure<G>>> {
+    fn build_from_map(&self, config: ConfigMap) -> procedure::Result<Box<dyn Procedure<G>>> {
         let proc_config = ChromaticPropsProcedureConfig::from_proc_config(&config)?;
         Ok(Box::new(ChromaticPropsProcedure {
             config: proc_config,
             _ph: marker::PhantomData,
         }))
+    }
+}
+
+impl ChromaticPropsProcedureBuilder {
+    pub fn build<G: UndirectedGraph + Clone + 'static>(
+        config: ChromaticPropsProcedureConfig,
+    ) -> Box<dyn Procedure<G>> {
+        Box::new(ChromaticPropsProcedure {
+            config,
+            _ph: marker::PhantomData,
+        })
     }
 }

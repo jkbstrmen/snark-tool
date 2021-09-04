@@ -69,6 +69,10 @@ impl Graph for ResidualGraph {
         self.vertices[vertex].edges = vec![];
     }
 
+    fn remove_vertex(&mut self, vertex_index: usize) {
+        self.remove_edges_of_vertex(vertex_index)
+    }
+
     fn vertices<'a>(&'a self) -> Box<dyn Iterator<Item = &'a ResidualVertex> + 'a> {
         Box::new(Vertices::new(self.vertices.iter()))
     }

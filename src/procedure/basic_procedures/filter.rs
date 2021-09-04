@@ -2,7 +2,7 @@ use crate::graph::undirected::UndirectedGraph;
 use crate::procedure::error::Error;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
-use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
+use crate::procedure::procedure_builder::{ConfigMap, ProcedureBuilder};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::{marker, result};
@@ -162,6 +162,10 @@ fn compare_values(comparator: &Comparator, graph_property: (&String, &Value)) ->
 impl FilterProcedureConfig {
     pub const PROC_TYPE: &'static str = "filter";
 
+    pub fn new(filter_by: GraphProperties) -> Self {
+        FilterProcedureConfig { filter_by }
+    }
+
     pub fn from_proc_config(config: &HashMap<String, serde_json::Value>) -> Result<Self> {
         let filter_by = config_helper::resolve_value(&config, "filter-by", Self::PROC_TYPE)?;
 
@@ -175,11 +179,22 @@ impl FilterProcedureConfig {
 }
 
 impl<G: UndirectedGraph + 'static> ProcedureBuilder<G> for FilterProcedureBuilder {
-    fn build(&self, config: Config) -> Result<Box<dyn Procedure<G>>> {
+    fn build_from_map(&self, config: ConfigMap) -> Result<Box<dyn Procedure<G>>> {
         let proc_config = FilterProcedureConfig::from_proc_config(&config)?;
         Ok(Box::new(FilterProcedure {
             config: proc_config,
             _ph: marker::PhantomData,
         }))
+    }
+}
+
+impl FilterProcedureBuilder {
+    pub fn build<G: UndirectedGraph + 'static>(
+        config: FilterProcedureConfig,
+    ) -> Box<dyn Procedure<G>> {
+        Box::new(FilterProcedure {
+            config,
+            _ph: marker::PhantomData,
+        })
     }
 }

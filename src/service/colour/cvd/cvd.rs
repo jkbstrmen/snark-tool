@@ -1,21 +1,22 @@
+use std::cmp;
+
+use rand::seq::SliceRandom;
+
 use crate::graph::edge::Edge;
 use crate::graph::graph::Graph;
 use crate::graph::vertex::Vertex;
-
-use rand::seq::SliceRandom;
-use std::cmp;
-use std::collections::VecDeque;
+use crate::service::graph_traversal::bfs::BfsOfGraph;
 
 pub static NON_COLOURED_EDGE: u8 = 0;
 
 // #[derive(Clone)]
-struct CVDGraph {
+struct CVDGraph<'a, G: Graph> {
     // Vec of vertices, where vertex is Vec of neighbors, where neighbor is (usize, u8) as (index, colour)
-    // TODO - for optimization try with fixed size array [(usize, u8), 3]
     vertices: Vec<Vec<(usize, u8)>>,
     vertices_to_try: Vec<usize>,
     kempe_chain: KempeChain,
     conflicting_vertices: Vec<Vec<usize>>,
+    graph: &'a G,
 }
 
 // #[derive(Clone)]
@@ -60,7 +61,7 @@ where
     None
 }
 
-fn create_cvd_graph<G>(graph: &G) -> CVDGraph
+fn create_cvd_graph<G>(graph: &G) -> CVDGraph<G>
 where
     G: Graph,
 {
@@ -96,10 +97,11 @@ where
             resolving_colour: 0,
         },
         conflicting_vertices: vec![vec![]; 3],
+        graph,
     }
 }
 
-impl CVDGraph {
+impl<'a, G: Graph> CVDGraph<'a, G> {
     fn is_colorable(&mut self, r_limit: usize) -> bool {
         let mut repetition_counter = 0;
         self.conflicting_vertices = self.conflicting_vertices();
@@ -164,15 +166,15 @@ impl CVDGraph {
     }
 
     unsafe fn bfs_pre_colour(&mut self, first_vertex: usize) {
-        let self_ref = self as *const CVDGraph;
-        let mut bfs_graph = BfsGraph::new_from_raw_ptr(self_ref, first_vertex);
+        let self_ref = self as *const CVDGraph<G>;
+        let mut bfs_graph = BfsOfGraph::new_from_raw_ptr(self.graph, first_vertex);
 
-        while let Some(vertex) = bfs_graph.bfs_next() {
-            let mut available = self.available_colors_of_vertex(vertex);
-            for neighbor in (*self_ref).vertices[vertex].iter() {
+        while let Some(vertex) = bfs_graph.next() {
+            let mut available = self.available_colors_of_vertex(vertex.index());
+            for neighbor in (*self_ref).vertices[vertex.index()].iter() {
                 if neighbor.1 == NON_COLOURED_EDGE {
                     let color = available.pop().unwrap();
-                    self.set_edge_color(vertex, neighbor.0, color);
+                    self.set_edge_color(vertex.index(), neighbor.0, color);
                 }
             }
         }
@@ -409,50 +411,5 @@ impl CVDGraph {
             }
             _ => panic!("vertex has more than 3 neighbors"),
         }
-    }
-}
-
-// TODO - deduplicate with BfsGraph from perfect_matchings
-
-struct BfsGraph<'a> {
-    vertices: &'a Vec<Vec<(usize, u8)>>,
-    visited: Vec<bool>,
-    to_visit: VecDeque<usize>,
-}
-
-impl<'a> BfsGraph<'a> {
-    pub unsafe fn new_from_raw_ptr(graph: *const CVDGraph, start: usize) -> Self {
-        let visited = vec![false; (*graph).vertices.len()];
-        let mut to_visit = VecDeque::new();
-        to_visit.push_back(start);
-
-        let mut bfs = Self {
-            vertices: &(*graph).vertices,
-            visited,
-            to_visit,
-        };
-        bfs.visit(start);
-        bfs
-    }
-
-    ///
-    /// if true, visited for the first time
-    ///
-    fn visit(&mut self, vertex: usize) -> bool {
-        let old_val = self.visited[vertex];
-        self.visited[vertex] = true;
-        !old_val
-    }
-
-    pub fn bfs_next(&mut self) -> Option<usize> {
-        if let Some(vertex) = self.to_visit.pop_front() {
-            for neighbor in self.vertices[vertex].iter() {
-                if self.visit(neighbor.0) {
-                    self.to_visit.push_back(neighbor.0);
-                }
-            }
-            return Some(vertex);
-        }
-        None
     }
 }

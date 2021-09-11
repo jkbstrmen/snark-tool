@@ -118,14 +118,14 @@ where
     }
 
     #[allow(dead_code)]
-    pub fn edges_resistibility_parallel(&mut self) -> HashMap<(usize, usize), usize> {
+    fn edges_resistibility_parallel(&mut self) -> HashMap<(usize, usize), usize> {
         // TODO
 
         unimplemented!()
     }
 
     #[allow(dead_code)]
-    pub fn vertices_resistibility_parallel(&mut self) -> Vec<usize> {
+    fn vertices_resistibility_parallel(&mut self) -> Vec<usize> {
         // TODO
 
         unimplemented!()

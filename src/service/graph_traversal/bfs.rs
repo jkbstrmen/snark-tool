@@ -26,14 +26,14 @@ impl BfsVertex {
         }
     }
 
-    // pub fn default() -> Self {
-    //     BfsVertex {
-    //         index: 0,
-    //         visited: false,
-    //         discovered_from: 0,
-    //         distance_from_root: 0,
-    //     }
-    // }
+    pub fn default() -> Self {
+        BfsVertex {
+            index: 0,
+            visited: false,
+            discovered_from: 0,
+            distance_from_root: 0,
+        }
+    }
 
     /// GETTERS
     pub fn index(&self) -> usize {
@@ -49,16 +49,16 @@ impl BfsVertex {
         self.distance_from_root
     }
 
-    // SETTERS
-    // pub fn set_index(&mut self, index: usize) {
-    //     self.index = index;
-    // }
-    // pub fn set_visited(&mut self, visited: bool) {
-    //     self.visited = visited;
-    // }
-    // pub fn set_discovered_from(&mut self, discovered_from: usize) {
-    //     self.discovered_from = discovered_from;
-    // }
+    /// SETTERS
+    pub fn set_index(&mut self, index: usize) {
+        self.index = index;
+    }
+    pub fn set_visited(&mut self, visited: bool) {
+        self.visited = visited;
+    }
+    pub fn set_discovered_from(&mut self, discovered_from: usize) {
+        self.discovered_from = discovered_from;
+    }
 }
 
 pub struct BfsOfGraph<'a, G: Graph> {

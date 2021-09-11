@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod matching_graph_tests {
-    use crate::service::matching::perfect_matchings::{MatchingGraph, Vertex};
+    use crate::service::matching::perfect_matchings::{MatchingGraph, MatchingVertex};
     use crate::tests::test_data::test_data;
 
     #[test]
@@ -59,7 +59,7 @@ mod matching_graph_tests {
         assert_eq!(graph.has_edge(0, 6), false);
         assert_eq!(graph.has_edge(0, 8), false);
         assert_eq!(graph.size(), 9);
-        graph.add_vertex(Vertex::new(0));
+        graph.add_vertex(MatchingVertex::new(0));
         assert_eq!(graph.has_edge(0, 4), false);
         assert_eq!(graph.has_edge(0, 6), false);
         assert_eq!(graph.has_edge(0, 8), false);

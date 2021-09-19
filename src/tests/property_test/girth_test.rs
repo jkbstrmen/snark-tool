@@ -1,7 +1,7 @@
 #[cfg(test)]
 pub mod girth_tests {
     use crate::graph::undirected::simple_graph::graph::SimpleGraph;
-    use crate::service::io::reader::Reader;
+    use crate::service::io::reader::GraphFileReader;
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::property::girth::girth;
     use crate::tests::test_data::test_data;

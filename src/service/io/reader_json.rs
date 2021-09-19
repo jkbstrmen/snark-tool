@@ -2,7 +2,7 @@ use crate::graph::graph::{Graph, GraphConstructor};
 use crate::procedure::basic_procedures::write::GraphWithProperties;
 use crate::procedure::procedure::GraphProperties;
 use crate::service::io::error::ReadError;
-use crate::service::io::reader::Reader;
+use crate::service::io::reader::GraphFileReader;
 use crate::service::io::reader_g6::G6Reader;
 use crate::service::io::reader_s6::S6Reader;
 use std::fs::File;
@@ -19,7 +19,7 @@ pub struct JsonReader<'a, G> {
     _ph: marker::PhantomData<G>,
 }
 
-impl<'a, G> Reader<'a, G> for JsonReader<'a, G>
+impl<'a, G> GraphFileReader<'a, G> for JsonReader<'a, G>
 where
     G: Graph + GraphConstructor,
 {

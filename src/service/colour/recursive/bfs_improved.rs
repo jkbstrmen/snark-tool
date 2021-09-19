@@ -5,8 +5,9 @@ use crate::service::colour::colouriser::Colouriser;
 use std::collections::VecDeque;
 
 ///
-/// Colorizer for (sub)cubic graphs only
-/// version 2.2
+/// Colorizer for cubic graphs only
+///
+/// not working for subcubic graphs
 ///
 #[derive(Debug, Clone)]
 pub struct BFSColourizerImproved {}
@@ -154,7 +155,7 @@ impl BFSColourizerImprovedGraph {
                 let mut from_one_vert = false;
                 let next_vertex;
 
-                // TODO - not working for subcubic graphs
+                // not working for subcubic graphs
 
                 if self.non_colored_edges[neighbor1 as usize] == 1 {
                     next_vertex = neighbor1;
@@ -246,7 +247,7 @@ impl BFSColourizerImprovedGraph {
                 let mut next_from_queue = false;
                 let next_vertex;
 
-                // TODO - what if not added to neither one edge neither to visit?
+                // what if not added to neither one edge neither to visit?
 
                 if self.non_colored_edges[neighbor1 as usize] == 1 {
                     if self.vertices[neighbor1 as usize][2].1 != 0 {

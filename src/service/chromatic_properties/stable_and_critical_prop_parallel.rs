@@ -206,13 +206,12 @@ where
         first_vertex: usize,
         sender: mpsc::Sender<Result<ThreadResult<C>>>,
     ) -> thread::JoinHandle<()> {
-        // stable_and_critical_props.properties.is_vertex_subcritical = false;
         let handle = thread::spawn(move || {
             let result = Self::in_thread(stable_and_critical_props, first_vertex);
             let result = sender.send(result);
             if result.is_err() {
-                // TODO - handle somehow?
-                eprintln!(
+                // handle otherwise?
+                panic!(
                     "error while sending message between threads: {}",
                     result.err().unwrap()
                 );

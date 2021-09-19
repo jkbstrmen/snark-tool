@@ -7,8 +7,6 @@ use crate::service::property::girth::girth;
 use crate::service::property::max_flow::max_flow::FordFulkerson;
 use serde::export::Option::Some;
 
-// TODO - needs optimizations
-
 /**
  * Algorithm for finding cyclic edge connectivity of cubic simple graph with at
  * least 8 vertices

@@ -242,11 +242,6 @@ impl MatchingGraph {
         }
     }
 
-    // TODO - return iterator over perfect matchings of graph, not whole vector - would be better for matching coloriser
-    pub fn perfect_matchings_iter(&mut self) -> Vec<Matching> {
-        unimplemented!()
-    }
-
     pub fn perfect_matchings(&mut self) -> Vec<Matching> {
         let mut matchings = vec![];
         if self.size == 0 {

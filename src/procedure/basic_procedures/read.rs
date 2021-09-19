@@ -5,7 +5,7 @@ use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
 use crate::procedure::procedure_builder::{ConfigMap, ProcedureBuilder};
 use crate::service::io::error::ReadError;
-use crate::service::io::reader::Reader;
+use crate::service::io::reader::GraphFileReader;
 use crate::service::io::reader_ba::BaReader;
 use crate::service::io::reader_g6::G6Reader;
 use crate::service::io::reader_json::JsonReader;
@@ -76,7 +76,7 @@ impl<G: UndirectedGraph + GraphConstructor> ReadProcedure<G> {
         graphs_count: Option<usize>,
     ) -> Result<()>
     where
-        R: Reader<'a, G>,
+        R: GraphFileReader<'a, G>,
     {
         let mut counter = 1;
         let mut graph_opt = reader.next();

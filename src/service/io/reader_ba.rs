@@ -3,7 +3,7 @@ use std::io::{self, BufRead};
 
 use crate::graph::graph::{Graph, GraphConstructor};
 use crate::service::io::error::ReadError;
-use crate::service::io::reader::Reader;
+use crate::service::io::reader::GraphFileReader;
 use std::{fs, marker, result};
 
 type Result<T> = result::Result<T, ReadError>;
@@ -12,14 +12,11 @@ const WRONG_FORMAT: &str = "Wrong ba format";
 
 pub struct BaReader<'a, G> {
     lines: io::Lines<io::BufReader<&'a fs::File>>,
-    // TODO - point error to specific line
-    // line: usize,
     graphs_count: Option<usize>,
-
     _ph: marker::PhantomData<G>,
 }
 
-impl<'a, G> Reader<'a, G> for BaReader<'a, G>
+impl<'a, G> GraphFileReader<'a, G> for BaReader<'a, G>
 where
     G: Graph + GraphConstructor,
 {

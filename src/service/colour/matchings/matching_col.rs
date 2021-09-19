@@ -5,8 +5,6 @@ use crate::service::matching::perfect_matchings::{
     Matching, MatchingGraph, MatchingGraphVerticesIter,
 };
 
-// TODO - add to procedures
-
 #[derive(Debug, Clone)]
 pub struct MatchingColouriser {}
 
@@ -50,8 +48,6 @@ impl MatchingColouriser {
         }
         false
     }
-
-    //     TODO - maybe try to find colouring by comparing edge sets of each pair of perfect matchings of graph
 }
 
 ///

@@ -116,18 +116,4 @@ where
         }
         index
     }
-
-    #[allow(dead_code)]
-    fn edges_resistibility_parallel(&mut self) -> HashMap<(usize, usize), usize> {
-        // TODO
-
-        unimplemented!()
-    }
-
-    #[allow(dead_code)]
-    fn vertices_resistibility_parallel(&mut self) -> Vec<usize> {
-        // TODO
-
-        unimplemented!()
-    }
 }

@@ -1,6 +1,6 @@
 use crate::graph::graph::{Graph, GraphConstructor};
 use crate::service::io::error::ReadError;
-use crate::service::io::reader::Reader;
+use crate::service::io::reader::GraphFileReader;
 use crate::service::io::reader_g6::{get_graph_size, BIAS};
 use crate::service::io::writer_s6::{bitvec_from_u64, edge_encoding_size};
 use std::fs::File;
@@ -20,7 +20,7 @@ pub struct S6Reader<'a, G> {
     _ph: marker::PhantomData<G>,
 }
 
-impl<'a, G> Reader<'a, G> for S6Reader<'a, G>
+impl<'a, G> GraphFileReader<'a, G> for S6Reader<'a, G>
 where
     G: Graph + GraphConstructor,
 {

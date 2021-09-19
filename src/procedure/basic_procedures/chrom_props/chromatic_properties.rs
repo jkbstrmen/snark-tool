@@ -222,7 +222,8 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
             );
             let result = sender.send(result);
             if result.is_err() {
-                eprintln!(
+                // handle otherwise?
+                panic!(
                     "error while sending message between threads: {}",
                     result.err().unwrap()
                 );
@@ -368,8 +369,6 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         let to_compute = properties_to_compute;
         let mut properties = GraphProperties::new();
         properties.insert(GRAPH_INDEX.to_string(), serde_json::to_value(graph_index)?);
-
-        // TODO - spawn thread foreach property - and solve each property independently
 
         if to_compute.stable || to_compute.costable {
             Self::critical_and_stable_properties_parallel(

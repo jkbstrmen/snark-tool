@@ -3,7 +3,7 @@ pub mod cyclic_edge_connectivity_tests {
     use crate::graph::graph::{Graph, GraphConstructor};
     use crate::graph::undirected::simple_graph::graph::SimpleGraph;
     use crate::graph::vertex::Vertex;
-    use crate::service::io::reader::Reader;
+    use crate::service::io::reader::GraphFileReader;
     use crate::service::io::reader_g6::G6Reader;
     use crate::service::property::cyclic_connectivity::{
         contract_sub_graph, cyclic_edge_connectivity, full_tree, vertex_disjoint_graphs,

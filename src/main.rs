@@ -13,7 +13,7 @@ mod procedure;
 mod service;
 mod tests;
 
-/// Simple tool for snark analysis. For more information visit https://github.com/jstrmen/snark-tool
+/// Simple tool for snark analysis. For more information visit https://github.com/jkbstrmen/snark-tool
 #[derive(StructOpt)]
 struct Cli {
     /// Command - e.g. 'run'

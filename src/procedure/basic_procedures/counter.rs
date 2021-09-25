@@ -54,7 +54,7 @@ impl<G: UndirectedGraph> Procedure<G> for CounterProcedure<G> {
 }
 
 impl CounterProcedureConfig {
-    pub const PROC_TYPE: &'static str = "counter";
+    pub const PROC_TYPE: &'static str = "count";
 
     pub fn new(print: bool) -> Self {
         CounterProcedureConfig { print }

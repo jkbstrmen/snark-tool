@@ -4,3 +4,6 @@ pub mod cvd;
 pub mod matchings;
 pub mod recursive;
 pub mod sat;
+
+#[cfg(test)]
+mod tests;

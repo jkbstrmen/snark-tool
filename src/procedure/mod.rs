@@ -6,3 +6,6 @@ pub mod procedure;
 pub mod procedure_builder;
 pub mod procedure_chain;
 pub mod procedure_registry;
+
+#[cfg(test)]
+mod tests;

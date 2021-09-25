@@ -8,6 +8,9 @@ pub mod stable_and_critical_prop;
 pub mod stable_and_critical_prop_parallel;
 pub mod stable_prop;
 
+#[cfg(test)]
+mod tests;
+
 pub trait CriticalProperties {
     fn is_critical(&mut self) -> bool;
     fn is_cocritical(&mut self) -> bool;

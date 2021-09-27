@@ -3,8 +3,7 @@
 Snark tool is simple tool for snarks analysis. Snark is [cubic graph](https://en.wikipedia.org/wiki/Cubic_graph) with [girth](https://en.wikipedia.org/wiki/Girth_(graph_theory)) at least 5 and cyclic edge connectivity at least 4. 
 
 ## Use as library
-
-Include snark-tool as a dependency in your Cargo.toml configuration file.
+Include snark-tool in your Cargo project by adding as a dependency to your Cargo.toml configuration file.
 
 ```toml
 [dependencies]
@@ -26,6 +25,9 @@ pub fn read_graph(graph_g6: &String) {
 For more examples see [examples](https://github.com/jkbstrmen/snark-tool/tree/develop/examples) folder.
 
 ## Use as binary
+At first [install cargo](https://www.rust-lang.org/learn/get-started). Then install snark-tool. 
+
+    cargo install snark-tool
 
 To run snark-tool at first we have to define configuration file in YAML format. Here we can specify what we want to do. 
 
@@ -35,7 +37,7 @@ version: 0.1
 procedures:
   - proc-type: read
     config:
-      file: Generated_100_36vert_snarks.g6
+      file: input-file.g6
       graph-format: g6
 
   # means regular 3-edge coloring
@@ -54,10 +56,9 @@ procedures:
 ```
 Basic usage is that snark-tool takes input file, read graphs from specified format. Then applies/perform specified procedures (in this case edge colouring) over graphs and at the end writes graphs to output file.
 
-When we have specified configuration file with name snark-tool.yml we can start snark-tool using command:
+When we have specified configuration file with name snark-tool.yml we can start snark-tool using terminal command:
 
-    ./snark-tool run snark-tool.yml
-
+    snark-tool run snark-tool.yml
 
 For full description of available procedures and its configuration see [procedures.md](https://github.com/jkbstrmen/snark-tool/blob/develop/procedures.md).
 
@@ -70,4 +71,4 @@ Licensed under either of
 at your option.
 
 ## To be noted
-Package and all its parts are WIP.
+Package and all its parts are WIP. Package's API can change rapidly from version to version. 

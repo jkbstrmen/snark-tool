@@ -54,8 +54,7 @@ procedures:
 ```
 
 ## Procedure _*colour*_ 
-
-Description
+On each graph of currently processed graphs tries to find regular 3-edge colouring using specified algorithm. Foreach graph this procedure adds property _*colourable: true/false*_ to properties.
 
 _*required configurations:*_
 - **colouriser-type**  
@@ -75,10 +74,11 @@ procedures:
 ```
 
 ## Procedure _*filter*_ 
+Retains only graphs with properties matched by given filter properties.
 
-Description
-
-Configuration
+_*required configurations:*_
+- **filter-by**
+  - should contain list of graph properties and its values  
 
 #### Example
 ```yaml
@@ -96,10 +96,25 @@ procedures:
 ```
 
 ## Procedure _*chromatic-properties*_ 
+This procedure resolves specified chromatic properties of given graphs. User can choose only one or all of supported properties listed below.   
+Snark-tool can resolve these properties sequentially of in parallel by one of supported ways. Currently supported parallel algorithms are: 
+- graph-based -> uses multiple threads per each given graph 
+- batch-based -> uses one thread foreach batch of graphs (e.g. 1 thread for 10 graphs)
 
-Description
+_*required configurations:*_
+- **properties**
+  - list of properties to resolve
 
-Configuration
+_*optional configurations:*_
+- **parallelization**
+  - options: **graph-based, batch-based, none**
+  - default is none
+- **max-threads**
+  - e.g. 8
+- **colouriser-type**
+  - options: **dfs, sat, cvd, cvd-dfs, cvd-sat**
+  - defalt: dfs
+
 
 #### Example
 ```yaml
@@ -112,7 +127,7 @@ procedures:
       parallelization: graph-based
       # default - number of cpus available
       max-threads: 8
-      # options: dfs, sat; default: dfs
+      # options: dfs, sat, cvd-dfs, cvd-sat; default: dfs
       colouriser-type: dfs
       properties:
         - critical

@@ -1,99 +1,15 @@
 version: 0.1
 
-options:
-  - first-option
-
 procedures:
   - proc-type: read
     config:
-#      file: resources/graphs/3TF1-03.g6
-#      file: resources/measurement_samples/cvd-dfs-cvd-sat/10.dot_product.68.g6
-#      file: resources/graphs/Generated_graphs.30.05.sn.cyc4.g6
-      file: resources/graphs/Generated_graphs.28.05.sn.cyc4.g6
-#      file: resources/graphs/Generated_graphs.36.05.sn.cyc5.g6
-#      file: resources/graphs/Generated_graphs.36.05.sn.cyc5.json
-#      file: resources/graphs/non_snarks.g6
-#      file: resources/graphs/100K.Generated_graphs.30.04.sn.cyc4.g6.26.05-scocritical-2.g6
-#      file: resources/graphs/100K.Generated_graphs.30.04.sn.cyc4.g6.26.05-critical-10.g6
-#      file: resources/graphs/graphG6.g6
-#      file: resources/graphs/graph.ba
-#      file: resources/graphs/12snarksForTest.g6
-#      file: resources/graphs/Generated_100_36vert_snarks.g6
-#      file: resources/graphs/Generated_10_36vert_snarks.g6
-#      file: resources/graphs/temp-measurements-chrom-prop.g6
-#      file: resources/graphs/petersen.g6
-#      file: resources/graphs/Generated_2100_36vert_snarks.g6
-#      file: resources/graphs/PSC6XJ5.118
-#      file: resources/graphs/3TF1-03.g6
-#      file: resources/graphs/output
-#      file: resources/graphs/100K.Generated_graphs.30.04.sn.cyc4.g6.36.04-NONE.g6
-#      file: resources/graphs/100K.Generated_graphs.30.04.sn.cyc4.g6.36.04-STABLE.g6
+      file: input-file.g6
       graph-format: g6
-#      graph-format: ba
-#      number-of-graphs: 2
 
   # means regular 3-edge coloring
-#  - proc-type: colour
-#    config:
-##      colouriser-type: sat
-##      colouriser-type: cvd-dfs
-##      colouriser-type: sat
-#      colouriser-type: dfs
-
-  - proc-type: chromatic-properties
+  - proc-type: colour
     config:
-      # graph-based - only works for properties: critical, cocritical, vertex-subcritical
-#      parallelization: graph-based # options: graph-based, batch-based, none; default: none
-      max-threads: 1 # default - max cpus count available - works only when parallelization is other than none
-      colouriser-type: dfs # options: dfs, sat; default: dfs
-      properties:
-        - critical
-        - cocritical
-        - vertex-subcritical
-#        - edge-subcritical
-#        - stable
-#        - costable
-#        - acritical
-#        - resistance
-#        - oddness
-#        - girth
-#        - cyclic-edge-connectivity
-#        - edge-resistibility # for all edges
-##        - vertex-resistibility # for all vertices
-
-# TODO - not ready
-#  - proc-type: resistibility
-#    config:
-#      edge: true
-#      edges:
-#        - 4: 5
-#        - 5: 6
-#      vertex: true
-#      vertices:
-#        -
-
-
-#  - proc-type: filter
-#    config:
-#      # filter by
-##      colourable: false
-##      critical: true
-#      filter-by:
-##        costable: true
-##        oddness: 2
-##        edge-subcritical: true
-##        vertex-subcritical: true
-##        stable: true
-##        edge-resistibility-index: 0
-#        edge-resistibility-index:
-#          comparator: ">"
-#          value: 0
-##        vertex-resistibility-index: 20
-##        resistance: 2
-
-#  - proc-type: construction
-#    config:
-#      construction-type: dot-product
+      colouriser-type: dfs
 
   - proc-type: write
     config:
@@ -103,12 +19,3 @@ procedures:
       with-properties: true # default true
 
   - proc-type: count
-
-#  - proc-type: write
-#    config:
-#      file: output.g6
-#      graph-format: g6
-#      # if set to true, file format will be json for g6/s6 graph format
-#      with-properties: false # default true
-
-#  - proc-type: last-procedure

@@ -1,3 +1,6 @@
+//! Service module contains various functions on graphs.
+//!
+
 pub mod chromatic_properties;
 pub mod colour;
 pub mod component_analysis;

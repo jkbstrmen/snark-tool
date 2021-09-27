@@ -1,7 +1,6 @@
 use crate::graph::edge::{Edge, EdgeConstructor};
 use crate::graph::graph::Graph;
 use crate::graph::undirected::edge::UndirectedEdge;
-use serde::export::Option::Some;
 use std::collections::VecDeque;
 use std::slice;
 

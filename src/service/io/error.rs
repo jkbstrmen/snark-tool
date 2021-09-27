@@ -1,6 +1,7 @@
-use serde::export::Formatter;
+
 use std::num::ParseIntError;
 use std::{fmt, io, num};
+use std::fmt::Formatter;
 
 #[derive(Debug)]
 pub struct ReadError {

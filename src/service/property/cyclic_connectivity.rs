@@ -5,7 +5,6 @@ use crate::graph::vertex::Vertex;
 use crate::service::graph_traversal::bfs::BfsOfGraph;
 use crate::service::property::girth::girth;
 use crate::service::property::max_flow::max_flow::FordFulkerson;
-use serde::export::Option::Some;
 
 /**
  * Algorithm for finding cyclic edge connectivity of cubic simple graph with at

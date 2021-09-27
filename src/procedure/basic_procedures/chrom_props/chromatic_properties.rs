@@ -29,6 +29,8 @@ use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::sync::mpsc;
 use std::{marker, result, thread};
+use crate::service::colour::cvd::cvd_sat::CvdSatColourizer;
+use crate::service::colour::cvd::cvd_dfs::CvdDfsColourizer;
 
 pub type Result<T> = result::Result<T, ChromaticPropertiesError>;
 
@@ -239,27 +241,43 @@ impl<G: UndirectedGraph + Clone> ChromaticPropsProcedure<G> {
         properties_to_compute: &ChromaticPropertiesToCompute,
     ) -> Result<GraphProperties> {
         // to do - change colouriser type according to graph size ...
-        match colouriser_type {
+        return match colouriser_type {
             ColouriserType::Sat => {
-                return Self::compute_properties(
+                Self::compute_properties(
                     graph,
                     SATColourizer::new(),
                     graph_index,
                     &properties_to_compute,
-                );
+                )
             }
             ColouriserType::Dfs => {
-                return Self::compute_properties(
+                Self::compute_properties(
                     graph,
                     DFSColourizer::new(),
                     graph_index,
                     &properties_to_compute,
-                );
+                )
+            }
+            ColouriserType::CvdSat => {
+                Self::compute_properties(
+                    graph,
+                    CvdSatColourizer::new(),
+                    graph_index,
+                    &properties_to_compute,
+                )
+            }
+            ColouriserType::CvdDfs => {
+                Self::compute_properties(
+                    graph,
+                    CvdDfsColourizer::new(),
+                    graph_index,
+                    &properties_to_compute,
+                )
             }
             _ => {
-                return Err(ChromaticPropertiesError {
+                Err(ChromaticPropertiesError {
                     message: format!("unknown colourizer to compute chromatic properties"),
-                });
+                })
             }
         }
     }

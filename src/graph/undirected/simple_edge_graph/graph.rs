@@ -6,7 +6,6 @@ use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::simple_edge_graph::simple_vertex::SimpleVertex;
 use crate::graph::undirected::UndirectedGraph;
 use crate::graph::vertex::{Vertex, VertexConstructor};
-use serde::export::Option::Some;
 
 ///
 /// undirected, without loops or multiple edges

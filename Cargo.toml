@@ -19,9 +19,9 @@ exclude = [
 name = "snark_tool"           # The name of the target.
 path = "src/lib.rs"    # The source file of the target.
 
-#[[bin]]
-#name = "snark-tool"           # The name of the target.
-#path = "src/main.rs"    # The source file of the target.
+[[bin]]
+name = "snark-tool"           # The name of the target.
+path = "src/main.rs"    # The source file of the target.
 
 [profile.test]
 opt-level = 3

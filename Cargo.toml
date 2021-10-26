@@ -1,6 +1,6 @@
 [package]
 name = "snark-tool"
-version = "0.3.1-SNAPSHOT"
+version = "0.4.0"
 authors = ["jkbstrmen <jkb.strmen@gmail.com>"]
 edition = "2018"
 description = "snark-tool library contains structures and algorithm for (mainly) cubic graph analysis"

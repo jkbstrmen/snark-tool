@@ -8,7 +8,7 @@ readme = "README.md"
 homepage = "https://github.com/jkbstrmen/snark-tool"
 repository = "https://github.com/jkbstrmen/snark-tool"
 license = "MIT OR Apache-2.0"
-keywords = ["graph theory", "snark", "algorithm"]
+keywords = ["graph-theory", "snark", "algorithm"]
 
 exclude = [
     "resources/graphs/*",

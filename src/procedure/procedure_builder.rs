@@ -1,9 +1,10 @@
-use crate::graph::graph::Graph;
-use crate::procedure::procedure::{Procedure, Result};
 use std::collections::HashMap;
 
-pub type Config = HashMap<String, serde_json::Value>;
+use crate::graph::graph::Graph;
+use crate::procedure::procedure::{Procedure, Result};
+
+pub type ConfigMap = HashMap<String, serde_json::Value>;
 
 pub trait ProcedureBuilder<G: Graph> {
-    fn build(&self, config: Config) -> Result<Box<dyn Procedure<G>>>;
+    fn build_from_map(&self, config: ConfigMap) -> Result<Box<dyn Procedure<G>>>;
 }

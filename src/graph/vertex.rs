@@ -1,7 +1,5 @@
 pub trait Vertex {
     fn index(&self) -> usize;
-    // index
-    // weight
 }
 
 pub trait VertexConstructor {

@@ -3,9 +3,9 @@ use crate::graph::undirected::UndirectedGraph;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure;
 use crate::procedure::procedure::{GraphProperties, Procedure};
-use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
+use crate::procedure::procedure_builder::{ConfigMap, ProcedureBuilder};
 use crate::service::colour::colouriser::Colouriser;
-use crate::service::colour::dfs_improved::DFSColourizer;
+use crate::service::colour::recursive::dfs_improved::DFSColourizer;
 use crate::service::constructions::dot_product::DotProducts;
 use crate::service::constructions::error::ConstructionError;
 use crate::service::constructions::i_extension::IExtensions;
@@ -66,7 +66,6 @@ impl<G: UndirectedGraph + GraphConstructor + Clone> Procedure<G> for Constructio
 
 impl<G: UndirectedGraph + GraphConstructor + Clone> ConstructionProcedure<G> {
     pub fn construct(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
-
         // for now just constructing fist possible extension of given graph
 
         let mut extended_graphs = vec![];
@@ -99,6 +98,10 @@ impl<G: UndirectedGraph + GraphConstructor + Clone> ConstructionProcedure<G> {
 impl ConstructionProcedureConfig {
     pub const PROC_TYPE: &'static str = "construction";
 
+    pub fn new(construction_type: ConstructionType) -> Self {
+        ConstructionProcedureConfig { construction_type }
+    }
+
     pub fn from_proc_config(config: &HashMap<String, serde_json::Value>) -> Result<Self> {
         let construction_type_string: String =
             config_helper::resolve_value(&config, CONSTRUCTION_TYPE, Self::PROC_TYPE)?;
@@ -107,17 +110,30 @@ impl ConstructionProcedureConfig {
         Ok(result)
     }
 
-    // pub fn construction_type(&self) -> &ConstructionType {
-    //     &self.construction_type
-    // }
+    pub fn construction_type(&self) -> &ConstructionType {
+        &self.construction_type
+    }
 }
 
-impl<G: UndirectedGraph + 'static + GraphConstructor + Clone > ProcedureBuilder<G> for ConstructionProcedureBuilder {
-    fn build(&self, config: Config) -> procedure::Result<Box<dyn Procedure<G>>> {
+impl<G: UndirectedGraph + 'static + GraphConstructor + Clone> ProcedureBuilder<G>
+    for ConstructionProcedureBuilder
+{
+    fn build_from_map(&self, config: ConfigMap) -> procedure::Result<Box<dyn Procedure<G>>> {
         let proc_config = ConstructionProcedureConfig::from_proc_config(&config)?;
         Ok(Box::new(ConstructionProcedure {
             config: proc_config,
             _ph: marker::PhantomData,
         }))
+    }
+}
+
+impl ConstructionProcedureBuilder {
+    pub fn build<G: UndirectedGraph + GraphConstructor + Clone + 'static>(
+        config: ConstructionProcedureConfig,
+    ) -> Box<dyn Procedure<G>> {
+        Box::new(ConstructionProcedure {
+            config,
+            _ph: marker::PhantomData,
+        })
     }
 }

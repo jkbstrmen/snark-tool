@@ -26,14 +26,14 @@ impl BfsVertex {
         }
     }
 
-    // pub fn default() -> Self {
-    //     BfsVertex {
-    //         index: 0,
-    //         visited: false,
-    //         discovered_from: 0,
-    //         distance_from_root: 0,
-    //     }
-    // }
+    pub fn default() -> Self {
+        BfsVertex {
+            index: 0,
+            visited: false,
+            discovered_from: 0,
+            distance_from_root: 0,
+        }
+    }
 
     /// GETTERS
     pub fn index(&self) -> usize {
@@ -49,22 +49,23 @@ impl BfsVertex {
         self.distance_from_root
     }
 
-    // SETTERS
-    // pub fn set_index(&mut self, index: usize) {
-    //     self.index = index;
-    // }
-    // pub fn set_visited(&mut self, visited: bool) {
-    //     self.visited = visited;
-    // }
-    // pub fn set_discovered_from(&mut self, discovered_from: usize) {
-    //     self.discovered_from = discovered_from;
-    // }
+    /// SETTERS
+    pub fn set_index(&mut self, index: usize) {
+        self.index = index;
+    }
+    pub fn set_visited(&mut self, visited: bool) {
+        self.visited = visited;
+    }
+    pub fn set_discovered_from(&mut self, discovered_from: usize) {
+        self.discovered_from = discovered_from;
+    }
 }
 
 pub struct BfsOfGraph<'a, G: Graph> {
     graph: &'a G,
     visited: Vec<Option<BfsVertex>>,
     to_visit: VecDeque<BfsVertex>,
+    discovery_order: Vec<usize>,
 }
 
 impl<'a, G: Graph> BfsOfGraph<'a, G> {
@@ -77,6 +78,7 @@ impl<'a, G: Graph> BfsOfGraph<'a, G> {
             graph,
             visited,
             to_visit,
+            discovery_order: vec![],
         };
         let start_vertex = BfsVertex::new(start, true, start, 0);
         bfs.visited[start] = Some(start_vertex);
@@ -121,9 +123,19 @@ impl<'a, G: Graph> BfsOfGraph<'a, G> {
                     ));
                 }
             }
+            self.discovery_order.push(vertex.index);
             return Some(vertex);
         }
         None
+    }
+
+    pub fn back(&mut self) {
+        if let Some(last) = self.discovery_order.pop() {
+            if let Some(mut last_vertex) = self.visited[last].clone() {
+                last_vertex.visited = false;
+                self.to_visit.push_front(last_vertex);
+            }
+        }
     }
 
     pub fn visited_vertex(&self, index: usize) -> Option<&BfsVertex> {
@@ -132,5 +144,9 @@ impl<'a, G: Graph> BfsOfGraph<'a, G> {
             return result.as_ref();
         }
         None
+    }
+
+    pub fn discovery_order(&self) -> &Vec<usize> {
+        &self.discovery_order
     }
 }

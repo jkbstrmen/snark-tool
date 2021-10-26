@@ -19,20 +19,20 @@ impl Matching {
 
 #[derive(Debug, Clone)]
 pub struct MatchingGraph {
-    vertices: Vec<Vertex>,
+    vertices: Vec<MatchingVertex>,
     size: usize,
 }
 
 #[derive(Debug, Clone)]
-pub struct Vertex {
+pub struct MatchingVertex {
     index: usize,
     active: bool,
     neighbors: Vec<usize>,
 }
 
-impl Vertex {
+impl MatchingVertex {
     pub fn new(index: usize) -> Self {
-        Vertex {
+        MatchingVertex {
             index,
             active: true,
             neighbors: vec![],
@@ -40,7 +40,7 @@ impl Vertex {
     }
 
     pub fn new_non_active(index: usize) -> Self {
-        Vertex {
+        MatchingVertex {
             index,
             active: false,
             neighbors: vec![],
@@ -140,16 +140,16 @@ impl MatchingGraph {
         }
         while self.vertices.len() <= vertex {
             if self.vertices.len() == vertex {
-                self.vertices.push(Vertex::new(self.vertices.len()));
+                self.vertices.push(MatchingVertex::new(self.vertices.len()));
                 self.size += 1;
             } else {
                 self.vertices
-                    .push(Vertex::new_non_active(self.vertices.len()));
+                    .push(MatchingVertex::new_non_active(self.vertices.len()));
             }
         }
     }
 
-    pub fn add_vertex(&mut self, vertex: Vertex) {
+    pub fn add_vertex(&mut self, vertex: MatchingVertex) {
         self.create_vertex_if_not_exists(vertex.index);
         for neighbor in vertex.neighbors.iter() {
             self.create_vertex_if_not_exists(*neighbor);
@@ -188,7 +188,7 @@ impl MatchingGraph {
         &self.vertices[vertex].neighbors
     }
 
-    fn first_vertex(&self) -> Option<&Vertex> {
+    fn first_vertex(&self) -> Option<&MatchingVertex> {
         for vertex in self.vertices.iter() {
             if vertex.active {
                 return Some(vertex);
@@ -248,25 +248,27 @@ impl MatchingGraph {
             return matchings;
         }
         if !self.has_odd_size_component() {
-            let vertex = self.first_vertex().unwrap().clone();
-            for neighbor in vertex.neighbors.iter() {
-                // remove vertices
-                let mut removed_vertices = vec![];
-                removed_vertices.push(self.vertices[vertex.index].clone());
-                removed_vertices.push(self.vertices[*neighbor].clone());
+            if let Some(vertex) = self.first_vertex() {
+                let vertex = vertex.clone();
+                for neighbor in vertex.neighbors.iter() {
+                    // remove vertices
+                    let mut removed_vertices = vec![];
+                    removed_vertices.push(self.vertices[vertex.index].clone());
+                    removed_vertices.push(self.vertices[*neighbor].clone());
 
-                self.remove_vertex(vertex.index);
-                self.remove_vertex(*neighbor);
-                let mut matchings_local = self.perfect_matchings();
-                for matching in matchings_local.iter_mut() {
-                    matching
-                        .edges
-                        .push(UndirectedEdge::new(vertex.index, *neighbor));
-                }
-                matchings.append(&mut matchings_local);
-                // recover removed vertices
-                for removed_vertex in removed_vertices {
-                    self.add_vertex(removed_vertex);
+                    self.remove_vertex(vertex.index);
+                    self.remove_vertex(*neighbor);
+                    let mut matchings_local = self.perfect_matchings();
+                    for matching in matchings_local.iter_mut() {
+                        matching
+                            .edges
+                            .push(UndirectedEdge::new(vertex.index, *neighbor));
+                    }
+                    matchings.append(&mut matchings_local);
+                    // recover removed vertices
+                    for removed_vertex in removed_vertices {
+                        self.add_vertex(removed_vertex);
+                    }
                 }
             }
         }
@@ -275,11 +277,11 @@ impl MatchingGraph {
 }
 
 pub struct MatchingGraphVerticesIter<'a> {
-    vertices: slice::Iter<'a, Vertex>,
+    vertices: slice::Iter<'a, MatchingVertex>,
 }
 
 impl<'a> Iterator for MatchingGraphVerticesIter<'a> {
-    type Item = &'a Vertex;
+    type Item = &'a MatchingVertex;
 
     fn next(&mut self) -> Option<Self::Item> {
         while let Some(vertex) = self.vertices.next() {

@@ -6,7 +6,6 @@ use crate::graph::undirected::edge::UndirectedEdge;
 use crate::graph::undirected::simple_edge_graph::simple_vertex::SimpleVertex;
 use crate::graph::undirected::UndirectedGraph;
 use crate::graph::vertex::{Vertex, VertexConstructor};
-use serde::export::Option::Some;
 
 ///
 /// undirected, without loops or multiple edges
@@ -69,6 +68,10 @@ impl Graph for SimpleEdgeGraph {
     {
         self.edges
             .retain(|edge| edge.from() != vertex && edge.to() != vertex);
+    }
+
+    fn remove_vertex(&mut self, vertex_index: usize) {
+        self.remove_edges_of_vertex(vertex_index)
     }
 
     fn vertices<'a>(&'a self) -> Box<dyn Iterator<Item = &'a SimpleVertex> + 'a> {

@@ -4,7 +4,6 @@ use crate::graph::undirected::multi_graph::graph::MultiGraph;
 use crate::graph::vertex::{Vertex, VertexConstructor};
 use crate::service::property::max_flow::residual_graph::edge::DirectedFlowEdge;
 use crate::service::property::max_flow::residual_graph::vertex::ResidualVertex;
-use serde::export::Option::Some;
 use std::{fmt, slice};
 
 ///
@@ -67,6 +66,10 @@ impl Graph for ResidualGraph {
             return;
         }
         self.vertices[vertex].edges = vec![];
+    }
+
+    fn remove_vertex(&mut self, vertex_index: usize) {
+        self.remove_edges_of_vertex(vertex_index)
     }
 
     fn vertices<'a>(&'a self) -> Box<dyn Iterator<Item = &'a ResidualVertex> + 'a> {

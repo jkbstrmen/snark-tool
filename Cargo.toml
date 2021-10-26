@@ -1,10 +1,27 @@
 [package]
 name = "snark-tool"
 version = "0.3.1-SNAPSHOT"
-authors = ["jstrmen <kubbost@gmail.com>"]
+authors = ["jkbstrmen <jkb.strmen@gmail.com>"]
 edition = "2018"
+description = "snark-tool library contains structures and algorithm for (mainly) cubic graph analysis"
+readme = "README.md"
+homepage = "https://github.com/jkbstrmen/snark-tool"
+repository = "https://github.com/jkbstrmen/snark-tool"
+license = "MIT OR Apache-2.0"
+keywords = ["graph theory", "snark", "algorithm"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+exclude = [
+    "resources/graphs/*",
+    "snark-tool.yml",
+]
+
+[lib]
+name = "snark_tool"           # The name of the target.
+path = "src/lib.rs"    # The source file of the target.
+
+[[bin]]
+name = "snark-tool"           # The name of the target.
+path = "src/main.rs"    # The source file of the target.
 
 [profile.test]
 opt-level = 3
@@ -14,11 +31,19 @@ opt-level = 3
 
 [dependencies]
 structopt = "0.2.10"
-yaml-rust = "0.4.3"
+yaml-rust = "0.4.4"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.8"
 serde_json = "1.0"
-bit-vec = "0.6.1"
-varisat = "0.2.1"
-rand = "0.7.3"
-num_cpus = "1.13.0"
+bit-vec = "0.6"
+rand = "0.7"
+num_cpus = "1.13"
+petgraph = "0.5.1"
+
+# SAT solvers
+varisat = "0.2.2"
+cadical = "0.1.13"
+
+
+
+

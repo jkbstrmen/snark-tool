@@ -2,7 +2,7 @@ use std::str::Chars;
 
 use crate::graph::graph::{Graph, GraphConstructor};
 use crate::service::io::error::ReadError;
-use crate::service::io::reader::Reader;
+use crate::service::io::reader::GraphFileReader;
 use std::io::{BufRead, BufReader};
 use std::marker::PhantomData;
 use std::{fs, io, result};
@@ -21,7 +21,7 @@ where
     _ph: PhantomData<G>,
 }
 
-impl<'a, G> Reader<'a, G> for G6Reader<'a, G>
+impl<'a, G> GraphFileReader<'a, G> for G6Reader<'a, G>
 where
     G: Graph + GraphConstructor,
 {
@@ -33,21 +33,25 @@ where
     }
 
     fn next(&mut self) -> Option<Result<G>> {
-        let mut line_opt = self.lines.next();
-        while line_opt.is_some() {
-            let line_result = line_opt.unwrap();
-            if line_result.is_ok() {
-                let line = line_result.unwrap();
-                if line.trim().is_empty() {
-                    line_opt = self.lines.next();
-                    continue;
-                }
-                let graph = G6Reader::read_graph(line);
-                return Some(graph);
+        let line_opt = self.lines.next();
+        match line_opt {
+            None => {
+                // warn - file contains less graphs than specified to work with
+                return None;
             }
-            line_opt = self.lines.next();
+            Some(line) => {
+                if let Ok(line_str) = line {
+                    if line_str.trim().is_empty() {
+                        return self.next();
+                    }
+                    let graph = G6Reader::read_graph(line_str);
+                    return Some(graph);
+                } else {
+                    // skip error lines?
+                    return self.next();
+                }
+            }
         }
-        None
     }
 }
 
@@ -169,43 +173,3 @@ fn append_char_binary_to_size(mut size: u64, iterator: &mut Chars) -> Result<u64
     size = (size << 6) | ((char.unwrap() as u64) - BIAS as u64);
     Ok(size)
 }
-
-// TODO - to remove
-// pub fn read_graph(source: impl AsRef<str>) -> Result<StableGraph<u8, u16, Undirected, u8>> {
-//     let mut iterator = source.as_ref().chars();
-//     let size = get_graph_size(&mut iterator);
-//     let graph = create_graph(&mut iterator, size? as u32);
-//     Ok(graph)
-// }
-//
-// fn create_graph(iterator: &mut Chars, size: u32) -> StableGraph<u8, u16, Undirected, u8> {
-//     let nodes = size as usize;
-//     let edges = (size * 3 / 2) as usize;
-//     let mut undirected = StableGraph::<u8, u16, Undirected, u8>::with_capacity(nodes, edges);
-//
-//     for _node in 0..size {
-//         undirected.add_node(0);
-//     }
-//
-//     let error = "error";
-//     let mut char = iterator.next();
-//     let mut position = Position { row: 0, column: 1 };
-//     while char != None {
-//         let bits = format!("{:b}", (char.expect(error) as u8) - BIAS);
-//         for _i in 0..(6 - bits.len()) {
-//             position.increment();
-//         }
-//         for char in bits.chars() {
-//             if char == '1' {
-//                 undirected.add_edge(
-//                     NodeIndex::new(position.row),
-//                     NodeIndex::new(position.column),
-//                     0,
-//                 );
-//             }
-//             position.increment();
-//         }
-//         char = iterator.next();
-//     }
-//     undirected
-// }

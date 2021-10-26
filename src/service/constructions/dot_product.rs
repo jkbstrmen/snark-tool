@@ -96,6 +96,7 @@ pub struct DotProducts<'a, G: Graph<E = UndirectedEdge>> {
     graph_h: &'a G,
     non_adjacent_edge_pairs_of_g: PairsOfNonAdjacentEdges<'a, G>,
     adjacent_vertex_pairs_of_h: PairsOfAdjacentVertices<'a, G::V, G>,
+    edge_pair_current: Option<(&'a UndirectedEdge, &'a UndirectedEdge)>,
 }
 
 impl<'a, G: Graph<E = UndirectedEdge> + Clone + GraphConstructor> DotProducts<'a, G> {
@@ -105,6 +106,7 @@ impl<'a, G: Graph<E = UndirectedEdge> + Clone + GraphConstructor> DotProducts<'a
             graph_h,
             non_adjacent_edge_pairs_of_g: PairsOfNonAdjacentEdges::new(graph_g),
             adjacent_vertex_pairs_of_h: PairsOfAdjacentVertices::new(graph_h),
+            edge_pair_current: None,
         }
     }
 }
@@ -113,7 +115,10 @@ impl<'a, G: Graph<E = UndirectedEdge> + Clone + GraphConstructor> Iterator for D
     type Item = G;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(edges) = self.non_adjacent_edge_pairs_of_g.next() {
+        if self.edge_pair_current.is_none() {
+            self.edge_pair_current = self.non_adjacent_edge_pairs_of_g.next();
+        }
+        if let Some(edges) = self.edge_pair_current {
             if let Some(vertices) = self.adjacent_vertex_pairs_of_h.next() {
                 let graph = dot_product(
                     self.graph_g,
@@ -125,6 +130,9 @@ impl<'a, G: Graph<E = UndirectedEdge> + Clone + GraphConstructor> Iterator for D
                 );
                 return Some(graph);
             }
+            self.edge_pair_current = None;
+            self.adjacent_vertex_pairs_of_h = PairsOfAdjacentVertices::new(self.graph_h);
+            return self.next();
         }
         None
     }

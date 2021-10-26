@@ -1,9 +1,10 @@
 use crate::graph::graph::GraphConstructor;
 use crate::graph::undirected::UndirectedGraph;
+use crate::procedure::basic_procedures::read;
 use crate::procedure::error::Error;
 use crate::procedure::helpers::config_helper;
 use crate::procedure::procedure::{GraphProperties, Procedure, Result};
-use crate::procedure::procedure_builder::{Config, ProcedureBuilder};
+use crate::procedure::procedure_builder::{ConfigMap, ProcedureBuilder};
 use crate::service::io::error::{ReadError, WriteError};
 use crate::service::io::writer_ba::BaWriter;
 use crate::service::io::writer_g6::G6Writer;
@@ -13,6 +14,13 @@ use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::{fs, marker, path};
+
+// config params
+const FILE_NAME: &str = "file";
+const GRAPH_FORMAT: &str = "graph-format";
+const WITH_PROPERTIES: &str = "with-properties";
+
+const DEFAULT_FILE_NAME: &str = "write-procedure-output-file";
 
 struct WriteProcedure<G: UndirectedGraph> {
     config: WriteProcedureConfig,
@@ -27,14 +35,14 @@ pub struct WriteProcedureConfig {
     with_properties: bool,
 }
 
-impl<G: UndirectedGraph + GraphConstructor> Procedure<G> for WriteProcedure<G> {
+impl<G: UndirectedGraph> Procedure<G> for WriteProcedure<G> {
     fn run(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()> {
         println!("running write procedure");
         self.write_graphs(graphs)
     }
 }
 
-impl<G: UndirectedGraph + GraphConstructor> WriteProcedure<G> {
+impl<G: UndirectedGraph> WriteProcedure<G> {
     pub fn write_graphs(&self, graphs: &mut Vec<(G, GraphProperties)>) -> Result<()>
     where
         G: UndirectedGraph,
@@ -56,13 +64,13 @@ impl<G: UndirectedGraph + GraphConstructor> WriteProcedure<G> {
         file_path: &String,
     ) -> Result<()> {
         match graph_format.as_str() {
-            "g6" => {
+            read::G6_FORMAT => {
                 G6Writer::write_graphs_to_file(&graphs, file_path)?;
             }
-            "ba" => {
+            read::BA_FORMAT => {
                 BaWriter::write_graphs_to_file(graphs, file_path)?;
             }
-            "s6" => {
+            read::S6_FORMAT => {
                 S6Writer::write_graphs_to_file(graphs, file_path)?;
             }
             _ => {
@@ -85,10 +93,10 @@ impl<G: UndirectedGraph + GraphConstructor> WriteProcedure<G> {
         for graph in graphs {
             let graph_string;
             match graph_format.as_str() {
-                "g6" => {
+                read::G6_FORMAT => {
                     graph_string = G6Writer::graph_to_g6_string(&graph.0);
                 }
-                "s6" => {
+                read::S6_FORMAT => {
                     graph_string = S6Writer::graph_to_s6_string(&graph.0);
                 }
                 _ => {
@@ -137,21 +145,37 @@ pub struct GraphWithProperties {
 impl WriteProcedureConfig {
     pub const PROC_TYPE: &'static str = "write";
 
+    pub fn new(file_path: String, graph_format: String, with_properties: bool) -> Self {
+        WriteProcedureConfig {
+            file_path,
+            graph_format,
+            with_properties,
+        }
+    }
+
+    pub fn default() -> Self {
+        WriteProcedureConfig {
+            file_path: DEFAULT_FILE_NAME.to_string(),
+            graph_format: read::G6_FORMAT.to_string(),
+            with_properties: false,
+        }
+    }
+
     pub fn from_proc_config(config: &HashMap<String, serde_json::Value>) -> Result<Self> {
         let file_path = config_helper::resolve_value_or_default(
             &config,
-            "file",
-            "write-procedure-output-file".to_string(),
+            FILE_NAME,
+            DEFAULT_FILE_NAME.to_string(),
             Self::PROC_TYPE,
         )?;
         let graph_format = config_helper::resolve_value_or_default(
             &config,
-            "graph-format",
-            "g6".to_string(),
+            GRAPH_FORMAT,
+            read::G6_FORMAT.to_string(),
             Self::PROC_TYPE,
         )?;
         let with_properties =
-            config_helper::resolve_value(&config, "with-properties", Self::PROC_TYPE)?;
+            config_helper::resolve_value(&config, WITH_PROPERTIES, Self::PROC_TYPE)?;
 
         let result = WriteProcedureConfig {
             file_path,
@@ -176,11 +200,22 @@ impl WriteProcedureConfig {
 impl<G: UndirectedGraph + GraphConstructor + 'static> ProcedureBuilder<G>
     for WriteProcedureBuilder
 {
-    fn build(&self, config: Config) -> Result<Box<dyn Procedure<G>>> {
+    fn build_from_map(&self, config: ConfigMap) -> Result<Box<dyn Procedure<G>>> {
         let proc_config = WriteProcedureConfig::from_proc_config(&config)?;
         Ok(Box::new(WriteProcedure {
             config: proc_config,
             _ph: marker::PhantomData,
         }))
+    }
+}
+
+impl WriteProcedureBuilder {
+    pub fn build<G: UndirectedGraph + 'static>(
+        config: WriteProcedureConfig,
+    ) -> Box<dyn Procedure<G>> {
+        Box::new(WriteProcedure {
+            config,
+            _ph: marker::PhantomData,
+        })
     }
 }

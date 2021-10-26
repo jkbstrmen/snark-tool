@@ -1,8 +1,8 @@
 //! Module graph contains graph structures.
 //!
-//! Basic usage:
+//! # Basic usage:
 //!
-//! ```rust
+//! ```
 //! use snark_tool::graph::graph::{Graph, GraphConstructor};
 //! use snark_tool::graph::undirected::simple_graph::graph::SimpleGraph;
 //!

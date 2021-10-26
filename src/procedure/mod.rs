@@ -1,16 +1,17 @@
 //! Procedure tools encapsulate snark-tool's functionality to procedures runnable in chain.
 //!
+//! # Basic usage
 //! Creation of basic procedure chain:
 //!
-//! ```rust
-//! use snark_tool::procedure::basic_procedures::read::{ReadProcedureConfig, ReadProcedureBuilder};
-//! use snark_tool::procedure::basic_procedures::read;
-//! use snark_tool::procedure::basic_procedures::colour::{ColourProcedureConfig, ColourProcedureBuilder};
-//! use snark_tool::procedure::basic_procedures::counter::{CounterProcedureConfig, CounterProcedureBuilder};
-//! use snark_tool::procedure::procedure_chain::ProcedureChain;
-//! use snark_tool::graph::undirected::simple_graph::graph::SimpleGraph;
-//! use snark_tool::procedure::procedure::GraphProperties;
-//!
+//! ```
+//! # use snark_tool::procedure::basic_procedures::read::{ReadProcedureConfig, ReadProcedureBuilder};
+//! # use snark_tool::procedure::basic_procedures::read;
+//! # use snark_tool::procedure::basic_procedures::colour::{ColourProcedureConfig, ColourProcedureBuilder};
+//! # use snark_tool::procedure::basic_procedures::counter::{CounterProcedureConfig, CounterProcedureBuilder};
+//! # use snark_tool::procedure::procedure_chain::ProcedureChain;
+//! # use snark_tool::graph::undirected::simple_graph::graph::SimpleGraph;
+//! # use snark_tool::procedure::procedure::GraphProperties;
+//! #
 //! // how to create chain of procedures
 //! fn main() {
 //!     let read_config = ReadProcedureConfig::new(

@@ -3,7 +3,6 @@ use crate::graph::graph::Graph;
 use crate::graph::undirected::edge::UndirectedEdge;
 use crate::service::colour::colouriser::Colouriser;
 use crate::service::component_analysis::edge_pairs::RemovablePairsOfEdges;
-use serde::export::Option::Some;
 
 ///
 /// I-extension will extend graph by two vertices

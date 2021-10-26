@@ -42,6 +42,13 @@ impl From<ProcedureError> for Error {
     }
 }
 
+impl From<serde_json::error::Error> for Error {
+    fn from(error: serde_json::error::Error) -> Self {
+        let message = format!("serde json error: {}", error);
+        Error::ProcedureError(ProcedureError { message })
+    }
+}
+
 #[derive(Debug)]
 pub struct ProcedureError {
     pub message: String,

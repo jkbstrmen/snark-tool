@@ -89,8 +89,11 @@ impl Graph for SimpleGraph {
         }
     }
 
+    fn remove_vertex(&mut self, vertex_index: usize) {
+        self.remove_edges_of_vertex(vertex_index)
+    }
+
     fn vertices<'a>(&'a self) -> Box<dyn Iterator<Item = &'a VertexWithEdges> + 'a> {
-        // Box::new(self.vertices.iter())
         Box::new(Vertices::new(self.vertices.iter()))
     }
 

@@ -4,3 +4,5 @@ Cargo.lock
 
 /resources/graphs
 /resources/measurement_samples
+
+test.yml

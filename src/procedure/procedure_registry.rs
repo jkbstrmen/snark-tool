@@ -1,11 +1,15 @@
+use std::collections::HashMap;
+
 use crate::graph::graph::GraphConstructor;
 use crate::graph::undirected::UndirectedGraph;
-use crate::procedure::basic_procedures::chromatic_properties::{
-    ChromaticPropsProcedureBuilder, ChromaticPropsProcedureConfig,
-};
+use crate::procedure::basic_procedures::chrom_props::chromatic_properties::ChromaticPropsProcedureBuilder;
+use crate::procedure::basic_procedures::chrom_props::config::ChromaticPropsProcedureConfig;
 use crate::procedure::basic_procedures::colour::{ColourProcedureBuilder, ColourProcedureConfig};
 use crate::procedure::basic_procedures::constructions::{
     ConstructionProcedureBuilder, ConstructionProcedureConfig,
+};
+use crate::procedure::basic_procedures::counter::{
+    CounterProcedureBuilder, CounterProcedureConfig,
 };
 use crate::procedure::basic_procedures::filter::{FilterProcedureBuilder, FilterProcedureConfig};
 use crate::procedure::basic_procedures::read::{ReadProcedureBuilder, ReadProcedureConfig};
@@ -14,7 +18,6 @@ use crate::procedure::basic_procedures::write::{WriteProcedureBuilder, WriteProc
 use crate::procedure::configuration::ProcedureConfig;
 use crate::procedure::procedure::{Procedure, Result};
 use crate::procedure::procedure_builder::ProcedureBuilder;
-use std::collections::HashMap;
 
 pub struct ProcedureRegistry<G: UndirectedGraph> {
     registry: HashMap<String, Box<dyn ProcedureBuilder<G>>>,
@@ -53,6 +56,10 @@ impl<G: UndirectedGraph + GraphConstructor + Clone + 'static> ProcedureRegistry<
             ConstructionProcedureConfig::PROC_TYPE.to_string(),
             ConstructionProcedureBuilder {},
         );
+        reg.insert(
+            CounterProcedureConfig::PROC_TYPE.to_string(),
+            CounterProcedureBuilder {},
+        );
         reg
     }
 
@@ -70,11 +77,10 @@ impl<G: UndirectedGraph + GraphConstructor + Clone + 'static> ProcedureRegistry<
             conf_map = config.config.unwrap();
         }
 
-        for proc_type in self.registry.iter() {
-            if config.proc_type.eq(proc_type.0) {
-                let proc = proc_type.1.build(conf_map);
-                return proc;
-            }
+        let proc_builder = self.registry.get(&config.proc_type);
+        if let Some(builder) = proc_builder {
+            let proc = builder.build_from_map(conf_map);
+            return proc;
         }
 
         // or just println right now

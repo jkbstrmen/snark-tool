@@ -68,20 +68,11 @@ impl Graph for MultiGraph {
             from_vertex.edges.remove(position);
         }
 
-        // from_vertex.edges.remove_item(&edge_to_remove);
-        //
-        // from_vertex.edges.retain(|edge| {
-        //     edge.from() != edge_to_remove.from() || edge.to() != edge_to_remove.to()
-        // });
-
         let to_vertex = &mut self.vertices[to];
         let pos = to_vertex.edges.iter().position(|x| *x == edge_to_remove);
         if let Some(position) = pos {
             to_vertex.edges.remove(position);
         }
-        // to_vertex.edges.retain(|edge| {
-        //     edge.from() != edge_to_remove.from() || edge.to() != edge_to_remove.to()
-        // });
     }
 
     fn remove_edges_of_vertex(&mut self, vertex: usize) {
@@ -96,6 +87,10 @@ impl Graph for MultiGraph {
                 edge_to_remove.from() != edge.from() || edge_to_remove.to() != edge.to()
             });
         }
+    }
+
+    fn remove_vertex(&mut self, vertex_index: usize) {
+        self.remove_edges_of_vertex(vertex_index)
     }
 
     fn vertices<'a>(&'a self) -> Box<dyn Iterator<Item = &'a VertexWithEdges> + 'a> {
